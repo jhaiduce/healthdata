@@ -1,0 +1,3 @@
+[run]
+source = health_data
+omit = health_data/test*
