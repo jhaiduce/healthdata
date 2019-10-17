@@ -74,12 +74,21 @@ class Symptom(Record):
 class Period(Record):
     __tablename__ = 'period'
     id = Column(Integer, ForeignKey('record.id'), primary_key=True)
-    intensity = Column(Float)
+    period_intensity = Column(Integer)
     date = Column(Date)
 
     __mapper_args__ = {
         'polymorphic_identity':'period'
     }
+
+period_intensity_choices={
+    1:'None',
+    2:'.',
+    3:'-',
+    4:'+',
+    5:'*',
+    6:'#'
+}
 
 class Note(Record):
     __tablename__ = 'note'
