@@ -73,15 +73,16 @@ class PeriodViews(object):
 
         dates=[datetime(2019,10,18)+timedelta(days) for days in range(ndates)]
         
-        ptemp=figure(x_axis_type='datetime')
-        pcerv=figure(plot_width=ptemp.plot_width,x_range=ptemp.x_range,x_axis_type='datetime')
-        pperiod=figure(plot_width=ptemp.plot_width,x_range=ptemp.x_range,x_axis_type='datetime')
+        ptemp=figure(x_axis_type='datetime',width=800,height=400)
+        pcerv_period=figure(plot_width=ptemp.plot_width,x_range=ptemp.x_range,x_axis_type='datetime',height=100)
 
-        ptemp.scatter(dates,np.random.uniform(97,99,ndates)),
-        pcerv.vbar(x=dates,width=timedelta(1),top=np.random.randint(0,3,ndates)),
-        pperiod.vbar(x=dates,width=timedelta(1),top=np.random.randint(0,8,ndates)),
+        temps=np.random.uniform(97,99,ndates)
 
-        layout=gridplot([[ptemp],[pcerv],[pperiod]])
+        ptemp.line(dates,temps),
+        ptemp.scatter(dates,temps,marker='circle',size=8,fill_alpha=0),
+        pcerv_period.vbar(x=dates,width=timedelta(1),top=np.random.randint(-3,3,ndates)),
+
+        layout=gridplot([[ptemp],[pcerv_period]])
         
         bokeh_script,bokeh_div=components(layout)
 
