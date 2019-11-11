@@ -40,27 +40,29 @@ class BaseTest(unittest.TestCase):
         Base.metadata.drop_all(self.engine)
 
 
-class TestMyViewSuccessCondition(BaseTest):
+class TestPeriod(BaseTest):
 
     def setUp(self):
-        super(TestMyViewSuccessCondition, self).setUp()
+        super(TestPeriod, self).setUp()
         self.init_database()
 
-        from .models import MyModel
+        from .models.records import Period, period_intensity_choices, cervical_fluid_choices, Temperature
+        from datetime import date, datetime
 
-        model = MyModel(name='one', value=55)
-        self.session.add(model)
+        period = Period(period_intensity=3,date=date(2019,10,31),
+                        cervical_fluid_character=1,
+                        temperature=Temperature(
+                            temperature=97.5,
+                            time=datetime(2019,10,31,7,13)))
+        self.session.add(period)
 
-    def test_passing_view(self):
-        from .views.default import my_view
-        info = my_view(dummy_request(self.session))
-        self.assertEqual(info['one'].name, 'one')
-        self.assertEqual(info['project'], 'Health Data')
+    def test_period_plot(self):
+        from .views.period import PeriodViews
+        views = PeriodViews(dummy_request(self.session))
+        info=views.period_plot()
 
-
-class TestMyViewFailureCondition(BaseTest):
-
-    def test_failing_view(self):
-        from .views.default import my_view
-        info = my_view(dummy_request(self.session))
-        self.assertEqual(info.status_int, 500)
+    def test_period_add(self):
+        from .views.period import PeriodViews
+        views = PeriodViews(dummy_request(self.session))
+        info=views.period_add()
+        print(info)
