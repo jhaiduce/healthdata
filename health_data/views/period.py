@@ -30,6 +30,22 @@ class PeriodForm(colander.MappingSchema):
 
     temperature_time=colander.SchemaNode(colander.Time(),missing=None)
 
+def appstruct_to_period(dbsession,appstruct,existing_record=None):
+    if existing_record:
+        period=existing_record
+    else:
+        period=Period()
+        period.temperature=Temperature()
+
+    period.intensity=appstruct['period_intensity']
+    period.date=appstruct['date']
+    period.cervical_fluid_character=appstruct['cervical_fluid']
+    period.temperature.temperature=appstruct['temperature']
+    if appstruct['temperature_time'] is not None:
+        period.temperature.time=datetime.combine(period.date,appstruct['temperature_time'])
+
+    return period
+
 class PeriodViews(object):
     def __init__(self,request):
         self.request=request
