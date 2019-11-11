@@ -13,6 +13,9 @@ from sqlalchemy import (
 
 from sqlalchemy.sql import func
 
+from sqlalchemy.orm import relationship
+
+
 from .meta import Base
 
 from datetime import datetime
@@ -29,6 +32,16 @@ class Record(Base):
     __mapper_args__ = {
         'polymorphic_on':record_type,
         'polymorphic_identity':'record'
+    }
+
+class Note(Record):
+    __tablename__ = 'note'
+    id = Column(Integer, ForeignKey('record.id'), primary_key=True)
+    date = Column(DateTime)
+    text = Column(Text)
+
+    __mapper_args__ = {
+        'polymorphic_identity':'note'
     }
 
 class Temperature(Record):
@@ -77,6 +90,12 @@ class Period(Record):
     period_intensity = Column(Integer)
     cervical_fluid_character = Column(Integer)
     date = Column(Date)
+    temperature_id=Column(Integer,ForeignKey('temperature.id'))
+    notes_id=Column(Integer,ForeignKey('note.id'))
+
+    temperature=relationship(Temperature,foreign_keys=temperature_id)
+
+    notes=relationship(Note,foreign_keys=notes_id)
 
     __mapper_args__ = {
         'polymorphic_identity':'period'
@@ -98,12 +117,3 @@ cervical_fluid_choices={
     4:'Eggwhite'
 }
 
-class Note(Record):
-    __tablename__ = 'note'
-    id = Column(Integer, ForeignKey('record.id'), primary_key=True)
-    date = Column(DateTime)
-    text = Column(Text)
-
-    __mapper_args__ = {
-        'polymorphic_identity':'note'
-    }
