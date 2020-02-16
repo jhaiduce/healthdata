@@ -95,7 +95,8 @@ class PeriodViews(object):
         temps=np.random.uniform(97,99,ndates)
 
         ptemp.line(dates,temps),
-        ptemp.scatter(dates,temps,marker='circle',size=8,fill_alpha=0),
+        ptemp.scatter(dates,temps,marker='circle',size=8,fill_alpha=0)
+        ptemp.yaxis.axis_label='Temperature (F)'
         pcerv_period.vbar(x=dates,width=timedelta(1),top=np.random.randint(-3,3,ndates)),
 
         layout=gridplot([[ptemp],[pcerv_period]])
