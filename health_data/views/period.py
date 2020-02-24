@@ -73,6 +73,8 @@ class PeriodViews(object):
 
             period=appstruct_to_period(dbsession,appstruct)
             dbsession.add(period)
+            url = self.request.route_url('period_plot')
+            return HTTPFound(url)
 
         return dict(form=form)
 
