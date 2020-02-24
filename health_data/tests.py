@@ -17,6 +17,8 @@ class BaseTest(unittest.TestCase):
         self.config.include('.models')
         settings = self.config.get_settings()
 
+        self.config.add_route('period_plot','/period')
+
         from .models import (
             get_engine,
             get_session_factory,
@@ -63,6 +65,21 @@ class TestPeriod(BaseTest):
 
     def test_period_add(self):
         from .views.period import PeriodViews
-        views = PeriodViews(dummy_request(self.session))
+        from .models.records import Period
+        from datetime import date, datetime
+        request=testing.DummyRequest({
+            'form.submitted':True,
+            'submit':'submit',
+            'period_intensity':'5',
+            'cervical_fluid':'1',
+            '__start__':'date:mapping',
+            'date':'2019-10-29',
+            '__end__':'date:mapping',
+            'temperature':'97.7',
+            'time':'07:13',
+        },dbsession=self.session)
+        views = PeriodViews(request)
         info=views.period_add()
-        print(info)
+        record_count=self.session.query(Period).filter(
+            Period.date==date(2019,10,29)).count()
+        self.assertGreater(record_count,0)
