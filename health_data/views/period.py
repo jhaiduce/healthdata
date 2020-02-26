@@ -81,9 +81,10 @@ class PeriodViews(object):
     @view_config(route_name='period_plot',renderer='../templates/period_plot.jinja2')
     def period_plot(self):
 
-        from bokeh.layouts import gridplot
+        from bokeh.layouts import gridplot,layout
         from bokeh.plotting import figure
         from bokeh.embed import components
+        from bokeh.models.widgets import Button
 
         import numpy as np
 
@@ -101,7 +102,25 @@ class PeriodViews(object):
         ptemp.yaxis.axis_label='Temperature (F)'
         pcerv_period.vbar(x=dates,width=timedelta(1),top=np.random.randint(-3,3,ndates)),
 
-        layout=gridplot([[ptemp],[pcerv_period]])
+        from bokeh.models.callbacks import CustomJS
+        from bokeh.events import ButtonClick
+
+        pager_args=dict(source=ptemp)
+        pager_code="""
+        var xr=source.x_range;
+        xr.start+=step;
+        xr.end+=step;
+        source.change.emit();
+        """
+        callback_prev=CustomJS(args={**pager_args,'step':-3600*24*1000},code=pager_code)
+        callback_next=CustomJS(args={**pager_args,'step':3600*24*1000},code=pager_code)
+        
+        button_prev=Button(label='<')
+        button_prev.js_on_event(ButtonClick,callback_prev)
+        button_next=Button(label='>')
+        button_next.js_on_event(ButtonClick,callback_next)
+
+        layout=gridplot([[layout([[button_prev,button_next]])],[ptemp],[pcerv_period]])
         
         bokeh_script,bokeh_div=components(layout)
 
