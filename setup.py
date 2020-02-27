@@ -22,7 +22,8 @@ requires = [
     'zope.sqlalchemy',
     'bcrypt',
     'deform',
-    'bokeh'
+    'bokeh',
+    'pandas'
 ]
 
 tests_require = [

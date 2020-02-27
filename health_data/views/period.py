@@ -88,19 +88,27 @@ class PeriodViews(object):
 
         import numpy as np
 
-        ndates=10
+        import pandas as pd
 
-        dates=[datetime(2019,10,18)+timedelta(days) for days in range(ndates)]
+        from sqlalchemy.orm import joinedload
+        
+        dbsession=self.request.dbsession
+
+        query=dbsession.query(Period).options(
+            joinedload(Period.temperature).load_only(Temperature.temperature)
+        ).order_by(Period.date)
+        periods=pd.read_sql(query.statement,dbsession.bind)
+
+        dates=periods['date']
         
         ptemp=figure(x_axis_type='datetime',width=800,height=400)
         pcerv_period=figure(plot_width=ptemp.plot_width,x_range=ptemp.x_range,x_axis_type='datetime',height=100)
 
-        temps=np.random.uniform(97,99,ndates)
-
-        ptemp.line(dates,temps),
-        ptemp.scatter(dates,temps,marker='circle',size=8,fill_alpha=0)
+        ptemp.line(dates,periods.temperature),
+        ptemp.scatter(dates,periods.temperature,marker='circle',size=8,fill_alpha=0)
         ptemp.yaxis.axis_label='Temperature (F)'
-        pcerv_period.vbar(x=dates,width=timedelta(1),top=np.random.randint(-3,3,ndates)),
+        pcerv_period.vbar(x=dates,width=timedelta(1),top=-periods.cervical_fluid_character)
+        pcerv_period.vbar(x=dates,width=timedelta(1),top=periods.period_intensity)
 
         from bokeh.models.callbacks import CustomJS
         from bokeh.events import ButtonClick
