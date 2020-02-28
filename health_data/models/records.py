@@ -112,8 +112,8 @@ period_intensity_choices={
 
 cervical_fluid_choices={
     1:'None',
-    2:'Creamy',
-    3:'Sticky',
+    2:'Sticky',
+    3:'Creamy',
     4:'Eggwhite'
 }
 
