@@ -110,8 +110,8 @@ class PeriodViews(object):
         ptemp.line(dates,periods.temperature),
         ptemp.scatter(dates,periods.temperature,marker='circle',size=8,fill_alpha=0)
         ptemp.yaxis.axis_label='Temperature (F)'
-        pcerv_period.vbar(x=dates,width=timedelta(1),top=-periods.cervical_fluid_character)
-        pcerv_period.vbar(x=dates,width=timedelta(1),top=periods.period_intensity)
+        pcerv_period.vbar(x=dates,width=timedelta(1),top=-(periods.cervical_fluid_character-1))
+        pcerv_period.vbar(x=dates,width=timedelta(1),top=periods.period_intensity-1,color='red')
 
         from bokeh.models.callbacks import CustomJS
         from bokeh.events import ButtonClick
