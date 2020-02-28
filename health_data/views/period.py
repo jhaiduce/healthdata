@@ -13,6 +13,10 @@ class PeriodForm(colander.MappingSchema):
         widget=deform.widget.HiddenWidget(),missing=None)
 
     date=colander.SchemaNode(colander.Date(),missing=date.today())
+    temperature_time=colander.SchemaNode(colander.Time(),missing=None)
+    temperature=colander.SchemaNode(
+        colander.Float(),missing=None)
+
     period_intensity=colander.SchemaNode(
         colander.Integer(),
         widget=deform.widget.SelectWidget(
@@ -25,10 +29,6 @@ class PeriodForm(colander.MappingSchema):
             values=[(key,value) for (key,value) in cervical_fluid_choices.items()]),
         missing=None)
 
-    temperature=colander.SchemaNode(
-        colander.Float(),missing=None)
-
-    temperature_time=colander.SchemaNode(colander.Time(),missing=None)
 
 def appstruct_to_period(dbsession,appstruct,existing_record=None):
     if existing_record:
