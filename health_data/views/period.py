@@ -37,7 +37,7 @@ def appstruct_to_period(dbsession,appstruct,existing_record=None):
         period=Period()
         period.temperature=Temperature()
 
-    period.intensity=appstruct['period_intensity']
+    period.period_intensity=appstruct['period_intensity']
     period.date=appstruct['date']
     period.cervical_fluid_character=appstruct['cervical_fluid']
     period.temperature.temperature=appstruct['temperature']
