@@ -98,9 +98,14 @@ class PeriodViews(object):
             joinedload(Period.temperature).load_only(Temperature.temperature)
         ).order_by(Period.date)
         periods=pd.read_sql(query.statement,dbsession.bind)
+        periods.period_intensity=periods.period_intensity.fillna(1)
 
         dates=periods['date']
         
+        intensities=periods.period_intensity
+        start_inds=(intensities>1)&(intensities.shift(1)==1)
+        start_dates=dates[start_inds]
+
         ptemp=figure(x_axis_type='datetime',width=800,height=400)
         pcerv_period=figure(plot_width=ptemp.plot_width,x_range=ptemp.x_range,x_axis_type='datetime',height=100)
 
@@ -116,11 +121,20 @@ class PeriodViews(object):
         from bokeh.models.callbacks import CustomJS
         from bokeh.events import ButtonClick
 
-        pager_args=dict(source=ptemp)
+        pager_args=dict(source=ptemp,start_dates=start_dates)
         pager_code="""
         var xr=source.x_range;
-        xr.start+=step;
-        xr.end+=step;
+        var oldStart=xr.start
+        newStartIndex=start_dates.findIndex(function(date){
+          return date>(oldStart-Math.abs(step));
+        });
+        if(oldStart>start_dates[start_dates.length-1]) newStartIndex=start_dates.length-1;
+        if(step<0 && start_dates[Math.max(newStartIndex,0)]>(oldStart+step)) newStartIndex=Math.max(newStartIndex-1,0);
+        if(step>=0 && start_dates[newStartIndex]<(oldStart+step)) newStartIndex+=1;
+        newStartIndex=Math.max(Math.min(newStartIndex,start_dates.length-1),0);
+        newStart=start_dates[newStartIndex];
+        xr.start=newStart;
+        xr.end=newStart+40*3600*24*1000;
         source.change.emit();
         """
         callback_prev=CustomJS(args={**pager_args,'step':-3600*24*1000},code=pager_code)
