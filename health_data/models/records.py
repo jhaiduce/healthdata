@@ -15,6 +15,7 @@ from sqlalchemy.sql import func
 
 from sqlalchemy.orm import relationship
 
+from sqlalchemy.ext.declarative import declared_attr
 
 from .meta import Base
 
@@ -24,9 +25,6 @@ class Record(Base):
 
     __tablename__='record'
     id = Column(Integer, Sequence('record_seq'), primary_key=True)
-    entry_date = Column(DateTime, server_default=func.now())
-    modified_date = Column(DateTime, onupdate=func.now())
-    person = Column(Integer, ForeignKey('user.id',name='fk_user_id'))
     record_type = Column(String(255))
 
     __mapper_args__ = {
@@ -34,7 +32,21 @@ class Record(Base):
         'polymorphic_identity':'record'
     }
 
-class Note(Record):
+class TimestampedRecord(object):
+    entry_date = Column(DateTime, server_default=func.now())
+    modified_date = Column(DateTime, onupdate=func.now())
+
+class IndividualRecord(object):
+
+    @declared_attr
+    def person_id(cls):
+        person_id = Column(Integer, ForeignKey('person.id',name='fk_user_id'))
+
+    @declared_attr
+    def person(cls):
+        person = relationship('Person')
+
+class Note(TimestampedRecord,Record):
     __tablename__ = 'note'
     id = Column(Integer, ForeignKey('record.id'), primary_key=True)
     date = Column(DateTime)
@@ -44,7 +56,7 @@ class Note(Record):
         'polymorphic_identity':'note'
     }
 
-class Temperature(Record):
+class Temperature(TimestampedRecord,IndividualRecord,Record):
     __tablename__ = 'temperature'
     id = Column(Integer, ForeignKey('record.id'), primary_key=True)
     time = Column(DateTime)
@@ -55,7 +67,7 @@ class Temperature(Record):
         'polymorphic_identity':'temperature'
     }
 
-class Weight(Record):
+class Weight(TimestampedRecord,IndividualRecord,Record):
     __tablename__ = 'weight'
     id = Column(Integer, ForeignKey('record.id'), primary_key=True)
     time = Column(DateTime)
@@ -66,14 +78,12 @@ class Weight(Record):
         'polymorphic_identity':'weight'
     }
 
-class SymptomType(Base):
+class SymptomType(TimestampedRecord,Base):
     __tablename__ = 'symptomtype'
     id = Column(Integer,Sequence('symptomtype_seq'), primary_key=True)
-    entry_date = Column(DateTime, default=datetime.utcnow)
-    modified_date = Column(DateTime, onupdate=datetime.utcnow)
     name = Column(String(255))
 
-class Symptom(Record):
+class Symptom(TimestampedRecord,IndividualRecord,Record):
     __tablename__ = 'symptom'
     id = Column(Integer, ForeignKey('record.id'), primary_key=True)
     symptomtype_id = Column(Integer,ForeignKey('symptomtype.id',name='fk_symtomtype_id'))
@@ -84,7 +94,7 @@ class Symptom(Record):
         'polymorphic_identity':'symptom'
     }
 
-class Period(Record):
+class Period(TimestampedRecord,IndividualRecord,Record):
     __tablename__ = 'period'
     id = Column(Integer, ForeignKey('record.id'), primary_key=True)
     period_intensity = Column(Integer)
