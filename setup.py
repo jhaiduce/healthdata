@@ -23,7 +23,8 @@ requires = [
     'bcrypt',
     'deform',
     'bokeh',
-    'pandas'
+    'pandas',
+    'paginate'
 ]
 
 tests_require = [

@@ -1,0 +1,39 @@
+{% extends "layout.jinja2" %}
+
+{% block content %}
+
+  <div class="row">
+    <div class="col-8 col-sm-6">
+      {{rides.count()}} total rides
+    </div>
+    <div class="col-4 col-sm-6">
+      <p style="text-align:right"><a href="/rides/add">Add new</a></p>
+    </div>
+  </div>
+
+{{page.pager(url="/period/list?page=$page")|safe}}
+
+<table class="data_table">
+<tr>
+<th></th>
+<th>Date</th>
+<th>Temperature</th>
+<th>Period</th>
+<th>Cervical fluid</th>
+<th>Remarks</th>
+</tr>
+{% for period in page.items %}
+<tr>
+<td><a href="/period/{{period.id}}/edit">edit</a></td>
+<td>{{period.date}}</td>
+<td>{{period.temperature.temperature}}</td>
+<td>{{period.period_intensity}}</td>
+<td>{{period.cervical_fluid_character}}</td>
+<td>{{period.notes}}</td>
+</tr>
+{% endfor %}
+</table>
+
+{{page.pager(url="/period/list?page=$page")|safe}}
+
+{% endblock content %}

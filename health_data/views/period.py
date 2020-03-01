@@ -5,6 +5,8 @@ from pyramid.httpexceptions import HTTPFound
 from pyramid.response import Response
 from datetime import date,datetime,timedelta
 
+from .showtable import SqlalchemyOrmPage
+
 from ..models.records import Period, period_intensity_choices, cervical_fluid_choices, Temperature
 
 class PeriodForm(colander.MappingSchema):
@@ -77,6 +79,13 @@ class PeriodViews(object):
             return HTTPFound(url)
 
         return dict(form=form)
+
+    @view_config(route_name='period_list',renderer='../templates/period_list.jinja2')
+    def period_list(self):
+        current_page = int(self.request.params.get("page",1))
+        rides=self.request.dbsession.query(Period).order_by(Period.date.desc())
+        page=SqlalchemyOrmPage(rides,page=current_page,items_per_page=30)
+        return dict(rides=rides,page=page)
 
     @view_config(route_name='period_plot',renderer='../templates/period_plot.jinja2')
     def period_plot(self):
