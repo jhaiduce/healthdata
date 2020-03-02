@@ -1,4 +1,4 @@
-"""empty message
+"""Replace created/modified columns of record table with created/modified columns in individual record type tables
 
 Revision ID: cc369c0efc37
 Revises: af14214a4292

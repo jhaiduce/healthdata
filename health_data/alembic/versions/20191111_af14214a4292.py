@@ -1,4 +1,4 @@
-"""empty message
+"""Added columns to the period table and renamed the intensity column to period_intensity
 
 Revision ID: af14214a4292
 Revises: a4341b6bb592
