@@ -26,10 +26,10 @@
 <tr>
 <td><a href="/period/{{period.id}}/edit">edit</a></td>
 <td>{{period.date}}</td>
-<td>{{period.temperature.temperature}}</td>
-<td>{{period.period_intensity}}</td>
-<td>{{period.cervical_fluid_character}}</td>
-<td>{{period.notes}}</td>
+<td>{{period.temperature.temperature if period.temperature.temperature else ''}}</td>
+<td>{{period_intensity_choices[period.period_intensity]}}</td>
+<td>{{cervical_fluid_choices[period.cervical_fluid_character]}}</td>
+<td>{{period.notes if period.notes else ''}}</td>
 </tr>
 {% endfor %}
 </table>
