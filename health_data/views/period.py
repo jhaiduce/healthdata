@@ -3,7 +3,7 @@ import colander
 import deform.widget
 from pyramid.httpexceptions import HTTPFound
 from pyramid.response import Response
-from datetime import date,datetime,timedelta
+from datetime import date,datetime,timedelta,time
 
 from .showtable import SqlalchemyOrmPage
 
@@ -31,10 +31,16 @@ class PeriodForm(colander.MappingSchema):
             values=[(key,value) for (key,value) in cervical_fluid_choices.items()]),
         missing=None)
 
+class DeleteForm(colander.MappingSchema):
+    id=colander.SchemaNode(
+        colander.Integer(),
+        widget=deform.widget.HiddenWidget(),missing=None)
 
 def appstruct_to_period(dbsession,appstruct,existing_record=None):
     if existing_record:
         period=existing_record
+        if period.temperature is None:
+            period.temperature=Temperature()
     else:
         period=Period()
         period.temperature=Temperature()
@@ -52,24 +58,30 @@ class PeriodViews(object):
     def __init__(self,request):
         self.request=request
 
-    @property
-    def period_form(self):
+    def delete_form(self,buttons=['delete','cancel']):
+        schema=DeleteForm().bind(
+            request=self.request
+        )
+
+        return deform.Form(schema,buttons=buttons)
+
+    def period_form(self,buttons=['submit']):
         schema=PeriodForm().bind(
             request=self.request
         )
 
-        return deform.Form(schema,buttons=['submit'])
+        return deform.Form(schema,buttons=buttons)
 
     @view_config(route_name='period_add',renderer='../templates/period_addedit.jinja2')
     def period_add(self):
-        form=self.period_form.render()
+        form=self.period_form().render()
 
         dbsession=self.request.dbsession
 
         if 'submit' in self.request.params:
             controls=self.request.POST.items()
             try:
-                appstruct=self.period_form.validate(controls)
+                appstruct=self.period_form().validate(controls)
             except deform.ValidationFailure as e:
                 return dict(form=e.render())
 
@@ -77,6 +89,66 @@ class PeriodViews(object):
             dbsession.add(period)
             url = self.request.route_url('period_plot')
             return HTTPFound(url)
+
+        return dict(form=form)
+
+    @view_config(route_name='period_edit',renderer='../templates/period_addedit.jinja2')
+    def period_edit(self):
+        dbsession=self.request.dbsession
+
+        period_id=int(self.request.matchdict['period_id'])
+        period=dbsession.query(Period).filter(Period.id==period_id).one()
+
+        buttons=['submit','delete ride']
+
+        if 'submit' in self.request.params:
+            controls=self.request.POST.items()
+            try:
+                appstruct=self.period_form(buttons=buttons).validate(controls)
+            except deform.ValidationFailure as e:
+                return dict(form=e.render())
+
+            period=appstruct_to_period(dbsession,appstruct,period)
+
+            dbsession.add(period)
+            url = self.request.route_url('period_list')
+            return HTTPFound(url)
+        elif 'delete_ride' in self.request.params:
+            url=self.request.route_url('period_delete',
+                                       period_id=period.id,
+                                       _query=dict(referrer=self.request.url))
+            return HTTPFound(url)
+
+        form=self.period_form(
+            buttons=buttons
+        ).render(dict(
+            id=period.id,
+            date=period.date,
+            temperature_time=period.temperature.time,
+            temperature=period.temperature.temperature,
+            period_intensity=period.period_intensity,
+            cervical_fluid=period.cervical_fluid_character
+        ))
+
+        return dict(form=form)
+
+    @view_config(route_name='period_delete',renderer='../templates/period_delete_confirm.jinja2')
+    def period_delete(self):
+        dbsession=self.request.dbsession
+
+        period_id=int(self.request.matchdict['period_id'])
+        period=dbsession.query(Period).filter(Period.id==period_id).one()
+
+        if 'delete' in self.request.params:
+            dbsession.delete(period)
+            url=self.request.route_url('period_list')
+            return(HTTPFound(url))
+        elif 'cancel' in self.request.params:
+            referrer=self.request.params.get('referrer',self.request.referrer)
+            url=referrer if referrer else self.request.route_url('period_list')
+            return HTTPFound(url)
+
+        form=self.delete_form().render(dict(id=period.id))
 
         return dict(form=form)
 
