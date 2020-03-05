@@ -4,6 +4,7 @@ from pyramid import testing
 
 import transaction
 
+from pyramid.httpexceptions import HTTPFound
 
 def dummy_request(dbsession):
     return testing.DummyRequest(dbsession=dbsession)
@@ -18,6 +19,8 @@ class BaseTest(unittest.TestCase):
         settings = self.config.get_settings()
 
         self.config.add_route('period_plot','/period')
+        self.config.add_route('period_list','/period/list')
+        self.config.add_route('period_delete','/period/{period_id}/delete')
 
         from .models import (
             get_engine,
@@ -63,9 +66,9 @@ class TestPeriod(BaseTest):
         views = PeriodViews(dummy_request(self.session))
         info=views.period_plot()
 
-    def test_period_add(self):
+    def test_period_edit(self):
         from .views.period import PeriodViews
-        from .models.records import Period
+        from .models.records import Period, Record, Temperature
         from datetime import date, datetime
         request=testing.DummyRequest({
             'form.submitted':True,
@@ -80,6 +83,79 @@ class TestPeriod(BaseTest):
         },dbsession=self.session)
         views = PeriodViews(request)
         info=views.period_add()
-        record_count=self.session.query(Period).filter(
-            Period.date==date(2019,10,29)).count()
+        records=self.session.query(Period).filter(
+            Period.date==date(2019,10,29))
+        record_id=records.first().id
+        temperature_id=records.first().temperature_id
+        record_count=records.count()
         self.assertGreater(record_count,0)
+
+        request=testing.DummyRequest({
+            'form.submitted':True,
+            'submit':'submit',
+            'period_intensity':'5',
+            'cervical_fluid':'1',
+            '__start__':'date:mapping',
+            'date':'2019-10-29',
+            '__end__':'date:mapping',
+            'temperature':'97.2',
+            'time':'07:13',
+        },dbsession=self.session)
+        request.matchdict['period_id']=record_id
+        views = PeriodViews(request)
+        info=views.period_edit()
+        record=self.session.query(Period).filter(Period.id==record_id).one()
+        self.assertEqual(record.temperature.temperature,97.2)
+
+        # Test delete button on the edit form
+        request=testing.DummyRequest({
+            'form.submitted':True,
+            'delete_ride':'delete_ride',
+            'period_intensity':'5',
+            'cervical_fluid':'1',
+            '__start__':'date:mapping',
+            'date':'2019-10-29',
+            '__end__':'date:mapping',
+            'temperature':'97.2',
+            'time':'07:13',
+        },dbsession=self.session)
+        request.matchdict['period_id']=record_id
+        edit_url=request.url
+        views = PeriodViews(request)
+        info=views.period_edit()
+        self.assertTrue(isinstance(info,HTTPFound))
+        delete_url=request.route_url('period_delete',
+                                          period_id=record_id,
+                                          _query=dict(referrer=request.url))
+        self.assertEqual(info.location,delete_url)
+
+        # Test cancelling delete
+        request=testing.DummyRequest({
+            'cancel':'cancel'
+        },dbsession=self.session)
+        request.matchdict['period_id']=record_id
+        request.referrer=edit_url
+        views=PeriodViews(request)
+        info=views.period_delete()
+        self.assertTrue(isinstance(info,HTTPFound))
+        self.assertEqual(info.location,edit_url)
+
+        # Test deletion
+        request=testing.DummyRequest({
+            'delete':'delete'
+        },dbsession=self.session)
+        request.matchdict['period_id']=record_id
+        request.referrer=edit_url
+        views=PeriodViews(request)
+        info=views.period_delete()
+        self.assertTrue(isinstance(info,HTTPFound))
+        self.assertEqual(info.location,request.route_url('period_list'))
+        self.assertEqual(
+            self.session.query(Period).filter(Period.id==record_id).count(),
+            0)
+        self.assertEqual(
+            self.session.query(Record).filter(Record.id==record_id).count(),
+            0)
+        self.assertEqual(
+            self.session.query(Temperature).filter(Temperature.id==temperature_id).count(),
+            0)
