@@ -103,7 +103,10 @@ class Period(TimestampedRecord,IndividualRecord,Record):
     temperature_id=Column(Integer,ForeignKey('temperature.id'))
     notes_id=Column(Integer,ForeignKey('note.id'))
 
-    temperature=relationship(Temperature,foreign_keys=temperature_id)
+    temperature=relationship(
+        Temperature,foreign_keys=temperature_id,
+        cascade='all, delete-orphan',
+        single_parent=True)
 
     notes=relationship(Note,foreign_keys=notes_id)
 
