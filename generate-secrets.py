@@ -30,6 +30,14 @@ if not os.path.exists('secrets/server-cert.pem'):
 
 call(['openssl','verify','-CAfile','secrets/ca.pem','secrets/server-cert.pem'])
 
+if not os.path.exists('secrets/storage_key.keyfile'):
+
+    # Generate key for MariaDB at-rest encryption
+    storage_key=open('secrets/storage_key.keyfile','w')
+    storage_key.write('1;')
+    storage_key.flush()
+    call(['openssl','rand','-hex','32'],stdout=storage_key)
+
 def genPassword(length=24,charset=string.printable):
     return ''.join([random.choice(charset) for i in range(length)])
 
