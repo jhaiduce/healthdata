@@ -1,0 +1,72 @@
+version: '3.7'
+services:
+  sut:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    secrets:
+      - source: integration_test.ini
+        target: /run/secrets/production.ini
+    links:
+      - web
+  db:
+    image: mariadb
+    container_name: healthdata_db
+    environment:
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/mysql_root_password
+    volumes:
+      - type: bind
+        source: ./mysql-config-healthdata.cnf
+        target: /etc/mysql/conf.d/mysql-config-healthdata.cnf
+    configs:
+      - source: mysql-config.1
+        target: /etc/mysql/conf.d/mysql-config-healthdata.cnf
+    logging:
+      driver: journald
+    secrets:
+      - source: mysql_root_password.1
+        target: mysql_root_password
+      - source: storage_key.1
+        target: /etc/mysql/encryption/keyfile
+      - source: mysql_ca
+        target: /etc/my.cnf.d/certificates/ca.pem
+      - source: mysql_cert
+        target: /etc/my.cnf.d/certificates/server-cert.pem
+      - source: mysql_key
+        target: /etc/my.cnf.d/certificates/server-key.pem
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: healthdata_web
+    secrets:
+      - source: integration_test.ini
+        target: /run/secrets/production.ini
+    logging:
+      driver: journald
+    links:
+      - db
+    ports:
+      - 8081:80
+secrets:
+  storage_key.1:
+    file: ./integration_test_secrets/storage_key.keyfile
+  mysql_root_password.1:
+    file: ./integration_test_secrets/db_root_pw
+  mysql_production_password.3:
+    file: ./integration_test_secrets/db_app_pw
+  pyramid_auth_secret.1:
+    file: ./integration_test_secrets/pyramid_auth_secret
+  cycling_admin_password.2:
+    file: ./integration_test_secrets/cycling_admin_password
+  integration_test.ini:
+    file: ./integration_test_secrets/integration_test.ini
+  mysql_ca:
+    file: ./integration_test_secrets/ca.pem
+  mysql_cert:
+    file: ./integration_test_secrets/server-cert.pem
+  mysql_key:
+    file: ./integration_test_secrets/server-key.pem
+configs:
+  mysql-config.1:
+    file: ./mysql-config-healthdata.cnf
