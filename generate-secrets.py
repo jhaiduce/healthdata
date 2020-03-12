@@ -2,6 +2,7 @@ from subprocess import call
 import os
 import random
 import string
+from urllib import quote_plus
 
 def generate_secrets(secrets_dir='secrets',ini_template='production.ini.tpl',iniout='production.ini'):
     if not os.path.exists(secrets_dir):
@@ -56,10 +57,10 @@ def generate_secrets(secrets_dir='secrets',ini_template='production.ini.tpl',ini
     pyramid_auth_secret=write_password(secrets_dir+'/pyramid_auth_secret')
 
     ini_text=open(ini_template).read().format(
-        mysql_production_password=db_app_pw,
-        mysql_root_password=db_root_pw,
-        app_admin_password=app_admin_pw,
-        pyramid_auth_secret=pyramid_auth_secret
+        mysql_production_password=quote_plus(db_app_pw).replace('%','%%'),
+        mysql_root_password=quote_plus(db_root_pw).replace('%','%%'),
+        app_admin_password=app_admin_pw.replace('%','%%'),
+        pyramid_auth_secret=pyramid_auth_secret.replace('%','%%')
     )
     open(os.path.join(secrets_dir,iniout),'w').write(ini_text)
 
