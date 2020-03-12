@@ -47,7 +47,7 @@ sqlalchemy.pool_recycle=14400
 
 [server:main]
 use = egg:waitress#main
-listen = localhost:6543
+listen = *:80
 
 ###
 # logging configuration
