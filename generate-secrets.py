@@ -40,7 +40,7 @@ def generate_secrets(secrets_dir='secrets',ini_template='production.ini.tpl',ini
         storage_key.flush()
         call(['openssl','rand','-hex','32'],stdout=storage_key)
 
-    def genPassword(length=24,charset=string.printable):
+    def genPassword(length=24,charset=string.letters+string.digits+string.punctuation):
         return ''.join([random.choice(charset) for i in range(length)])
 
     def write_password(filename,overwrite=False,*args,**kwargs):
