@@ -20,6 +20,8 @@ sqlalchemy.pool_pre_ping = true
 
 retry.attempts = 3
 
+filter-with = proxy-prefix
+
 auth.secret={pyramid_auth_secret}
 
 sqlalchemy_admin.url = mysql://root:{mysql_root_password_encoded}@healthdata_db:3306
@@ -88,3 +90,7 @@ formatter = generic
 
 [formatter_generic]
 format = %(asctime)s %(levelname)-5.5s [%(name)s:%(lineno)s][%(threadName)s] %(message)s
+
+[filter:proxy-prefix]
+use = egg:PasteDeploy#prefix
+scheme=https
