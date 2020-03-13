@@ -51,14 +51,19 @@ def generate_secrets(secrets_dir='secrets',ini_template='production.ini.tpl',ini
             pw=open(filename).read()
         return pw
 
-    db_root_pw=write_password(secrets_dir+'/db_root_pw')
-    db_app_pw=write_password(secrets_dir+'/db_app_pw')
+    mysql_pwd_chars=(string.letters+string.digits+string.punctuation)
+    for c in ["'"]:
+        mysql_pwd_chars=mysql_pwd_chars.replace(c,'')
+
+    db_root_pw=write_password(secrets_dir+'/db_root_pw',charset=mysql_pwd_chars)
+    db_app_pw=write_password(secrets_dir+'/db_app_pw',charset=mysql_pwd_chars)
     app_admin_pw=write_password(secrets_dir+'/app_admin_pw')
     pyramid_auth_secret=write_password(secrets_dir+'/pyramid_auth_secret')
 
     ini_text=open(ini_template).read().format(
-        mysql_production_password=quote_plus(db_app_pw).replace('%','%%'),
-        mysql_root_password=quote_plus(db_root_pw).replace('%','%%'),
+        mysql_production_password_encoded=quote_plus(db_app_pw).replace('%','%%'),
+        mysql_production_password=db_app_pw.replace('%','%%'),
+        mysql_root_password_encoded=quote_plus(db_root_pw).replace('%','%%'),
         app_admin_password=app_admin_pw.replace('%','%%'),
         pyramid_auth_secret=pyramid_auth_secret.replace('%','%%')
     )
