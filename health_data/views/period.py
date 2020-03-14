@@ -155,10 +155,10 @@ class PeriodViews(object):
     @view_config(route_name='period_list',renderer='../templates/period_list.jinja2')
     def period_list(self):
         current_page = int(self.request.params.get("page",1))
-        rides=self.request.dbsession.query(Period).order_by(Period.date.desc())
-        page=SqlalchemyOrmPage(rides,page=current_page,items_per_page=30)
+        entries=self.request.dbsession.query(Period).order_by(Period.date.desc())
+        page=SqlalchemyOrmPage(entries,page=current_page,items_per_page=30)
         return dict(
-            rides=rides,page=page,
+            entries=entries,page=page,
             period_intensity_choices={**period_intensity_choices,1:''},
             cervical_fluid_choices={**cervical_fluid_choices,1:''}
         )

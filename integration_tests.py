@@ -36,7 +36,7 @@ class BaseTest(unittest.TestCase):
     def tearDown(self):
         resp=self.session.post('http://healthdata_web/logout')
         self.assertEqual(resp.history[0].status_code,302)
-        self.assertEqual(resp.history[0].headers['Location'],'http://healthdata_web/rides')
+        self.assertEqual(resp.history[0].headers['Location'],'http://healthdata_web/period')
 
         resp=self.session.get('http://healthdata_web/period')
         self.assertEqual(resp.history[0].status_code,302)
