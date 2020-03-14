@@ -304,3 +304,28 @@ class FunctionalTests(unittest.TestCase):
         self.assertEqual(period.date,date(2020,3,14))
         self.assertEqual(period.temperature.time,datetime(2020,3,14,7,30))
         self.assertEqual(period.temperature.temperature,97.9)
+
+        resp=self.testapp.post(
+            edit_url.format(period_id),
+            params=[
+                ('__start__','date:mapping'),
+                ('date','2020-03-14'),
+                ('__end__','date:mapping'),
+                ('__start__','temperature_time:mapping'),
+                ('time','07:30'),
+                ('__end__','temperature_time:mapping'),
+                ('temperature','98.1'),
+                ('period_intensity','2'),
+                ('cervical_fluid','1'),
+                ('submit','submit')
+            ]
+        )
+        self.assertEqual(resp.status_code,302)
+        session.flush()
+        transaction.commit()
+        period=session.query(Period).filter(Period.id==period_id).one()
+        self.assertEqual(period.period_intensity,2)
+        self.assertEqual(period.cervical_fluid_character,1)
+        self.assertEqual(period.date,date(2020,3,14))
+        self.assertEqual(period.temperature.time,datetime(2020,3,14,7,30))
+        self.assertEqual(period.temperature.temperature,98.1)
