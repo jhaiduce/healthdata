@@ -6,6 +6,8 @@ import transaction
 
 from pyramid.httpexceptions import HTTPFound
 
+import re
+
 def dummy_request(dbsession):
     return testing.DummyRequest(dbsession=dbsession)
 
@@ -182,3 +184,89 @@ class AuthenticationTests(BaseTest):
 
         self.assertTrue(user.check_password('password'))
         self.assertFalse(user.check_password('pa$$word'))
+
+import webtest
+
+class FunctionalTests(unittest.TestCase):
+    admin_login = dict(login='admin', password='admin')
+
+    def setUp(self):
+        """
+        Add some dummy data to the database.
+        Note that this is a session fixture that commits data to the database.
+        Think about it similarly to running the ``initialize_db`` script at the
+        start of the test suite.
+        This data should not conflict with any other data added throughout the
+        test suite or there will be issues - so be careful with this pattern!
+        """
+
+        from . import main
+
+        from .models import (
+            get_engine,
+            get_session_factory,
+            get_tm_session,
+            )
+
+        self.config={
+            'admin_password':self.admin_login['password'],
+            'sqlalchemy.url':'sqlite://',
+            'auth.secret':'secret'
+            }
+
+        self.app = main({}, **self.config)
+        self.init_database()
+        self.testapp=webtest.TestApp(self.app)
+
+    def get_session(self):
+        from .models import get_session_factory,get_tm_session
+        session_factory = self.app.registry['dbsession_factory']
+        session=get_tm_session(session_factory,transaction.manager)
+        return session
+
+    def init_database(self):
+
+        session=self.get_session()
+
+        from . import models
+
+        models.Base.metadata.create_all(session.bind)
+
+        user=models.User(
+            name='admin'
+        )
+
+        user.set_password(self.config['admin_password'])
+        session.add(user)
+
+        transaction.commit()
+
+    def login(self):
+        res=self.testapp.post('http://localhost/login',{**self.admin_login,'form.submitted':'true'})
+
+    def test_successful_login(self):
+        res=self.testapp.post('http://localhost/login',{**self.admin_login,'form.submitted':'true'})
+
+        # Verify that we got redirected to the default page
+        self.assertEqual(res.status_code,302)
+        self.assertEqual(res.location,'http://localhost/period')
+
+        # Verify that we can load a page
+        res=self.testapp.get('http://localhost/period')
+        self.assertEqual(res.status_code,200)
+
+    def test_failed_login(self):
+
+        # Try to login with wrong password
+        res=self.testapp.post('http://localhost/login',{'login':'admin','password':'wrong_password','form.submitted':'true'})
+
+        # Verify that we stay at the login page with a "Failsed login" message
+        self.assertEqual(res.status_code,200)
+        self.assertTrue(isinstance(re.search('Failed login',res.text),re.Match))
+
+        # Verify that attempts to access restricted content are
+        # redirected to the login page with the request URL passed
+        # in the GET data
+        res=self.testapp.get('http://localhost/period')
+        self.assertEqual(res.status_code,302)
+        self.assertEqual(res.location,'http://localhost/login?next=http%3A%2F%2Flocalhost%2Fperiod')
