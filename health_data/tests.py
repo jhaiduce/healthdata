@@ -159,3 +159,26 @@ class TestPeriod(BaseTest):
         self.assertEqual(
             self.session.query(Temperature).filter(Temperature.id==temperature_id).count(),
             0)
+
+class AuthenticationTests(BaseTest):
+
+    def setUp(self):
+        super(AuthenticationTests, self).setUp()
+        self.init_database()
+
+        from .models import User
+
+        user=User(
+            name='jhaiduce'
+        )
+
+        user.set_password('password')
+        self.session.add(user)
+
+    def test_check_password(self):
+        from .models import User
+
+        user=self.session.query(User).filter(User.name=='jhaiduce').one()
+
+        self.assertTrue(user.check_password('password'))
+        self.assertFalse(user.check_password('pa$$word'))

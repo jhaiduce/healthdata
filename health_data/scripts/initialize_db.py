@@ -30,6 +30,15 @@ def create_database(engine,settings):
     conn.execute("grant all on healthdata.* to healthdata")
     conn.execute("use healthdata")
     
+def create_admin_user(dbsession,settings):
+
+    user=models.User(
+        name='admin'
+    )
+
+    user.set_password(settings['admin_password'])
+    dbsession.add(user)
+
 def parse_args(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -90,5 +99,11 @@ def main(argv=sys.argv):
         with env['request'].tm:
             dbsession = env['request'].dbsession
             setup_models(dbsession)
+
+            admin_exists=dbsession.query(models.User).filter(
+                models.User.name=='admin').count()
+            if not admin_exists:
+                create_admin_user(dbsession,settings)
+
     except OperationalError:
         raise

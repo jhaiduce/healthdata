@@ -7,3 +7,5 @@ def includeme(config):
     config.add_route('period_plot','/period')
     config.add_route('period_list','/period/list')
     config.add_route('home', '/')
+    config.add_route('login', '/login')
+    config.add_route('logout', '/logout')
