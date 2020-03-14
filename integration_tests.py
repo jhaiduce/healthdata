@@ -3,8 +3,6 @@ from unittest.mock import patch
 import requests
 import configparser
 import json
-from cycling_data.celery import celery
-from celery import Celery
 import re
 
 class BaseTest(unittest.TestCase):
