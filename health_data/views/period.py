@@ -4,6 +4,7 @@ import deform.widget
 from pyramid.httpexceptions import HTTPFound
 from pyramid.response import Response
 from datetime import date,datetime,timedelta,time
+import json
 
 from .showtable import SqlalchemyOrmPage
 
@@ -87,8 +88,19 @@ class PeriodViews(object):
 
             period=appstruct_to_period(dbsession,appstruct)
             dbsession.add(period)
+
+            # Flush dbsession so we can get an id assignment
+            dbsession.flush()
+
             url = self.request.route_url('period_plot')
-            return HTTPFound(url)
+            return HTTPFound(
+                url,
+                content_type='application/json',
+                charset='',
+                text=json.dumps(
+                    {'period_id':period.id}
+                )
+            )
 
         return dict(form=form)
 
