@@ -8,6 +8,9 @@ from pyramid.httpexceptions import HTTPFound
 
 import re
 
+import json
+from datetime import date, datetime
+
 def dummy_request(dbsession):
     return testing.DummyRequest(dbsession=dbsession)
 
@@ -270,3 +273,34 @@ class FunctionalTests(unittest.TestCase):
         res=self.testapp.get('http://localhost/period')
         self.assertEqual(res.status_code,302)
         self.assertEqual(res.location,'http://localhost/login?next=http%3A%2F%2Flocalhost%2Fperiod')
+
+    def test_period_addedit(self):
+        self.login()
+        from .models import Period
+        add_url='http://localhost/period/add'
+        edit_url='http://localhost/period/{}/edit'
+        session=self.get_session()
+
+        resp=self.testapp.post(
+            add_url,
+            params=[
+                ('__start__','date:mapping'),
+                ('date','2020-03-14'),
+                ('__end__','date:mapping'),
+                ('__start__','temperature_time:mapping'),
+                ('time','07:30'),
+                ('__end__','temperature_time:mapping'),
+                ('temperature','97.9'),
+                ('period_intensity','1'),
+                ('cervical_fluid','1'),
+                ('submit','submit')
+            ]
+        )
+        self.assertEqual(resp.status_code,302)
+        period_id=json.loads(resp.text)['period_id']
+        period=session.query(Period).filter(Period.id==period_id).one()
+        self.assertEqual(period.period_intensity,1)
+        self.assertEqual(period.cervical_fluid_character,1)
+        self.assertEqual(period.date,date(2020,3,14))
+        self.assertEqual(period.temperature.time,datetime(2020,3,14,7,30))
+        self.assertEqual(period.temperature.temperature,97.9)
