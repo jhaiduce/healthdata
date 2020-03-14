@@ -32,3 +32,12 @@ class BaseTest(unittest.TestCase):
 
         self.assertEqual(resp.history[0].status_code,302)
         self.assertEqual(resp.history[0].headers['Location'],'http://healthdata_web/period')
+
+    def tearDown(self):
+        resp=self.session.post('http://healthdata_web/logout')
+        self.assertEqual(resp.history[0].status_code,302)
+        self.assertEqual(resp.history[0].headers['Location'],'http://healthdata_web/rides')
+
+        resp=self.session.get('http://healthdata_web/period')
+        self.assertEqual(resp.history[0].status_code,302)
+        self.assertEqual(resp.history[0].headers['Location'],'http://healthdata_web/login?next=http%3A%2F%2Fhealthdata_web%2Fperiod')
