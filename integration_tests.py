@@ -39,3 +39,11 @@ class BaseTest(unittest.TestCase):
         resp=self.session.get('http://healthdata_web/period')
         self.assertEqual(resp.history[0].status_code,302)
         self.assertEqual(resp.history[0].headers['Location'],'http://healthdata_web/login?next=http%3A%2F%2Fhealthdata_web%2Fperiod')
+
+    def test_period_list(self):
+        resp=self.session.get('http://healthdata_web/period/list')
+        self.assertGreater(resp.text.find('entries'),0)
+
+    def test_period_plot(self):
+        resp=self.session.get('http://healthdata_web/period')
+        self.assertGreater(resp.text.find('<div class="bk-root"'),0)
