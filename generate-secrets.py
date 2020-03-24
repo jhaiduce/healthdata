@@ -78,4 +78,16 @@ def generate_secrets(secrets_dir='secrets',ini_template='production.ini.tpl',ini
     open(os.path.join(secrets_dir,iniout),'w').write(ini_text)
 
 if __name__=='__main__':
-    generate_secrets('integration_test_secrets',ini_template='integration_test.ini.tpl',iniout='integration_test.ini')
+    from argparse import ArgumentParser
+
+    parser=ArgumentParser()
+    parser.add_argument('--secretsdir',default='secrets',
+                        help='Directory where secrets should be written')
+    parser.add_argument('--ini-template',default='production.ini.tpl',
+                        help='Template for Pyramid config file')
+    parser.add_argument('--ini-filename',default='production.ini',
+                        help='Name of ini file')
+    args=parser.parse_args()
+
+    generate_secrets(args.secretsdir,
+                     ini_template=args.ini_template,iniout=args.ini_filename)
