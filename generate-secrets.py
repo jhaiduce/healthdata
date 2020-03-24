@@ -2,7 +2,10 @@ from subprocess import call
 import os
 import random
 import string
-from urllib import quote_plus
+try:
+    from urllib import quote_plus
+except ImportError:
+    from urllib.parse import quote_plus
 
 def generate_secrets(secrets_dir='secrets',ini_template='production.ini.tpl',iniout='production.ini'):
     if not os.path.exists(secrets_dir):
@@ -40,7 +43,12 @@ def generate_secrets(secrets_dir='secrets',ini_template='production.ini.tpl',ini
         storage_key.flush()
         call(['openssl','rand','-hex','32'],stdout=storage_key)
 
-    def genPassword(length=24,charset=string.letters+string.digits+string.punctuation):
+    try:
+        letters=string.letters
+    except AttributeError:
+        letters=string.ascii_letters
+
+    def genPassword(length=24,charset=letters+string.digits+string.punctuation):
         return ''.join([random.choice(charset) for i in range(length)])
 
     def write_password(filename,overwrite=False,*args,**kwargs):
@@ -51,7 +59,7 @@ def generate_secrets(secrets_dir='secrets',ini_template='production.ini.tpl',ini
             pw=open(filename).read()
         return pw
 
-    mysql_pwd_chars=(string.letters+string.digits+string.punctuation)
+    mysql_pwd_chars=(letters+string.digits+string.punctuation)
     for c in ["'"]:
         mysql_pwd_chars=mysql_pwd_chars.replace(c,'')
 
