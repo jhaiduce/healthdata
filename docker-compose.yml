@@ -1,0 +1,120 @@
+version: '3.7'
+networks:
+  default:
+    driver: overlay
+    driver_opts:
+      encrypted: ""
+services:
+  sut:
+    image: fedora
+    command: tail -F /dev/null
+  db:
+    image: mariadb
+    environment:
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/mysql_root_password
+    configs:
+      - source: mysql-config
+        target: /etc/mysql/conf.d/mysql-config-healthdata.cnf
+    secrets:
+      - source: mysql_root_password
+        target: /run/secrets/mysql_root_password
+      - source: storage_key
+        target: /etc/mysql/encryption/keyfile
+      - source: mysql_ca
+        target: /etc/my.cnf.d/certificates/ca.pem
+      - source: mysql_cert
+        target: /etc/my.cnf.d/certificates/server-cert.pem
+      - source: mysql_key
+        target: /etc/my.cnf.d/certificates/server-key.pem
+    volumes:
+      - mysql-data:/var/lib/mysql
+    links:
+      - web
+    ports:
+      - 3306:3306
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image:
+      jhaiduce/healthdata
+    secrets:
+      - source: production.ini
+        target: /run/secrets/production.ini
+    links:
+      - db
+    command: tail -F /dev/null
+    healthcheck:
+      test: ["CMD","ls"]
+  nginx:
+    image: nginx
+    ports:
+      - 80:80
+      - 443:443
+    configs:
+      - source: nginx-conf-healthdata
+        target: /etc/nginx/conf.d/healthdata.conf
+      - source: nginx-conf-common
+        target: /etc/nginx/common.conf
+      - source: nginx-conf-common-location
+        target: /etc/nginx/conf.d/common-location.conf
+      - source: nginx-conf-ssl
+        target: /etc/nginx/ssl.conf
+      - source: nginx-conf-default
+        target: /etc/nginx/conf.d/default.conf
+    secrets:
+      - source: ssl_certificate
+        target: /etc/ssl/private/fullchain.pem
+      - source: ssl_certificate_key
+        target: /etc/ssl/private/privkey.pem
+      - source: dhparams
+        target: /etc/nginx/dhparams.pem
+    links:
+      - web
+volumes:
+  mysql-data:
+secrets:
+  storage_key:
+    name: storage_key.1
+    file: ./secrets/storage_key.keyfile
+  mysql_root_password:
+    name: mysql_root_password.1
+    file: ./secrets/db_root_pw
+  mysql_production_password:
+    name: mysql_production_password
+    file: ./secrets/db_app_pw
+  pyramid_auth_secret:
+    name: pyramid_auth_secret.1
+    file: ./secrets/pyramid_auth_secret
+  app_admin_password:
+    name: app_admin_password.2
+    file: ./secrets/app_admin_pw
+  production.ini:
+    file: ./secrets/production.ini
+  mysql_ca:
+    file: ./secrets/ca.pem
+  mysql_cert:
+    file: ./secrets/server-cert.pem
+  mysql_key:
+    file: ./secrets/server-key.pem
+  dhparams:
+    file: ./secrets/dhparams.pem
+  ssl_certificate:
+    file: ./nginx/ssl/fullchain.pem
+  ssl_certificate_key:
+    file: ./nginx/ssl/privkey.pem
+configs:
+  mysql-config:
+    name: mysql-config.1
+    file: ./mysql-config-healthdata.cnf
+  nginx-conf-healthdata:
+    name: nginx-conf-healthdata.7
+    file: ./nginx/healthdata.conf
+  nginx-conf-common:
+    file: ./nginx/common.conf
+  nginx-conf-common-location:
+    file: ./nginx/common_location.conf
+  nginx-conf-ssl:
+    file: nginx/ssl.conf
+  nginx-conf-default:
+    file: nginx/default.conf
