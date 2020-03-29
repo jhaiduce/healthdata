@@ -43,7 +43,7 @@ def generate_secrets(secrets_dir='secrets',ini_template='production.ini.tpl',ini
         storage_key.flush()
         call(['openssl','rand','-hex','32'],stdout=storage_key)
 
-    if not os.path.exists(secrets_dir+'dhparams.pem'):
+    if not os.path.exists(secrets_dir+'/dhparams.pem'):
 
         # Generate dhparams.pem
         call(['openssl','dhparam',
