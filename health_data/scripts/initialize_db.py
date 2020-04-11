@@ -32,12 +32,18 @@ def create_database(engine,settings):
     
 def create_admin_user(dbsession,settings):
 
-    user=models.User(
-        name='admin'
-    )
+    import sqlalchemy.exc
 
-    user.set_password(settings['admin_password'])
-    dbsession.add(user)
+    try:
+        user=models.User(
+            name='admin'
+        )
+
+        user.set_password(settings['admin_password'])
+        dbsession.add(user)
+        dbsession.flush()
+    except sqlalchemy.exc.IntegrityError:
+        pass
 
 def parse_args(argv):
     parser = argparse.ArgumentParser()
