@@ -105,8 +105,10 @@ secrets:
   dhparams:
     file: ./secrets/dhparams.pem
   ssl_certificate:
+    name: ssl_certificate.1
     file: ./nginx/ssl/fullchain.pem
   ssl_certificate_key:
+    name: ssl_certificate_key.1
     file: ./nginx/ssl/privkey.pem
 configs:
   mysql-config:
