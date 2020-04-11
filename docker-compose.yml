@@ -29,8 +29,6 @@ services:
         target: /etc/my.cnf.d/certificates/server-key.pem
     volumes:
       - mysql-data:/var/lib/mysql
-    links:
-      - web
     ports:
       - 3306:3306
   web:
