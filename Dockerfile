@@ -19,6 +19,8 @@ COPY CHANGES.txt /app
 COPY README.txt /app
 RUN pip3 install --trusted-host pypi.python.org -e .
 
+RUN apk add build-base curl
+
 COPY pyramid_start.sh /app
 
 EXPOSE 80
