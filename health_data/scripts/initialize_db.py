@@ -85,7 +85,7 @@ def main(argv=sys.argv):
             import time
             print("Connection failed. Sleeping.")
             import traceback
-            tracepack.print_exc()
+            traceback.print_exc()
             time.sleep(2)
             continue
 
