@@ -5,9 +5,6 @@ networks:
     driver_opts:
       encrypted: ""
 services:
-  sut:
-    image: fedora
-    command: tail -F /dev/null
   db:
     image: mariadb
     environment:
