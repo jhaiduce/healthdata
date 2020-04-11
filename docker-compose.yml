@@ -47,9 +47,6 @@ services:
         target: /run/secrets/production.ini
     links:
       - db
-    command: tail -F /dev/null
-    healthcheck:
-      test: ["CMD","ls"]
   nginx:
     image: nginx
     deploy:
