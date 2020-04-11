@@ -7,6 +7,10 @@ networks:
 services:
   db:
     image: mariadb
+    deploy:
+      resources:
+        reservations:
+          memory: 200M
     environment:
       MYSQL_ROOT_PASSWORD_FILE: /run/secrets/mysql_root_password
     configs:
@@ -35,6 +39,11 @@ services:
       dockerfile: Dockerfile
     image:
       jhaiduce/healthdata
+    deploy:
+      replicas: 2
+      resources:
+        reservations:
+          memory: 200M
     secrets:
       - source: production.ini
         target: /run/secrets/production.ini
@@ -45,6 +54,10 @@ services:
       test: ["CMD","ls"]
   nginx:
     image: nginx
+    deploy:
+      resources:
+        reservations:
+          memory: 100M
     ports:
       - 80:80
       - 443:443
