@@ -84,6 +84,8 @@ def main(argv=sys.argv):
         except sqlalchemy.exc.OperationalError:
             import time
             print("Connection failed. Sleeping.")
+            import traceback
+            tracepack.print_exc()
             time.sleep(2)
             continue
 
