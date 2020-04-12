@@ -6,7 +6,7 @@ host_prefix=healthdata
 
 node_image=ubuntu-18-04-x64
 
-node_size=s-2vcpu-2gb
+node_size=s-1vcpu-1gb
 
 if [ $(docker-machine ls -q|grep -c $host_prefix-master) -eq "0" ]; then
   docker-machine create --driver digitalocean \
