@@ -4,7 +4,7 @@ FROM node:8-alpine
 WORKDIR /app
 
 RUN apk add --update python3 py3-pip python3-dev build-base zlib-dev libjpeg-turbo-dev libpng-dev freetype-dev
-RUN pip3 install --trusted-host pypi.python.org Pillow==6.2.0 numpy==1.17.2
+RUN pip3 install --trusted-host pypi.python.org Pillow==6.2.2 numpy==1.17.2
 RUN pip3 install --upgrade pip
 RUN pip3 install --trusted-host pypi.python.org pandas==1.0.1
 RUN apk add libffi-dev mariadb-dev
