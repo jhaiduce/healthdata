@@ -23,5 +23,3 @@ class Person(Base):
     name = Column(String(255))
 
     user_id = Column(Integer,ForeignKey('user.id'),name='fk_user_id')
-
-    

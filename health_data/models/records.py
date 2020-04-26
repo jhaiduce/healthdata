@@ -129,4 +129,3 @@ cervical_fluid_choices={
     3:'Creamy (medium)',
     4:'Eggwhite (heavy)'
 }
-
