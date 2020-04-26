@@ -304,6 +304,7 @@ class FunctionalTests(unittest.TestCase):
         self.assertEqual(period.date,date(2020,3,14))
         self.assertEqual(period.temperature.time,datetime(2020,3,14,7,30))
         self.assertEqual(period.temperature.temperature,97.9)
+        self.assertEqual(period.notes,None)
 
         resp=self.testapp.post(
             edit_url.format(period_id),
@@ -317,6 +318,7 @@ class FunctionalTests(unittest.TestCase):
                 ('temperature','98.1'),
                 ('period_intensity','2'),
                 ('cervical_fluid','1'),
+                ('notes','A brief note'),
                 ('submit','submit')
             ]
         )
@@ -329,3 +331,5 @@ class FunctionalTests(unittest.TestCase):
         self.assertEqual(period.date,date(2020,3,14))
         self.assertEqual(period.temperature.time,datetime(2020,3,14,7,30))
         self.assertEqual(period.temperature.temperature,98.1)
+        self.assertEqual(period.notes.text,'A brief note')
+        self.assertEqual(period.notes.date,datetime(2020,3,14,7,30))

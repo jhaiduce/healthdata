@@ -8,7 +8,7 @@ import json
 
 from .showtable import SqlalchemyOrmPage
 
-from ..models.records import Period, period_intensity_choices, cervical_fluid_choices, Temperature
+from ..models.records import Period, period_intensity_choices, cervical_fluid_choices, Temperature, Note
 
 class PeriodForm(colander.MappingSchema):
     id=colander.SchemaNode(
@@ -32,6 +32,11 @@ class PeriodForm(colander.MappingSchema):
             values=[(key,value) for (key,value) in cervical_fluid_choices.items()]),
         missing=None)
 
+    notes=colander.SchemaNode(
+        colander.String(),
+        widget=deform.widget.TextAreaWidget(),
+        missing=None)
+
 class DeleteForm(colander.MappingSchema):
     id=colander.SchemaNode(
         colander.Integer(),
@@ -52,6 +57,12 @@ def appstruct_to_period(dbsession,appstruct,existing_record=None):
     period.temperature.temperature=appstruct['temperature']
     if appstruct['temperature_time'] is not None:
         period.temperature.time=datetime.combine(period.date,appstruct['temperature_time'])
+
+    if appstruct['notes'] is not None:
+        if period.notes is None:
+            period.notes=Note()
+        period.notes.date=datetime.combine(appstruct['date'],appstruct['temperature_time'])
+        period.notes.text=appstruct['notes']
 
     return period
 
@@ -139,7 +150,8 @@ class PeriodViews(object):
             temperature_time=period.temperature.time,
             temperature=period.temperature.temperature,
             period_intensity=period.period_intensity,
-            cervical_fluid=period.cervical_fluid_character
+            cervical_fluid=period.cervical_fluid_character,
+            notes=period.notes.text or None
         ))
 
         return dict(form=form)
