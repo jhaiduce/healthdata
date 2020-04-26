@@ -151,7 +151,7 @@ class PeriodViews(object):
             temperature=period.temperature.temperature,
             period_intensity=period.period_intensity,
             cervical_fluid=period.cervical_fluid_character,
-            notes=period.notes.text or None
+            notes=period.notes.text if period.notes else ''
         ))
 
         return dict(form=form)
