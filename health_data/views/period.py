@@ -122,7 +122,7 @@ class PeriodViews(object):
         period_id=int(self.request.matchdict['period_id'])
         period=dbsession.query(Period).filter(Period.id==period_id).one()
 
-        buttons=['submit','delete ride']
+        buttons=['submit','delete entry']
 
         if 'submit' in self.request.params:
             controls=self.request.POST.items()
@@ -136,7 +136,7 @@ class PeriodViews(object):
             dbsession.add(period)
             url = self.request.route_url('period_list')
             return HTTPFound(url)
-        elif 'delete_ride' in self.request.params:
+        elif 'delete_entry' in self.request.params:
             url=self.request.route_url('period_delete',
                                        period_id=period.id,
                                        _query=dict(referrer=self.request.url))

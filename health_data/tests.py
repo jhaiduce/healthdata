@@ -115,7 +115,7 @@ class TestPeriod(BaseTest):
         # Test delete button on the edit form
         request=testing.DummyRequest({
             'form.submitted':True,
-            'delete_ride':'delete_ride',
+            'delete_entry':'delete_entry',
             'period_intensity':'5',
             'cervical_fluid':'1',
             '__start__':'date:mapping',
