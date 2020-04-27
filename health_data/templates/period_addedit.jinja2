@@ -48,6 +48,12 @@
 
 {% block content %}
 
+{% if period is not none: %}
+<p>Created: {{ period.entry_date }} </p>
+<p>Modified: {{ modified_date or 'Never'}} </p>
+
+{% endif %}
+
 <p>
 {{ form|safe }}
 </p>

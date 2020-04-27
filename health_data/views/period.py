@@ -113,7 +113,7 @@ class PeriodViews(object):
                 )
             )
 
-        return dict(form=form)
+        return dict(form=form,period=None,modified_date=None)
 
     @view_config(route_name='period_edit',renderer='../templates/period_addedit.jinja2')
     def period_edit(self):
@@ -154,7 +154,17 @@ class PeriodViews(object):
             notes=period.notes.text if period.notes else ''
         ))
 
-        return dict(form=form)
+        modified_dates=[
+            period.modified_date,
+            period.temperature.modified_date,
+            period.notes.modified_date
+            if period.notes else None]
+
+        modified_dates=[d for d in modified_dates if d is not None]
+
+        modified_date=max(modified_dates) if len(modified_dates)>0 else None
+
+        return dict(form=form,period=period,modified_date=modified_date)
 
     @view_config(route_name='period_delete',renderer='../templates/period_delete_confirm.jinja2')
     def period_delete(self):
