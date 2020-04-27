@@ -34,7 +34,8 @@ class Record(Base):
 
 class TimestampedRecord(object):
     entry_date = Column(DateTime, server_default=func.now())
-    modified_date = Column(DateTime, onupdate=func.now())
+    modified_date = Column(DateTime, server_default=func.now(),
+                           onupdate=func.now())
 
 class IndividualRecord(object):
 
