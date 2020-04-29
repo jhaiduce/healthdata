@@ -19,20 +19,20 @@ depends_on = None
 def upgrade():
 
     for table in 'note','period','symptom','symptomtype','temperature','weight':
-        with op.batch_alter_table(table, schema=None,recreate='always') as batch_op:
+        with op.batch_alter_table(table, schema=None,recreate='auto') as batch_op:
             batch_op.alter_column('modified_date',
                                   server_default=func.now())
 
-    with op.batch_alter_table('symptomtype',schema=None,recreate='always') as batch_op:
+    with op.batch_alter_table('symptomtype',schema=None,recreate='auto') as batch_op:
         batch_op.alter_column('entry_date',
                               server_default=func.now())
 
 def downgrade():
 
     for table in 'note','period','symptom','symptomtype','temperature','weight':
-        with op.batch_alter_table(table, schema=None,recreate='always') as batch_op:
+        with op.batch_alter_table(table, schema=None,recreate='auto') as batch_op:
             batch_op.alter_column('modified_date', server_default=None)
 
-    with op.batch_alter_table('symptomtype',schema=None,recreate='always') as batch_op:
+    with op.batch_alter_table('symptomtype',schema=None,recreate='auto') as batch_op:
         batch_op.alter_column('entry_date',
                               server_default=None)

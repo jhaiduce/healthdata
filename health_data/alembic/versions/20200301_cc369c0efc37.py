@@ -55,23 +55,30 @@ class Period(Record):
 
 def upgrade():
 
-    with op.batch_alter_table('note', schema=None,recreate='always') as batch_op:
+    bind=op.get_bind()
+
+    if bind.engine.name=='sqlite':
+        recreate='always'
+    else:
+        recreate='auto'
+
+    with op.batch_alter_table('note', schema=None,recreate=recreate) as batch_op:
         batch_op.add_column(sa.Column('entry_date', sa.DateTime(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True))
         batch_op.add_column(sa.Column('modified_date', sa.DateTime(), nullable=True))
 
-    with op.batch_alter_table('period', schema=None,recreate='always') as batch_op:
+    with op.batch_alter_table('period', schema=None,recreate=recreate) as batch_op:
         batch_op.add_column(sa.Column('entry_date', sa.DateTime(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True))
         batch_op.add_column(sa.Column('modified_date', sa.DateTime(), nullable=True))
 
-    with op.batch_alter_table('symptom', schema=None,recreate='always') as batch_op:
+    with op.batch_alter_table('symptom', schema=None,recreate=recreate) as batch_op:
         batch_op.add_column(sa.Column('entry_date', sa.DateTime(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True))
         batch_op.add_column(sa.Column('modified_date', sa.DateTime(), nullable=True))
 
-    with op.batch_alter_table('temperature', schema=None,recreate='always') as batch_op:
+    with op.batch_alter_table('temperature', schema=None,recreate=recreate) as batch_op:
         batch_op.add_column(sa.Column('entry_date', sa.DateTime(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True))
         batch_op.add_column(sa.Column('modified_date', sa.DateTime(), nullable=True))
 
-    with op.batch_alter_table('weight', schema=None,recreate='always') as batch_op:
+    with op.batch_alter_table('weight', schema=None,recreate=recreate) as batch_op:
         batch_op.add_column(sa.Column('entry_date', sa.DateTime(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True))
         batch_op.add_column(sa.Column('modified_date', sa.DateTime(), nullable=True))
 
