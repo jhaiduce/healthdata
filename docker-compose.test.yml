@@ -48,6 +48,18 @@ services:
       - db
     ports:
       - 8081:80
+  migration:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    secrets:
+      - source: integration_test.ini
+        target: /run/secrets/production.ini
+    logging:
+      driver: journald
+    links:
+      - db
+    command: ['/usr/bin/initialize_health_data_db','/run/secrets/production.ini']
 secrets:
   storage_key.1:
     file: ./integration_test_secrets/storage_key.keyfile

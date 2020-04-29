@@ -7,14 +7,20 @@ from sqlalchemy.exc import OperationalError
 from .. import models
 
 
-def setup_models(dbsession):
+def setup_models(dbsession,ini_file):
     """
     Add or update models / fixtures in the database.
 
     """
-    Base=models.Base
+
+    import alembic.config
+    alembicArgs = [
+        '-c',ini_file,
+        '--raiseerr',
+        'upgrade', 'head',
+    ]
+    alembic.config.main(argv=alembicArgs)
     engine=dbsession.bind
-    Base.metadata.create_all(engine)
 
 def create_database(engine,settings):
 
@@ -106,7 +112,7 @@ def main(argv=sys.argv):
 
         with env['request'].tm:
             dbsession = env['request'].dbsession
-            setup_models(dbsession)
+            setup_models(dbsession,args.config_uri)
 
             admin_exists=dbsession.query(models.User).filter(
                 models.User.name=='admin').count()
