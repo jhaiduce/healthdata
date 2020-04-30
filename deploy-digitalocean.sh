@@ -1,3 +1,7 @@
+#!/bin/bash
+
+set -e
+
 numworkers=1
 
 DOTAGS=healthdata
