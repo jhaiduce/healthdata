@@ -1,0 +1,15 @@
+version: '3.7'
+services:
+  migration:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: jhaiduce/healthdata
+    secrets:
+      - source: production.ini
+        target: /run/secrets/production.ini
+    logging:
+      driver: journald
+    links:
+      - db
+    command: ['/usr/bin/initialize_health_data_db','/run/secrets/production.ini']
