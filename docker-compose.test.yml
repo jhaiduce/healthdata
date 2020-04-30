@@ -38,6 +38,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    image: jhaiduce/healthdata
     container_name: healthdata_web
     secrets:
       - source: integration_test.ini
