@@ -37,19 +37,14 @@ done
 
 join_token=$(docker-machine ssh $host_prefix-master docker swarm join-token -q worker)
 
-for file in docker-compose.yml mysql-config-healthdata.cnf secrets nginx; do
-    docker-machine scp -r $file $host_prefix-master:
-done
+transfer_files="docker-compose.yml docker-compose.migrate.yml mysql-config-healthdata.cnf secrets"
+rsync -avz -e "docker-machine ssh $host_prefix-master" $transfer_files :
 
 docker-machine ssh $host_prefix-master mkdir -p nginx/ssl
 
-for file in nginx/*.conf; do
-    docker-machine scp $file $host_prefix-master:nginx
-done
+rsync -avz -e "docker-machine ssh $host_prefix-master" nginx/*.conf :nginx
 
-for file in nginx/ssl_production/*.pem; do
-    docker-machine scp $file $host_prefix-master:nginx/ssl
-done
+rsync -avz -e "docker-machine ssh $host_prefix-master" nginx/ssl_production/*.pem :nginx/ssl
 
 for i in $(seq 1 $numworkers); do
     docker-machine ssh $host_prefix-$i \
