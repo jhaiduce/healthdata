@@ -3,16 +3,19 @@
 {% block content %}
 
   <div class="row">
-    <div class="col-8 col-sm-6">
+    <div class="col">
       {{entries.count()}} entries
     </div>
-    <div class="col-4 col-sm-6">
+    <div class="col">
       <p style="text-align:right"><a href="/period/add">Add new</a></p>
     </div>
   </div>
 
+<div class="row">
 {{page.pager(url="/period/list?page=$page")|safe}}
+</div>
 
+<div class="row">
 <table class="data_table">
 <tr>
 <th></th>
@@ -33,7 +36,10 @@
 </tr>
 {% endfor %}
 </table>
+</div>
 
+<div class="row">
 {{page.pager(url="/period/list?page=$page")|safe}}
+</div>
 
 {% endblock content %}
