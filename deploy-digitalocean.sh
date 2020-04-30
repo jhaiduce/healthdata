@@ -46,9 +46,22 @@ rsync -avz -e "docker-machine ssh $host_prefix-master" nginx/*.conf :nginx
 
 rsync -avz -e "docker-machine ssh $host_prefix-master" nginx/ssl_production/*.pem :nginx/ssl
 
+function isSwarmNode(){
+    host=$1
+    if [ "$(docker-machine ssh $host docker info | grep Swarm | sed 's/ Swarm: //g')" == "active" ]; then
+        true
+    else
+        false
+    fi
+}
+
 for i in $(seq 1 $numworkers); do
-    docker-machine ssh $host_prefix-$i \
-		   docker swarm join --token $join_token $master_ip:2377
+    host=$host_prefix-$i
+    swarm_node=(isSwarmNode $host)
+    if [ ! $swarm_node ]; then
+	docker-machine ssh $host_prefix-$i \
+		       docker swarm join --token $join_token $master_ip:2377
+    fi
 done
 
 docker-machine ssh $host_prefix-master docker stack deploy -c docker-compose.yml healthdata
