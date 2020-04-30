@@ -58,8 +58,6 @@ secrets:
     file: ./integration_test_secrets/db_app_pw
   pyramid_auth_secret.1:
     file: ./integration_test_secrets/pyramid_auth_secret
-  cycling_admin_password.2:
-    file: ./integration_test_secrets/cycling_admin_password
   integration_test.ini:
     file: ./integration_test_secrets/integration_test.ini
   mysql_ca:
