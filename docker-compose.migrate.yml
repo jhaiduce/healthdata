@@ -5,6 +5,9 @@ services:
       context: .
       dockerfile: Dockerfile
     image: jhaiduce/healthdata
+    deploy:
+      restart_policy:
+        condition: none
     secrets:
       - source: production.ini
         target: /run/secrets/production.ini
