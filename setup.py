@@ -24,7 +24,8 @@ requires = [
     'deform',
     'bokeh',
     'pandas',
-    'paginate'
+    'paginate',
+    'pyramid_nacl_session'
 ]
 
 tests_require = [

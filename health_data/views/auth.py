@@ -22,6 +22,7 @@ def login(request):
         login = request.params['login']
         password = request.params['password']
         user = request.dbsession.query(User).filter_by(name=login).first()
+        request.session['userid']=user.id
         if user is not None and user.check_password(password):
             headers = remember(request, user.id)
             return HTTPFound(location=next_url, headers=headers)

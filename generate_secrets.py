@@ -76,14 +76,15 @@ def generate_secrets(secrets_dir='secrets',ini_template='production.ini.tpl',ini
     app_admin_pw=write_password(secrets_dir+'/app_admin_pw')
     pyramid_auth_secret=write_password(secrets_dir+'/pyramid_auth_secret')
     pyramid_session_secret=binascii.hexlify(
-        bytes(write_password(secrets_dir+'/pyramid_session_secret'),'ascii'))
+        bytes(write_password(secrets_dir+'/pyramid_session_secret',length=32),'ascii'))
 
     ini_text=open(ini_template).read().format(
         mysql_production_password_encoded=quote_plus(db_app_pw).replace('%','%%'),
         mysql_production_password=db_app_pw.replace('%','%%'),
         mysql_root_password_encoded=quote_plus(db_root_pw).replace('%','%%'),
         app_admin_password=app_admin_pw.replace('%','%%'),
-        pyramid_auth_secret=pyramid_auth_secret.replace('%','%%')
+        pyramid_auth_secret=pyramid_auth_secret.replace('%','%%'),
+        session_secret=str(pyramid_session_secret).replace('%','%%')
     )
     open(os.path.join(secrets_dir,iniout),'w').write(ini_text)
 
