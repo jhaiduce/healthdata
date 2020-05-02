@@ -1,0 +1,37 @@
+{% extends "layout.jinja2" %}
+
+{% block content %}
+
+  <div class="row">
+    <div class="col">
+      {{people.count()}} total people
+    </div>
+    <div class="col">
+      <p style="text-align:right"><a href="/person/add">Add new</a></p>
+    </div>
+  </div>
+
+<div class="row">
+{{page.pager(url="/person/list?page=$page")|safe}}
+</div>
+
+<div class="row">
+<table class="data_table">
+<tr>
+<th></th>
+<th>Name</th>
+</tr>
+{% for person in page.items %}
+<tr>
+<td><a href="/person/{{person.id}}/edit">edit</a></td>
+<td>{{person.name}}</td>
+</tr>
+{% endfor %}
+</table>
+</div>
+
+<div class="row">
+{{page.pager(url="/person/list?page=$page")|safe}}
+</div>
+
+{% endblock content %}
