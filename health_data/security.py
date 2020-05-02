@@ -20,6 +20,7 @@ def includeme(config):
     authn_policy = AuthenticationPolicy(
         settings['auth.secret'],
         hashalg='sha512',
+        timeout=82800
     )
     config.set_authentication_policy(authn_policy)
     config.set_authorization_policy(ACLAuthorizationPolicy())
