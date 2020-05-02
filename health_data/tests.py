@@ -29,6 +29,8 @@ class BaseTest(unittest.TestCase):
         self.config.add_route('period_plot','/period')
         self.config.add_route('period_list','/period/list')
         self.config.add_route('period_delete','/period/{period_id}/delete')
+        self.config.add_route('person_list','/person/list')
+        self.config.add_route('person_delete','/person/{person_id}/delete')
 
         from .models import (
             get_engine,
@@ -62,6 +64,37 @@ class BaseTest(unittest.TestCase):
         transaction.abort()
         Base.metadata.drop_all(self.engine)
 
+class TestPerson(BaseTest):
+
+    def setUp(self):
+        super(TestPerson, self).setUp()
+        self.init_database()
+
+    def test_person_addedit(self):
+        from.views.people import PersonViews
+        from .models.people import Person
+
+        request=testing.DummyRequest({
+            'form.submitted':True,
+            'submit':'submit',
+            'name':'Bob'
+            },dbsession=self.session)
+
+        views=PersonViews(request)
+        info=views.person_add()
+        records=self.session.query(Person).filter(Person.name=='Bob')
+        record_id=records.first().id
+
+        request=testing.DummyRequest({
+            'form.submitted':True,
+            'submit':'submit',
+            'name':'Robert'
+            },dbsession=self.session)
+        request.matchdict['person_id']=record_id
+        views=PersonViews(request)
+        info=views.person_edit()
+        record=self.session.query(Person).filter(Person.id==record_id).one()
+        self.assertEqual(record.name,'Robert')
 
 class TestPeriod(BaseTest):
 
