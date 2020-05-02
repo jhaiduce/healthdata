@@ -41,11 +41,13 @@ class IndividualRecord(object):
 
     @declared_attr
     def person_id(cls):
-        person_id = Column(Integer, ForeignKey('person.id',name='fk_user_id'))
+        return Column(Integer, ForeignKey(
+            'person.id',
+            name='fk_{}_person_id'.format(cls.__tablename__)))
 
     @declared_attr
     def person(cls):
-        person = relationship('Person')
+        return relationship('Person')
 
 class Note(TimestampedRecord,Record):
     __tablename__ = 'note'
