@@ -43,7 +43,7 @@ services:
         reservations:
           memory: 200M
     secrets:
-      - source: production.ini
+      - source: pyramid_main_ini
         target: /run/secrets/production.ini
     links:
       - db
@@ -94,7 +94,7 @@ secrets:
   app_admin_password:
     name: app_admin_password.2
     file: ./secrets/app_admin_pw
-  production.ini:
+  pyramid_main_ini:
     file: ./secrets/production.ini
   mysql_ca:
     file: ./secrets/ca.pem

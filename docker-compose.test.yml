@@ -5,7 +5,7 @@ services:
       context: .
       dockerfile: Dockerfile.test
     secrets:
-      - source: integration_test.ini
+      - source: pyramid_main_ini
         target: /run/secrets/production.ini
     links:
       - web
@@ -41,7 +41,7 @@ services:
     image: jhaiduce/healthdata
     container_name: healthdata_web
     secrets:
-      - source: integration_test.ini
+      - source: pyramid_main_ini
         target: /run/secrets/production.ini
     logging:
       driver: journald
@@ -58,7 +58,7 @@ secrets:
     file: ./integration_test_secrets/db_app_pw
   pyramid_auth_secret.1:
     file: ./integration_test_secrets/pyramid_auth_secret
-  integration_test.ini:
+  pyramid_main_ini:
     file: ./integration_test_secrets/integration_test.ini
   mysql_ca:
     file: ./integration_test_secrets/ca.pem

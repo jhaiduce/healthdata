@@ -9,7 +9,7 @@ services:
       restart_policy:
         condition: none
     secrets:
-      - source: production.ini
+      - source: pyramid_main_ini
         target: /run/secrets/production.ini
     logging:
       driver: journald
