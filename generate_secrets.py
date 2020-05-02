@@ -6,6 +6,8 @@ try:
     from urllib import quote_plus
 except ImportError:
     from urllib.parse import quote_plus
+import binascii
+
 try:
     letters=string.letters
 except AttributeError:
@@ -73,6 +75,8 @@ def generate_secrets(secrets_dir='secrets',ini_template='production.ini.tpl',ini
     db_app_pw=write_password(secrets_dir+'/db_app_pw',charset=mysql_pwd_chars)
     app_admin_pw=write_password(secrets_dir+'/app_admin_pw')
     pyramid_auth_secret=write_password(secrets_dir+'/pyramid_auth_secret')
+    pyramid_session_secret=binascii.hexlify(
+        bytes(write_password(secrets_dir+'/pyramid_session_secret'),'ascii'))
 
     ini_text=open(ini_template).read().format(
         mysql_production_password_encoded=quote_plus(db_app_pw).replace('%','%%'),
