@@ -68,7 +68,8 @@ class TestPeriod(BaseTest):
 
     def test_period_plot(self):
         from .views.period import PeriodViews
-        views = PeriodViews(dummy_request(self.session))
+        request=dummy_request(self.session)
+        views = PeriodViews(request)
         info=views.period_plot()
 
     def test_period_edit(self):
