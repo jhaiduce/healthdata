@@ -46,7 +46,14 @@ def create_admin_user(dbsession,settings):
         )
 
         user.set_password(settings['admin_password'])
+
         dbsession.add(user)
+
+        person=models.Person(
+            name='default'
+        )
+        dbsession.add(person)
+
         dbsession.flush()
     except sqlalchemy.exc.IntegrityError:
         pass

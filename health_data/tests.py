@@ -46,6 +46,7 @@ class BaseTest(unittest.TestCase):
     def init_database(self):
         from .models.meta import Base
         from .models.security import User
+        from .models.people import Person
         Base.metadata.create_all(self.engine)
 
         user=User(
@@ -54,6 +55,12 @@ class BaseTest(unittest.TestCase):
 
         user.set_password('admin_password')
         self.session.add(user)
+
+        person=Person(name='Alice')
+        self.session.add(person)
+        self.session.flush()
+
+        self.person_id=person.id
 
         transaction.commit()
 
@@ -115,6 +122,7 @@ class TestPeriod(BaseTest):
     def test_period_plot(self):
         from .views.period import PeriodViews
         request=dummy_request(self.session)
+        request.session['person_id']=self.person_id
         views = PeriodViews(request)
         info=views.period_plot()
 
@@ -133,6 +141,7 @@ class TestPeriod(BaseTest):
             'temperature':'97.7',
             'time':'07:13',
         },dbsession=self.session)
+        request.session['person_id']=self.person_id
         views = PeriodViews(request)
         info=views.period_add()
         records=self.session.query(Period).filter(
@@ -153,6 +162,7 @@ class TestPeriod(BaseTest):
             'temperature':'97.2',
             'time':'07:13',
         },dbsession=self.session)
+        request.session['person_id']=self.person_id
         request.matchdict['period_id']=record_id
         views = PeriodViews(request)
         info=views.period_edit()
@@ -267,7 +277,10 @@ class FunctionalTests(unittest.TestCase):
 
         self.app = main({}, **self.config)
         self.init_database()
-        self.testapp=webtest.TestApp(self.app)
+
+        from http.cookiejar import CookieJar
+        cookiejar=CookieJar()
+        self.testapp=webtest.TestApp(self.app,cookiejar=cookiejar)
 
     def get_session(self):
         from .models import get_session_factory,get_tm_session
@@ -289,6 +302,11 @@ class FunctionalTests(unittest.TestCase):
 
         user.set_password(self.config['admin_password'])
         session.add(user)
+
+        person=models.Person(name='Alice')
+        session.add(person)
+
+        self.person_id=person.id
 
         transaction.commit()
 

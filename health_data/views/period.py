@@ -9,6 +9,9 @@ import json
 from .showtable import SqlalchemyOrmPage
 
 from ..models.records import Period, period_intensity_choices, cervical_fluid_choices, Temperature, Note
+from ..models.people import Person
+
+from .header import view_with_header
 
 class PeriodForm(colander.MappingSchema):
     id=colander.SchemaNode(
@@ -98,6 +101,13 @@ class PeriodViews(object):
                 return dict(form=e.render())
 
             period=appstruct_to_period(dbsession,appstruct)
+
+            session_person=self.request.dbsession.query(Person).filter(
+                Person.id==self.request.session['person_id']).one()
+
+            period.person=session_person
+            period.temperature.person=session_person
+
             dbsession.add(period)
 
             # Flush dbsession so we can get an id assignment
@@ -132,6 +142,12 @@ class PeriodViews(object):
                 return dict(form=e.render())
 
             period=appstruct_to_period(dbsession,appstruct,period)
+
+            session_person=self.request.dbsession.query(Person).filter(
+                Person.id==self.request.session['person_id']).one()
+
+            period.person=session_person
+            period.temperature.person=session_person
 
             dbsession.add(period)
             url = self.request.route_url('period_list')
@@ -186,10 +202,15 @@ class PeriodViews(object):
 
         return dict(form=form)
 
+    @view_with_header
     @view_config(route_name='period_list',renderer='../templates/period_list.jinja2')
     def period_list(self):
         current_page = int(self.request.params.get("page",1))
-        entries=self.request.dbsession.query(Period).order_by(Period.date.desc())
+        session_person=self.request.dbsession.query(Person).filter(
+            Person.id==self.request.session['person_id']).one()
+        entries=self.request.dbsession.query(Period).filter(
+            Period.person==session_person
+        ).order_by(Period.date.desc())
         page=SqlalchemyOrmPage(entries,page=current_page,items_per_page=30)
         return dict(
             entries=entries,page=page,
@@ -197,6 +218,7 @@ class PeriodViews(object):
             cervical_fluid_choices={**cervical_fluid_choices,1:''}
         )
 
+    @view_with_header
     @view_config(route_name='period_plot',renderer='../templates/period_plot.jinja2')
     def period_plot(self):
 
@@ -213,7 +235,11 @@ class PeriodViews(object):
         
         dbsession=self.request.dbsession
 
-        query=dbsession.query(Period).options(
+        session_person=dbsession.query(Person).filter(
+            Person.id==self.request.session['person_id']).first()
+        query=dbsession.query(Period).filter(
+            Period.person==session_person
+        ).options(
             joinedload(Period.temperature).load_only(Temperature.temperature)
         ).order_by(Period.date)
         periods=pd.read_sql(query.statement,dbsession.bind)

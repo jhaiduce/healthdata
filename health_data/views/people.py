@@ -148,3 +148,16 @@ class PersonViews(object):
         return dict(
             people=people,page=page
         )
+
+    @view_config(route_name='person_set_session')
+    def set_session_person(self):
+        person_id=int(self.request.matchdict['person_id'])
+        person=self.request.dbsession.query(Person).filter(Person.id==person_id).one()
+
+        self.request.session['person_id']=person_id
+
+        next_url = self.request.params.get('next', self.request.referrer)
+        if not next_url:
+            next_url = self.request.route_url('period_plot')
+
+        return HTTPFound(location=next_url)

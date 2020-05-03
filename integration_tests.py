@@ -41,6 +41,15 @@ class BaseTest(unittest.TestCase):
         self.assertEqual(resp.history[0].status_code,302)
         self.assertEqual(resp.history[0].headers['Location'],'http://healthdata_web/login?next=http%3A%2F%2Fhealthdata_web%2Fperiod')
 
+    def test_person_add(self):
+        resp=self.session.post('http://healthdata_web/person/add',data={
+            'form.submitted':True,
+            'submit':'submit',
+            'name':'Robert'
+        })
+        self.assertEqual(resp.history[0].status_code,302)
+        self.assertEqual(resp.history[0].headers['Location'],'http://healthdata_web/person/list')
+
     def test_period_list(self):
         resp=self.session.get('http://healthdata_web/period/list')
         self.assertGreater(resp.text.find('entries'),0)

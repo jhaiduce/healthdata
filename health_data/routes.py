@@ -10,6 +10,7 @@ def includeme(config):
     config.add_route('person_edit','/person/{person_id}/edit')
     config.add_route('person_delete','/person/{person_id}/delete')
     config.add_route('person_list','/person/list')
+    config.add_route('person_set_session','/person/set_session_person/{person_id}')
     config.add_route('home', '/')
     config.add_route('login', '/login')
     config.add_route('logout', '/logout')
