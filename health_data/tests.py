@@ -11,6 +11,8 @@ import re
 import json
 from datetime import date, datetime
 
+session_secret='3e774c33267869272a585d5540402349252460606b42633964462a3440563365'
+
 def dummy_request(dbsession):
     return testing.DummyRequest(dbsession=dbsession)
 
@@ -18,7 +20,8 @@ def dummy_request(dbsession):
 class BaseTest(unittest.TestCase):
     def setUp(self):
         self.config = testing.setUp(settings={
-            'sqlalchemy.url': 'sqlite:///:memory:'
+            'sqlalchemy.url': 'sqlite:///:memory:',
+            'session_secret': session_secret
         })
         self.config.include('.models')
         settings = self.config.get_settings()
@@ -40,7 +43,17 @@ class BaseTest(unittest.TestCase):
 
     def init_database(self):
         from .models.meta import Base
+        from .models.security import User
         Base.metadata.create_all(self.engine)
+
+        user=User(
+            name='admin'
+        )
+
+        user.set_password('admin_password')
+        self.session.add(user)
+
+        transaction.commit()
 
     def tearDown(self):
         from .models.meta import Base
@@ -215,7 +228,8 @@ class FunctionalTests(unittest.TestCase):
         self.config={
             'admin_password':self.admin_login['password'],
             'sqlalchemy.url':'sqlite://',
-            'auth.secret':'secret'
+            'auth.secret':'secret',
+            'session_secret':session_secret
             }
 
         self.app = main({}, **self.config)
