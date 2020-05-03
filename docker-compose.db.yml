@@ -1,0 +1,27 @@
+version: '3.7'
+services:
+  db:
+    image: mariadb
+    container_name: healthdata_db
+    environment:
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/mysql_root_password
+    volumes:
+      - type: bind
+        source: ./mysql-config-healthdata.cnf
+        target: /etc/mysql/conf.d/mysql-config-healthdata.cnf
+    configs:
+      - source: mysql-config.1
+        target: /etc/mysql/conf.d/mysql-config-healthdata.cnf
+    logging:
+      driver: journald
+    secrets:
+      - source: mysql_root_password.1
+        target: mysql_root_password
+      - source: storage_key.1
+        target: /etc/mysql/encryption/keyfile
+      - source: mysql_ca
+        target: /etc/my.cnf.d/certificates/ca.pem
+      - source: mysql_cert
+        target: /etc/my.cnf.d/certificates/server-cert.pem
+      - source: mysql_key
+        target: /etc/my.cnf.d/certificates/server-key.pem

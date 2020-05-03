@@ -1,10 +1,26 @@
 export VENV=`pwd`/../venv
 
+# Kill running containers
 sudo docker kill healthdata_web
 sudo docker kill healthdata_ci_sut_1
+sudo docker kill healthdata_ci_migration_1
 
-$VENV/bin/pytest -q && \
-    $VENV/bin/pytest -q health_data/migration_tests.py && \
-    sudo docker-compose -f docker-compose.test.yml -p healthdata_ci build && \
-    sudo docker-compose -f docker-compose.test.yml -p healthdata_ci up -d && \
-    sudo docker logs -f healthdata_ci_sut_1
+set -e
+
+# Run unit tests
+$VENV/bin/pytest -q
+
+# Run migration tests
+$VENV/bin/pytest -q health_data/migration_tests.py
+
+# Build images
+sudo docker-compose -f docker-compose.test_secrets.yml -f docker-compose.web.yml -f docker-compose.test.yml -f docker-compose.db.yml build
+
+# Run database migration
+./migrate_db_ci.sh
+
+# Run tests
+sudo docker-compose -f docker-compose.test_secrets.yml -f docker-compose.web.yml -f docker-compose.db.yml -f docker-compose.test.yml -p healthdata_ci up --remove-orphans -d
+
+# Print test logs
+sudo docker logs -f healthdata_ci_sut_1

@@ -1,11 +1,15 @@
 version: '3.7'
 services:
-  sut:
+  web:
     build:
       context: .
-      dockerfile: Dockerfile.test
+      dockerfile: Dockerfile
+    image: jhaiduce/healthdata
+    container_name: healthdata_web
     secrets:
       - source: pyramid_main_ini
         target: /run/secrets/production.ini
+    logging:
+      driver: journald
     links:
-      - web
+      - db
