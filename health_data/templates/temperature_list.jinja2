@@ -1,0 +1,39 @@
+{% extends "layout.jinja2" %}
+
+{% block content %}
+
+  <div class="row">
+    <div class="col">
+      {{entries.count()}} entries
+    </div>
+    <div class="col">
+      <p style="text-align:right"><a href="/temperature/add">Add new</a></p>
+    </div>
+  </div>
+
+<div class="row">
+{{page.pager(url="/temperature/list?page=$page")|safe}}
+</div>
+
+<div class="row">
+<table class="data_table">
+<tr>
+<th></th>
+<th>Date</th>
+<th>Temperature</th>
+</tr>
+{% for temperature in page.items %}
+<tr>
+<td><a href="/temperature/{{temperature.id}}/edit">edit</a></td>
+<td>{{temperature.time}}</td>
+<td>{{temperature.temperature if temperature.temperature else ''}}</td>
+</tr>
+{% endfor %}
+</table>
+</div>
+
+<div class="row">
+{{page.pager(url="/temperature/list?page=$page")|safe}}
+</div>
+
+{% endblock content %}

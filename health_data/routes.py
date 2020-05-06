@@ -11,6 +11,13 @@ def includeme(config):
     config.add_route('person_delete','/person/{person_id}/delete')
     config.add_route('person_list','/person/list')
     config.add_route('person_set_session','/person/set_session_person/{person_id}')
+
+    config.add_route('temperature_add','/temperature/add')
+    config.add_route('temperature_edit','/temperature/{temperature_id}/edit')
+    config.add_route('temperature_delete','/temperature/{temperature_id}/delete')
+    config.add_route('temperature_plot','/temperature')
+    config.add_route('temperature_list','/temperature/list')
+
     config.add_route('home', '/')
     config.add_route('login', '/login')
     config.add_route('logout', '/logout')
