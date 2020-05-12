@@ -140,6 +140,7 @@ class PersonViews(object):
 
         return dict(form=form)
 
+    @view_with_header
     @view_config(route_name='person_list',renderer='../templates/person_list.jinja2')
     def person_list(self):
         current_page = int(self.request.params.get("page",1))
