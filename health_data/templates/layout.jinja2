@@ -27,32 +27,61 @@
 
   <body>
 
-    <div class="starter-template">
-
-      <div class="container">
-
 	{% if show_header %}
-	<div class="row">
+	<header class="navbar navbar-expand navbar-light bg-dark">
 
-	  <div class="dropdown">
-	    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-	      {{session_person.name}}
-	    </button>
-	    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-	      {% for person in people %}
-	      <a class="dropdown-item" href="/person/set_session_person/{{person.id}}?next={{request_url}}">{{person.name}}</a>
-	      {% endfor %}
-	    </div>
+	  <div class="collapse navbar-collapse">
+
+	    <ul class="navbar-nav mr-auto">
+	      <li class="nav-item active dropdown">
+		<a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">Period</a>
+		<div class="dropdown-menu">
+		  <a class="dropdown-item" href="/period">Plot</a>
+		  <a class="dropdown-item" href="/period/list">List</a>
+		</div>
+	      </li>
+	      <li class="nav-item active dropdown">
+		<a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">Temperature</a>
+		<div class="dropdown-menu">
+		  <a class="dropdown-item" href="/temperature">Plot</a>
+		  <a class="dropdown-item" href="/temperature/list">List</a>
+		</div>
+	      </li>
+	      <li class="nav-item active">
+		<a class="nav-link" href="/person/list">People</a>
+	      </li>
+	    </ul>
+
+	    <ul class="navbar-nav flex-row ml-md-auto">
+	      <li class="nav-item active dropdown">
+		<a class="nav-item nav-link dropdown-toggle" data-toggle="dropdown" href="#">
+		  {{session_person.name}}
+		</a>
+	      <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButton">
+		{% for person in people %}
+		<a id="session-person-selector" class="dropdown-item {%if person.id==session_person.id %}active{% endif %}" href="/person/set_session_person/{{person.id}}?next={{request_url}}">
+		  {{person.name}}
+		</a>
+		{% endfor %}
+	      </div>
+	      </li>
+	    </ul>
+
 	  </div>
-
-	</div>
+	</header>
 
 	{% endif %}
+
+	<div class="starter-template">
+
+	  <div class="container">
+
 
             {% block content %}
                 <p>No content</p>
             {% endblock content %}
-      </div>
+
+	  </div>
     </div>
 
 
