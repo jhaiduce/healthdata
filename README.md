@@ -1,43 +1,48 @@
-Health Data
-===========
+# Health Data
 
-Getting Started
----------------
+This is a Pyramid web application that provides interfaces to enter and view health data for a small number of people.
 
-- Change directory into your newly created project.
+## Set up the development environment
 
-    cd health_data
+1. Change directory into your newly created project.
 
-- Create a Python virtual environment.
+  ```console
+  cd healthdata
+  ```
 
-    python3 -m venv env
+2. Create a Python virtual environment.
 
-- Upgrade packaging tools.
+  ```console
+  python3 -m venv env
+  ```
 
-    env/bin/pip install --upgrade pip setuptools
+3. Upgrade packaging tools.
 
-- Install the project in editable mode with its testing requirements.
+```console
+env/bin/pip install --upgrade pip setuptools
+```
 
-    env/bin/pip install -e ".[testing]"
+4. Install the project in editable mode with its testing requirements.
 
-- Initialize and upgrade the database using Alembic.
+```console
+env/bin/pip install -e ".[testing]"
+```
 
-    - Generate your first revision.
+5. Initialize and upgrade the database
 
-        env/bin/alembic -c development.ini revision --autogenerate -m "init"
+```console
+env/bin/initialize_healthdata_db development.ini
+```
 
-    - Upgrade to that revision.
+6. Run unit tests.
 
-        env/bin/alembic -c development.ini upgrade head
+```console
+env/bin/pytest
+```
 
-- Load default data into the database using a script.
+7. Start the application on a local test server
 
-    env/bin/initialize_health_data_db development.ini
+```console
+env/bin/pserve development.ini
+```
 
-- Run your project's tests.
-
-    env/bin/pytest
-
-- Run your project.
-
-    env/bin/pserve development.ini
