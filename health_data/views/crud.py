@@ -923,7 +923,14 @@ class CRUDView(object,metaclass=CRUDCreator):
             # Determine redirect
             if action == 'save':
                 self.dbsession.flush()
-                return HTTPFound(location=self._edit_route(obj))
+                return HTTPFound(
+                    location=self._edit_route(obj),
+                    content_type='application/json',
+                    charset='',
+                    text=json.dumps(
+                        {'id':obj.id}
+                    )
+                )
             elif action == 'save_close':
                 return self.redirect(self.routes['list'])
             elif action == 'save_new':
