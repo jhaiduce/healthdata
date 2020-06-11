@@ -117,3 +117,42 @@ class BaseTest(unittest.TestCase):
         ).find('option',{'selected':'selected'})['value']
 
         self.assertEqual(cervical_fluid_value,'1')
+
+    def test_weight_addedit(self):
+
+        resp=self.session.post(
+            'http://healthdata_web/weight/new',
+            data=[
+                ('__start__','time:mapping'),
+                ('date','2020-03-14'),
+                ('time','07:30'),
+                ('__end__','time:mapping'),
+                ('weight','72.4'),
+                ('save','save')
+            ]
+        )
+
+        # Check that we got redirected
+        self.assertEqual(resp.history[0].status_code,302)
+
+        # Get the id of the new entry
+        submission_metadata=json.loads(resp.history[0].text)
+        weight_id=submission_metadata['id']
+
+        # Load the weight listing page
+        resp=self.session.get('http://healthdata_web/weight')
+
+        # Check that the new entry is listed
+        self.assertGreater(resp.text.find('a href="http://healthdata_web/weight/{}/edit"'.format(weight_id)),0)
+
+        # Check that the edit page loads correctly
+        resp=self.session.get('http://healthdata_web/weight/{}/edit'.format(weight_id))
+
+        # Check form content
+        soup=BeautifulSoup(resp.text,'html.parser')
+        self.assertTrue(soup.find('input',{'name':'weight',
+                                           'value':'72.4'}))
+        self.assertTrue(soup.find('input',{'name':'date',
+                                           'value':'2020-03-14'}))
+        self.assertTrue(soup.find('input',{'name':'time',
+                                               'value':'07:30:00'}))
