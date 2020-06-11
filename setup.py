@@ -26,7 +26,8 @@ requires = [
     'pandas',
     'paginate',
     'pyramid_nacl_session',
-    'pyramid_crud'
+    'six',
+    'colanderalchemy'
 ]
 
 tests_require = [

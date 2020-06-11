@@ -1,0 +1,46 @@
+{% extends "layout.jinja2" %}
+
+{% block content %}
+
+<h1>{{view.title_plural}}</h1>
+<a href="{{request.route_url(view.routes['new'])}}" class="btn btn-primary pull-right">New</a>
+    <div class="form-group">
+    </div>
+    <table class="data_table">
+        <thead>
+            <tr>
+                <th></th>
+                {% for col_info in view.iter_head_cols() %}
+                    <th class="{{col_info["css_class"]}}">
+                        {{col_info["label"]}}
+                    </th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+
+                {% for item in items%}
+                    <tr>
+			<td><a href="{{view._edit_route(item)}}">edit</a></td>
+                        {% for title, col in view.iter_list_cols(item) %}
+                            {% if col is true or col is false %}
+                                <td class="text-{{'success' if col else 'danger'}} text-center">
+                            {% else %}
+                                <td>
+                            {% endif %}
+                                    {% if col is true %}
+                                        Yes
+                                    {% elif col is false %}
+                                        No
+                                    {% else %}
+                                        {{col}}
+                                    {% endif %}
+                            </td>
+			{% endfor %}
+                    </tr>
+                {% endfor %}
+        </tbody>
+    </table>
+</form>
+
+{% endblock content %}
