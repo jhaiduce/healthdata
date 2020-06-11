@@ -525,3 +525,45 @@ class FunctionalTests(unittest.TestCase):
         self.assertEqual(period.temperature.temperature,98.1)
         self.assertEqual(period.notes.text,'A brief note')
         self.assertEqual(period.notes.date,datetime(2020,3,14,7,30))
+
+    def test_weight_addedit(self):
+        self.login()
+        from .models import Weight
+        add_url='http://localhost/weight/new'
+        edit_url='http://localhost/weight/{}/edit'
+        session=self.get_session()
+
+        resp=self.testapp.post(
+            add_url,
+            params=[
+                ('__start__','time:mapping'),
+                ('date','2020-03-14'),
+                ('time','07:30'),
+                ('__end__','time:mapping'),
+                ('weight','72.4'),
+                ('save','save')
+            ]
+        )
+        self.assertEqual(resp.status_code,302)
+        weight_id=json.loads(resp.text)['id']
+        weight=session.query(Weight).filter(Weight.id==weight_id).one()
+        self.assertEqual(weight.time,datetime(2020,3,14,7,30))
+        self.assertEqual(weight.weight,72.4)
+
+        resp=self.testapp.post(
+            edit_url.format(weight_id),
+            params=[
+                ('__start__','time:mapping'),
+                ('date','2020-03-15'),
+                ('time','07:45'),
+                ('__end__','time:mapping'),
+                ('weight','72.5'),
+                ('save','save')
+            ]
+        )
+        self.assertEqual(resp.status_code,302)
+        session.flush()
+        transaction.commit()
+        weight=session.query(Weight).filter(Weight.id==weight_id).one()
+        self.assertEqual(weight.time,datetime(2020,3,15,7,45))
+        self.assertEqual(weight.weight,72.5)
