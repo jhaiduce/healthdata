@@ -788,7 +788,6 @@ class CRUDView(object,metaclass=CRUDCreator):
                 else:
                     label = col_name
                 label = label.replace("_", " ").title()
-                print('label=',label)
                 col_info['label'] = label
             if 'bool' not in col_info:
                 if (hasattr(col, 'type') and
