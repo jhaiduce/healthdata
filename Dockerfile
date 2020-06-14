@@ -8,6 +8,7 @@ RUN pip3 install --trusted-host pypi.python.org Pillow==6.2.2 numpy==1.17.2
 RUN pip3 install --upgrade pip
 RUN pip3 install --trusted-host pypi.python.org pandas==1.0.1
 RUN apk add libffi-dev mariadb-dev
+RUN apk add git
 
 COPY requirements.txt /app
 RUN pip3 install -r /app/requirements.txt
