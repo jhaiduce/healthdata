@@ -251,6 +251,20 @@ TypeError: formdata should be a multidict-type wrapper that supports the 'getlis
                              renderer=self.view_class.get_template_for('edit'))
         return route
 
+    def configure_delete_confirm_view(self):
+        """
+        This method behaves exactly like
+        :meth:`ViewConfigurator.configure_list_view` except it must configure
+        the edit view, i.e. the view for editing existing objects. It must
+        return the name of the route as well that will then be stored under the
+        "edit" key.
+        """
+        route=self._configure_route('delete_confirm',
+                                     '/%s/delete_confirm' % self._get_route_pks())
+        self._configure_view('delete_confirm',
+                             renderer=self.view_class.get_template_for('delete_confirm'))
+        return route
+
     def configure_new_view(self):
         """
         This method behaves exactly like
@@ -277,11 +291,13 @@ class CRUDCreator(type):
             list_route = configurator.configure_list_view()
             edit_route = configurator.configure_edit_view()
             new_route = configurator.configure_new_view()
+            delete_confirm_route = configurator.configure_delete_confirm_view()
 
             cls.routes = {
                 'list': list_route,
                 'edit': edit_route,
                 'new': new_route,
+                'delete_confirm': delete_confirm_route,
             }
         if '__abstract__' not in attrs:
             have_attrs = set(attrs)
@@ -551,10 +567,21 @@ class CRUDView(object,metaclass=CRUDCreator):
         self.request = request
         self._action_form = None
 
-    def get_addedit_form(self,request,buttons=['save']):
+    def get_addedit_form(self,request,buttons=['save','save close','delete','cancel']):
         schema=self.schema.bind(
             request=request
         )
+
+        return deform.Form(schema,buttons=buttons)
+
+    def get_delete_confirm_form(self,request,buttons=['delete','cancel']):
+
+        class ConfirmationForm(colander.MappingSchema):
+            id=colander.SchemaNode(
+                colander.Integer(),
+                widget=deform.widget.HiddenWidget(),missing=None)
+
+        schema = ConfirmationForm().bind(request=request)
 
         return deform.Form(schema,buttons=buttons)
 
@@ -594,49 +621,50 @@ class CRUDView(object,metaclass=CRUDCreator):
             all_actions[action.__name__] = info
         return all_actions
 
-    def delete(self, query):
+    def delete_confirm(self):
         """
         Delete all objects in the ``query``.
         """
+
+        # determine primary keys
         try:
-            items = query.all()
-            choices = self._get_item_choices(items)
+            pks = self._get_request_pks()
+        except ValueError as exc:
+            log.info("Invalid Request for primary keys: %s threw exception %s"
+                     % (self.request.matchdict, exc))
+            self.request.session.flash("Invalid URL", 'error')
+            raise self.redirect(self.routes['list'])
 
-            class ConfirmationForm(CSRFForm):
-                action = HiddenField()
-                confirm_delete = SubmitField('Delete')
-                items = MultiHiddenField(choices=choices,
-                                         validators=[req_validator])
-            form = ConfirmationForm(self.request.POST,
-                                    csrf_context=self.request)
-            if 'confirm_delete' in self.request.POST:
-                if not form.validate():
-                    # Likely CSRF or other fiddling, don't bother checking
-                    raise Exception
+        form=self.get_delete_confirm_form(self.request)
 
-                item_count = len(items)
-                for item in items:
-                    self.dbsession.delete(item)
+        Model=self.model
+
+        if pks is not None:
+            obj = self.dbsession.query(Model).get(tuple(pks.values()))
+            if obj is None:
+                self.request.session.flash("This object does not exist.",
+                                           'error')
+                raise self.redirect(self.routes['list'])
+
+        try:
+
+            if 'delete' in self.request.POST:
+                self.dbsession.delete(obj)
                 self.dbsession.flush()
-                if item_count == 1:
-                    title = self.Form.title
-                else:
-                    title = self.Form.title_plural
-                message = "%d %s deleted!" % (item_count, title)
+                message = "%d deleted!" % (item_count)
                 self.request.session.flash(message)
-                return True, None
-            else:
-                data = {'items': items, 'view': self, 'form': form}
-                template = self.get_template_for('delete_confirm')
-                response = render_to_response(template, data,
-                                              request=self.request)
-                return True, response
+                return self.redirect(self.routes['list'])
+            if 'cancel' in self.request.POST:
+                referrer=self.request.params.get('referrer',self.request.referrer)
+                url=referrer if referrer else self.request.route_url(self.routes['list'])
+                return HTTPFound(location=url)
         except Exception:
             log.warning("Deletion of items failed:\n%s" % format_exc())
             self.request.session.flash('There was an error deleting the '
                                        'item(s)', 'error')
-            return False, None
-    delete.info = {'label': 'Delete'}
+        form=form.render(dict(id=obj.id))
+        return {'form':form}
+    delete_confirm.info = {'label': 'Delete'}
 
     # Misc helper stuff
 
@@ -720,6 +748,20 @@ class CRUDView(object,metaclass=CRUDCreator):
         """
         kw = self._get_route_pks(obj)
         return self.request.route_url(self.routes['edit'], **kw)
+
+    def _delete_confirm_route(self, obj):
+        """
+        Get a route for the edit action based on an objects primary keys.
+
+        :param obj: The instance of a model on which the routes values should
+            be based.
+
+        :return: A URL which can be used as the routing URL for redirects or
+            displaying the URL on the page.
+        """
+        kw = self._get_route_pks(obj)
+        return self.request.route_url(self.routes['delete_confirm'], **kw,
+                                       _query=dict(referrer=self.request.url))
 
     # Template helper functions
 
@@ -893,7 +935,7 @@ class CRUDView(object,metaclass=CRUDCreator):
 
         if self.request.method == 'POST':
             # TODO: Cancel, Save & New, Save & Close, Save
-            actions = ['save', 'save_close', 'save_new']
+            actions = ['save', 'save_close', 'save_new','delete','cancel']
             for action in actions:
                 if action in self.request.POST:
                     break
@@ -934,6 +976,10 @@ class CRUDView(object,metaclass=CRUDCreator):
                 return self.redirect(self.routes['list'])
             elif action == 'save_new':
                 return self.redirect(self.routes['new'])
+            elif action == 'cancel':
+                return self.redirect(self.routes['list'])
+            elif action == 'delete':
+                return HTTPFound(self._delete_confirm_route(obj))
             else:
                 # just a saveguard, this is should actually be unreachable
                 # because we already check above
