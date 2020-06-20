@@ -12,7 +12,7 @@ chardet==3.0.4
 Click==7.0
 colander==1.7.0
 cookiecutter==1.6.0
-git+https://github.com/jhaiduce/deform.git@42a9d4371193c1e619521bc516d1afd478f850e9
+git+https://github.com/jhaiduce/deform.git@5f807ef337ea1dd740d31872bdb32e2cbf8b8a39
 future==0.17.1
 hupper==1.8.1
 idna==2.8
