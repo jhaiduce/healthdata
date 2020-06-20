@@ -6,7 +6,7 @@ from pyramid.events import subscriber
 from colanderalchemy import SQLAlchemySchemaNode
 from .individual_record import IndividualRecordCRUDView
 
-class WeightView(CRUDView,IndividualRecordCRUDView):
+class WeightView(IndividualRecordCRUDView,CRUDView):
     model=Weight
     schema=SQLAlchemySchemaNode(
         Weight,
