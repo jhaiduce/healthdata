@@ -23,6 +23,12 @@ from .header import view_with_header
 
 from pyramid.events import subscriber,BeforeRender
 
+class ViewDbInsertEvent(object):
+
+    def __init__(self,request,obj):
+        self.request=request
+        self.obj=obj
+
 @subscriber(BeforeRender)
 def setup_jinja2_env(event):
     event['zip']=zip
@@ -958,6 +964,7 @@ class CRUDView(object,metaclass=CRUDCreator):
             if is_new:
                 obj = self.schema.objectify(appstruct)
                 self.dbsession.add(obj)
+                self.request.registry.notify(ViewDbInsertEvent(self.request,obj))
             else:
                 obj = self.schema.objectify(appstruct,obj)
 
