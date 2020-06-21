@@ -657,7 +657,7 @@ class CRUDView(object,metaclass=CRUDCreator):
             if 'delete' in self.request.POST:
                 self.dbsession.delete(obj)
                 self.dbsession.flush()
-                message = "%d deleted!" % (item_count)
+                message = "Record deleted"
                 self.request.session.flash(message)
                 return self.redirect(self.routes['list'])
             if 'cancel' in self.request.POST:
