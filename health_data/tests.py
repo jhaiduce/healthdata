@@ -531,6 +531,7 @@ class FunctionalTests(unittest.TestCase):
         from .models import Weight
         add_url='http://localhost/weight/new'
         edit_url='http://localhost/weight/{}/edit'
+        delete_confirm_url='http://localhost/weight/{}/delete_confirm'
         session=self.get_session()
 
         resp=self.testapp.post(
@@ -567,3 +568,32 @@ class FunctionalTests(unittest.TestCase):
         weight=session.query(Weight).filter(Weight.id==weight_id).one()
         self.assertEqual(weight.time,datetime(2020,3,15,7,45))
         self.assertEqual(weight.weight,72.5)
+
+        resp=self.testapp.post(
+            edit_url.format(weight_id),
+            params=[
+                ('__start__','time:mapping'),
+                ('date','2020-03-15'),
+                ('time','07:45'),
+                ('__end__','time:mapping'),
+                ('weight','72.5'),
+                ('delete','delete')
+            ])
+
+        self.assertEqual(resp.status_code,302)
+
+        from urllib.parse import quote
+        delete_confirm_url=delete_confirm_url.format(weight_id)+'?referrer='+quote(edit_url.format(weight_id),'')
+        self.assertEqual(resp.location,delete_confirm_url)
+
+        resp=self.testapp.post(
+            add_url,
+            params=[
+                ('__start__','time:mapping'),
+                ('date','2020-03-14'),
+                ('time','07:30'),
+                ('__end__','time:mapping'),
+                ('weight','72.4'),
+                ('save','save')
+            ]
+        )
