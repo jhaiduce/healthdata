@@ -143,6 +143,7 @@ class TestPeriod(BaseTest):
             '__end__':'date:mapping',
             'temperature':'97.7',
             'time':'07:13',
+            'notes':'Note'
         },dbsession=self.session)
         request.session['person_id']=self.person_id
         views = PeriodViews(request)
@@ -164,6 +165,7 @@ class TestPeriod(BaseTest):
             '__end__':'date:mapping',
             'temperature':'97.2',
             'time':'07:13',
+            'notes':'Updated note'
         },dbsession=self.session)
         request.session['person_id']=self.person_id
         request.matchdict['period_id']=record_id
@@ -171,6 +173,27 @@ class TestPeriod(BaseTest):
         info=views.period_edit()
         record=self.session.query(Period).filter(Period.id==record_id).one()
         self.assertEqual(record.temperature.temperature,97.2)
+        self.assertEqual(record.notes.text,'Updated note')
+
+        request=testing.DummyRequest({
+            'form.submitted':True,
+            'submit':'submit',
+            'period_intensity':'5',
+            'cervical_fluid':'1',
+            '__start__':'date:mapping',
+            'date':'2019-10-29',
+            '__end__':'date:mapping',
+            'temperature':'97.2',
+            'time':'07:13',
+            'notes':''
+        },dbsession=self.session)
+        request.session['person_id']=self.person_id
+        request.matchdict['period_id']=record_id
+        views = PeriodViews(request)
+        info=views.period_edit()
+        record=self.session.query(Period).filter(Period.id==record_id).one()
+        self.assertEqual(record.temperature.temperature,97.2)
+        self.assertIsNone(record.notes)
 
         # Test delete button on the edit form
         request=testing.DummyRequest({
