@@ -92,8 +92,10 @@ class Symptom(TimestampedRecord,IndividualRecord,Record):
     symptomtype_id = Column(Integer,ForeignKey('symptomtype.id',name='fk_symtomtype_id'))
     start_time = Column(DateTime)
     end_time = Column(DateTime)
+    notes_id=Column(Integer,ForeignKey('note.id'))
 
     symptomtype=relationship(SymptomType,foreign_keys=symptomtype_id)
+    notes=relationship(Note,foreign_keys=notes_id)
 
     __mapper_args__ = {
         'polymorphic_identity':'symptom'
