@@ -66,6 +66,8 @@ def appstruct_to_period(dbsession,appstruct,existing_record=None):
             period.notes=Note()
         period.notes.date=datetime.combine(appstruct['date'],appstruct['temperature_time'])
         period.notes.text=appstruct['notes']
+    else:
+        period.notes=None
 
     return period
 

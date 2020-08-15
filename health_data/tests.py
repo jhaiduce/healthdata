@@ -133,18 +133,21 @@ class TestPeriod(BaseTest):
         from .views.period import PeriodViews
         from .models.records import Period, Record, Temperature
         from datetime import date, datetime
-        request=testing.DummyRequest({
-            'form.submitted':True,
-            'submit':'submit',
-            'period_intensity':'5',
-            'cervical_fluid':'1',
-            '__start__':'date:mapping',
-            'date':'2019-10-29',
-            '__end__':'date:mapping',
-            'temperature':'97.7',
-            'time':'07:13',
-            'notes':'Note'
-        },dbsession=self.session)
+        from webob.multidict import MultiDict
+        request=testing.DummyRequest(MultiDict([
+            ('form.submitted',True),
+            ('submit','submit'),
+            ('period_intensity','5'),
+            ('cervical_fluid','1'),
+            ('__start__','date:mapping'),
+            ('date','2019-10-29'),
+            ('__end__','date:mapping'),
+            ('temperature','97.7'),
+            ('__start__','temperature_time:mapping'),
+            ('time','07:13'),
+            ('__end__','temperature_time:mapping'),
+            ('notes','Note')
+        ]),dbsession=self.session)
         request.session['person_id']=self.person_id
         views = PeriodViews(request)
         info=views.period_add()
@@ -155,18 +158,20 @@ class TestPeriod(BaseTest):
         record_count=records.count()
         self.assertGreater(record_count,0)
 
-        request=testing.DummyRequest({
-            'form.submitted':True,
-            'submit':'submit',
-            'period_intensity':'5',
-            'cervical_fluid':'1',
-            '__start__':'date:mapping',
-            'date':'2019-10-29',
-            '__end__':'date:mapping',
-            'temperature':'97.2',
-            'time':'07:13',
-            'notes':'Updated note'
-        },dbsession=self.session)
+        request=testing.DummyRequest(MultiDict([
+            ('form.submitted',True),
+            ('submit','submit'),
+            ('period_intensity','5'),
+            ('cervical_fluid','1'),
+            ('__start__','date:mapping'),
+            ('date','2019-10-29'),
+            ('__end__','date:mapping'),
+            ('temperature','97.2'),
+            ('__start__','temperature_time:mapping'),
+            ('time','07:13'),
+            ('__end__','temperature_time:mapping'),
+            ('notes','Updated note')
+        ]),dbsession=self.session)
         request.session['person_id']=self.person_id
         request.matchdict['period_id']=record_id
         views = PeriodViews(request)
@@ -175,18 +180,20 @@ class TestPeriod(BaseTest):
         self.assertEqual(record.temperature.temperature,97.2)
         self.assertEqual(record.notes.text,'Updated note')
 
-        request=testing.DummyRequest({
-            'form.submitted':True,
-            'submit':'submit',
-            'period_intensity':'5',
-            'cervical_fluid':'1',
-            '__start__':'date:mapping',
-            'date':'2019-10-29',
-            '__end__':'date:mapping',
-            'temperature':'97.2',
-            'time':'07:13',
-            'notes':''
-        },dbsession=self.session)
+        request=testing.DummyRequest(MultiDict([
+            ('form.submitted',True),
+            ('submit','submit'),
+            ('period_intensity','5'),
+            ('cervical_fluid','1'),
+            ('__start__','date:mapping'),
+            ('date','2019-10-29'),
+            ('__end__','date:mapping'),
+            ('temperature','97.2'),
+            ('__start__','__temperature_time:mapping'),
+            ('time','07:13'),
+            ('__end__','temperature_time:mapping'),
+            ('notes','')
+        ]),dbsession=self.session)
         request.session['person_id']=self.person_id
         request.matchdict['period_id']=record_id
         views = PeriodViews(request)
@@ -196,17 +203,19 @@ class TestPeriod(BaseTest):
         self.assertIsNone(record.notes)
 
         # Test delete button on the edit form
-        request=testing.DummyRequest({
-            'form.submitted':True,
-            'delete_entry':'delete_entry',
-            'period_intensity':'5',
-            'cervical_fluid':'1',
-            '__start__':'date:mapping',
-            'date':'2019-10-29',
-            '__end__':'date:mapping',
-            'temperature':'97.2',
-            'time':'07:13',
-        },dbsession=self.session)
+        request=testing.DummyRequest(MultiDict([
+            ('form.submitted',True),
+            ('delete_entry','delete_entry'),
+            ('period_intensity','5'),
+            ('cervical_fluid','1'),
+            ('__start__','date:mapping'),
+            ('date','2019-10-29'),
+            ('__end__','date:mapping'),
+            ('temperature','97.2'),
+            ('__start__','temperature_time:mapping'),
+            ('time','07:13'),
+            ('__end__','temperature_time:mapping'),
+        ]),dbsession=self.session)
         request.matchdict['period_id']=record_id
         edit_url=request.url
         views = PeriodViews(request)
