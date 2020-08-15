@@ -49,11 +49,13 @@ class IndividualRecord(object):
     def person(cls):
         return relationship('Person')
 
+import deform
+
 class Note(TimestampedRecord,Record):
     __tablename__ = 'note'
     id = Column(Integer, ForeignKey('record.id'), primary_key=True)
     date = Column(DateTime)
-    text = Column(Text)
+    text = Column(Text,info={'colanderalchemy':{'widget':deform.widget.TextAreaWidget()}})
 
     __mapper_args__ = {
         'polymorphic_identity':'note'
