@@ -93,6 +93,8 @@ class Symptom(TimestampedRecord,IndividualRecord,Record):
     start_time = Column(DateTime)
     end_time = Column(DateTime)
 
+    symptomtype=relationship(SymptomType,foreign_keys=symptomtype_id)
+
     __mapper_args__ = {
         'polymorphic_identity':'symptom'
     }
