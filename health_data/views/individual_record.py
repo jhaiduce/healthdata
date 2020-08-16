@@ -4,7 +4,7 @@ from ..models.records import IndividualRecord
 from ..models.people import Person
 from .crud import CRUDView
 
-@subscriber(ViewDbInsertEvent)
+@subscriber(ViewDbEvent)
 def set_record_person(event):
 
     if isinstance(event.obj,IndividualRecord) and event.obj.person==None:

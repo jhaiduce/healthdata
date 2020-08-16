@@ -23,10 +23,24 @@ from .header import view_with_header
 
 from pyramid.events import subscriber,BeforeRender
 
-class ViewDbInsertEvent(object):
+class ViewDbEvent(object):
 
-    def __init__(self,request,obj):
+    def __init__(self,request,appstruct,schema,obj):
         self.request=request
+        self.appstruct=appstruct
+        self.schema=schema
+        self.obj=obj
+
+class ViewDbInsertEvent(ViewDbEvent):
+    pass
+
+class ViewDbUpdateEvent(ViewDbEvent):
+    pass
+
+    def __init__(self,request,appstruct,schema,obj):
+        self.request=request
+        self.appstruct=appstruct
+        self.schema=schema
         self.obj=obj
 
 @subscriber(BeforeRender)
@@ -964,9 +978,10 @@ class CRUDView(object,metaclass=CRUDCreator):
             if is_new:
                 obj = self.schema.objectify(appstruct)
                 self.dbsession.add(obj)
-                self.request.registry.notify(ViewDbInsertEvent(self.request,obj))
+                self.request.registry.notify(ViewDbInsertEvent(self.request,appstruct,self.schema,obj))
             else:
                 obj = self.schema.objectify(appstruct,obj)
+                self.request.registry.notify(ViewDbUpdateEvent(self.request,appstruct,self.schema,obj))
 
             # Determine redirect
             if action == 'save':
