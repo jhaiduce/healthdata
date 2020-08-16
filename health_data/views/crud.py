@@ -1015,7 +1015,7 @@ class CRUDView(object,metaclass=CRUDCreator):
         else:
 
             if pks is not None:
-                appstruct=self.schema.dictify(obj)
+                appstruct=self.dictify(obj)
             else:
                 appstruct={}
 
@@ -1023,4 +1023,6 @@ class CRUDView(object,metaclass=CRUDCreator):
             retparams = {'form': form.render(appstruct), 'is_new': is_new}
             return retparams
 
+    def dictify(self,obj):
 
+        return self.schema.dictify(obj)
