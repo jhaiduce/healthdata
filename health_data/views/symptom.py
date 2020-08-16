@@ -69,7 +69,8 @@ def get_symptomtype_widget(node,kw):
 symptomtype_schema = colander.SchemaNode(colander.String(),
                                          name='symptomtype',
                                          title='Symptom',
-                                         widget=get_symptomtype_widget)
+                                         widget=get_symptomtype_widget,
+                                         missing=None)
 
 notes_schema = colander.SchemaNode(colander.String(),
                                    name='notes',
@@ -77,10 +78,10 @@ notes_schema = colander.SchemaNode(colander.String(),
                                    missing=None)
 
 def notes(obj):
-    return obj.notes.text
+    return obj.notes.text if obj.notes else None
 
 def symptom(obj):
-    return obj.symptomtype.name
+    return obj.symptomtype.name if obj.symptomtype else None
 
 class SymptomViews(IndividualRecordCRUDView,CRUDView):
     model=Symptom
@@ -105,5 +106,8 @@ class SymptomViews(IndividualRecordCRUDView,CRUDView):
 
         if obj.notes is not None:
             appstruct['notes']=obj.notes.text
+
+        if obj.symptomtype is not None:
+            appstruct['symptomtype']=obj.symptomtype.name
 
         return appstruct
