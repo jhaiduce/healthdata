@@ -11,6 +11,8 @@ import re
 import json
 from datetime import date, datetime
 
+from sqlalchemy.orm.exc import NoResultFound
+
 session_secret='3e774c33267869272a585d5540402349252460606b42633964462a3440563365'
 
 def dummy_request(dbsession):
@@ -618,6 +620,18 @@ class FunctionalTests(unittest.TestCase):
         delete_confirm_url=delete_confirm_url.format(weight_id)+'?referrer='+quote(edit_url.format(weight_id),'')
         self.assertEqual(resp.location,delete_confirm_url)
 
+        resp=self.testapp.post(
+            delete_confirm_url.format(weight_id),
+            params=[
+                ('delete','delete')
+        ])
+
+        session.flush()
+        transaction.commit()
+
+        with self.assertRaises(NoResultFound):
+            weight=session.query(Weight).filter(Weight.id==weight_id).one()
+
     def test_symptom_addedit(self):
         self.login()
         from .models import Symptom
@@ -684,3 +698,15 @@ class FunctionalTests(unittest.TestCase):
         delete_confirm_url=delete_confirm_url.format(symptom_id)+'?referrer='+quote(edit_url.format(symptom_id),'')
         self.assertEqual(resp.location,delete_confirm_url)
         symptom=session.query(Symptom).filter(Symptom.id==symptom_id).one()
+
+        resp=self.testapp.post(
+            delete_confirm_url.format(symptom_id),
+            params=[
+                ('delete','delete')
+        ])
+
+        session.flush()
+        transaction.commit()
+
+        with self.assertRaises(NoResultFound):
+            weight=session.query(Symptom).filter(Symptom.id==symptom_id).one()
