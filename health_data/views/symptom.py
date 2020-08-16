@@ -1,39 +1,46 @@
 from pyramid.events import subscriber
 from .crud import CRUDView, ViewDbInsertEvent
-from ..models import Symptom,SymptomType
+from ..models import Symptom,SymptomType,Note
 from colanderalchemy import SQLAlchemySchemaNode
 from .individual_record import IndividualRecordCRUDView
 import colander
 import deform
 
-@subscriber(ViewDbInsertEvent)
-def set_record_person(event):
+@subscriber(ViewDbEvent)
+def finalize_symptom_fields(event):
 
     if isinstance(event.obj,Symptom):
 
-        session_person=event.request.dbsession.query(Person).filter(
-            Person.id==event.request.session['person_id']).one()
+        if event.appstruct['notes'] is not None:
+            if event.obj.notes is None:
+                event.obj.notes=Note()
+            event.obj.notes.date=event.obj.start_time
+            event.obj.notes.text=event.appstruct['notes']
+        else:
+            event.obj.notes=None
 
-        if event.obj.notes.person is None:
-            event.obj.notes.person=session_person
+symptomtype_schema = colander.SchemaNode(colander.String(),
+                                         name='symptomtype',
+                                         title='Symptom',
+                                         widget=deform.widget.TextInputWidget())
+
+notes_schema = colander.SchemaNode(colander.String(),
+                                   name='notes',
+                                   widget=deform.widget.TextAreaWidget(),
+                                   missing=None)
 
 class SymptomViews(IndividualRecordCRUDView,CRUDView):
     model=Symptom
     schema=SQLAlchemySchemaNode(
         Symptom,
-        includes=['symptomtype','start_time','end_time','notes'],
+        includes=[symptomtype_schema,'start_time','end_time',notes_schema],
         overrides={
-            'symptomtype':{'includes':['name'],'widget':deform.widget.TextInputWidget()},
             'start_time':{
                 'title':'First noted',
             },
             'end_time':{
                 'title':'Last noted',
             },
-            'notes':{
-                'includes':['text'],
-                'widget':deform.widget.TextAreaWidget()
-            }
         }
     )
     url_path = '/symptom'
