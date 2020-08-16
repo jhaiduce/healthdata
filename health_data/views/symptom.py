@@ -79,6 +79,9 @@ notes_schema = colander.SchemaNode(colander.String(),
 def notes(obj):
     return obj.notes.text
 
+def symptom(obj):
+    return obj.symptomtype.name
+
 class SymptomViews(IndividualRecordCRUDView,CRUDView):
     model=Symptom
     schema=SQLAlchemySchemaNode(
@@ -94,7 +97,7 @@ class SymptomViews(IndividualRecordCRUDView,CRUDView):
         }
     )
     url_path = '/symptom'
-    list_display=('symptomtype','start_time','end_time',notes)
+    list_display=(symptom,'start_time','end_time',notes)
 
     def dictify(self,obj):
 
