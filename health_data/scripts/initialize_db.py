@@ -128,3 +128,5 @@ def main(argv=sys.argv):
 
     except OperationalError:
         raise
+
+    print('Database setup complete.')
