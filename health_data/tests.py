@@ -629,3 +629,70 @@ class FunctionalTests(unittest.TestCase):
                 ('save','save')
             ]
         )
+
+    def test_symptom_addedit(self):
+        self.login()
+        from .models import Symptom
+        add_url='http://localhost/symptom/new'
+        edit_url='http://localhost/symptom/{}/edit'
+        delete_confirm_url='http://localhost/symptom/{}/delete_confirm'
+        session=self.get_session()
+
+        resp=self.testapp.post(
+            add_url,
+            params=[
+                ('symptomtype','Fever'),
+                ('__start__','start_time:mapping'),
+                ('date','2020-03-14'),
+                ('time','07:30'),
+                ('__end__','start_time:mapping'),
+                ('__start__','end_time:mapping'),
+                ('date','2020-03-14'),
+                ('time','09:30'),
+                ('__end__','end_time:mapping'),
+                ('notes','Note'),
+                ('save','save')
+            ]
+        )
+        self.assertEqual(resp.status_code,302)
+        symptom_id=json.loads(resp.text)['id']
+        symptom=session.query(Symptom).filter(Symptom.id==symptom_id).one()
+        self.assertEqual(symptom.start_time,datetime(2020,3,14,7,30))
+        self.assertEqual(symptom.notes.text,'Note')
+        self.assertEqual(symptom.symptomtype.name,'Fever')
+
+        resp=self.testapp.post(
+            edit_url.format(symptom_id),
+            params=[
+                ('symptomtype',''),
+                ('__start__','start_time:mapping'),
+                ('date','2020-03-14'),
+                ('time','07:30'),
+                ('__end__','start_time:mapping'),
+                ('__start__','end_time:mapping'),
+                ('date','2020-03-14'),
+                ('time','09:30'),
+                ('__end__','end_time:mapping'),
+                ('notes',''),
+                ('save','save')
+            ]
+        )
+        self.assertEqual(resp.status_code,302)
+        session.flush()
+        transaction.commit()
+        symptom=session.query(Symptom).filter(Symptom.id==symptom_id).one()
+        self.assertIsNone(symptom.notes)
+        self.assertIsNone(symptom.symptomtype)
+
+        resp=self.testapp.post(
+            edit_url.format(symptom_id),
+            params=[
+                ('delete','delete')
+            ])
+
+        self.assertEqual(resp.status_code,302)
+
+        from urllib.parse import quote
+        delete_confirm_url=delete_confirm_url.format(symptom_id)+'?referrer='+quote(edit_url.format(symptom_id),'')
+        self.assertEqual(resp.location,delete_confirm_url)
+        symptom=session.query(Symptom).filter(Symptom.id==symptom_id).one()
