@@ -35,8 +35,7 @@ def finalize_symptom_fields(event):
     if isinstance(event.obj,Symptom):
 
         # Store the symptomtype field
-        if event.appstruct['symptomtype'] is not None \
-           and len(event.appstruct['symptomtype'])>0:
+        if event.appstruct['symptomtype'] is not None:
 
             event.obj.symptomtype=get_symptomtype_by_name(
                 event.request.dbsession,event.appstruct['symptomtype'])
