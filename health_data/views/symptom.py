@@ -8,6 +8,13 @@ import colander
 import deform
 
 def get_symptomtype_by_name(dbsession,name):
+    """
+    Get the most recently used symptom type whose name starts with `name`, or a new symptomtype object if no match is found.
+
+    Arguments:
+    - dbsession: A SQLAlchemy database session object
+    - name: Name string to search for
+    """
 
     from sqlalchemy.orm.exc import NoResultFound
 
@@ -21,24 +28,50 @@ def get_symptomtype_by_name(dbsession,name):
 
 @subscriber(ViewDbInsertEvent,ViewDbUpdateEvent)
 def finalize_symptom_fields(event):
+    """
+    Post-process an automatically deserialized Symptom object
+    """
 
     if isinstance(event.obj,Symptom):
 
-        if event.appstruct['symptomtype'] is not None and len(event.appstruct['symptomtype'])>0:
-            event.obj.symptomtype=get_symptomtype_by_name(event.request.dbsession,event.appstruct['symptomtype'])
+        # Store the symptomtype field
+        if event.appstruct['symptomtype'] is not None \
+           and len(event.appstruct['symptomtype'])>0:
+
+            event.obj.symptomtype=get_symptomtype_by_name(
+                event.request.dbsession,event.appstruct['symptomtype'])
+
         else:
+
             event.obj.symptomtype=None
 
+        # Store the notes field
         if event.appstruct['notes'] is not None:
+
             if event.obj.notes is None:
+                # Create a new notes object
                 event.obj.notes=Note()
+
+            # Set/update the notes properties
             event.obj.notes.date=event.obj.start_time
             event.obj.notes.text=event.appstruct['notes']
+
         else:
+
             event.obj.notes=None
 
 @view_config(route_name='symptomtype_autocomplete', renderer='json')
 def symptomtype_autocomplete(request):
+    """
+    Autocomplete suggestions view for symptom types
+
+    Arguments:
+    - request: A Pyramid request object
+
+    Returns: A list of symptomtype names
+    """
+
+    # String to search for matching symptom types
     term=request.GET['term']
 
     # Subquery to get the most recent instance of each symptom type
@@ -59,6 +92,10 @@ def symptomtype_autocomplete(request):
 
 @colander.deferred
 def get_symptomtype_widget(node,kw):
+    """
+    Return an autocomplete widget for symptom types
+    """
+
     return deform.widget.AutocompleteInputWidget(
         min_length=1,
         values=kw['request'].route_path(
@@ -66,24 +103,43 @@ def get_symptomtype_widget(node,kw):
             )
     )
 
+# Symptomtype is a foreign key reference to the symptomtype table. Since we
+# only want to expose one field of symptomtype, we declare a custom SchemaNode
+# for it
 symptomtype_schema = colander.SchemaNode(colander.String(),
                                          name='symptomtype',
                                          title='Symptom',
                                          widget=get_symptomtype_widget,
                                          missing=None)
 
+# Notes is a foreign key reference to the symptomtype table. Since we
+# only want to expose one field of notes, we declare a custom SchemaNode
+# for it
 notes_schema = colander.SchemaNode(colander.String(),
                                    name='notes',
                                    widget=deform.widget.TextAreaWidget(),
                                    missing=None)
 
 def notes(obj):
+    """
+    Return the text of a notes object (for display in the SymptomViews table)
+    """
+
     return obj.notes.text if obj.notes else None
 
 def symptom(obj):
+    """
+    Return the name of a symptomtype object (for display in the SymptomViews
+    table)
+    """
+
     return obj.symptomtype.name if obj.symptomtype else None
 
 class SymptomViews(IndividualRecordCRUDView,CRUDView):
+    """
+    CRUD views for Symptom entries
+    """
+
     model=Symptom
     schema=SQLAlchemySchemaNode(
         Symptom,
@@ -101,7 +157,11 @@ class SymptomViews(IndividualRecordCRUDView,CRUDView):
     list_display=(symptom,'start_time','end_time',notes)
 
     def dictify(self,obj):
+        """
+        Serialize a SymptomViews object to a dict
+        """
 
+        # Default serialization for built-in fields
         appstruct=super(SymptomViews,self).dictify(obj)
 
         if obj.notes is not None:
