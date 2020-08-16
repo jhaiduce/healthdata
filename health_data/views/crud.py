@@ -37,11 +37,8 @@ class ViewDbInsertEvent(ViewDbEvent):
 class ViewDbUpdateEvent(ViewDbEvent):
     pass
 
-    def __init__(self,request,appstruct,schema,obj):
-        self.request=request
-        self.appstruct=appstruct
-        self.schema=schema
-        self.obj=obj
+class ViewDbReadEvent(ViewDbEvent):
+    pass
 
 @subscriber(BeforeRender)
 def setup_jinja2_env(event):

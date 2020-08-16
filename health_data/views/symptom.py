@@ -46,3 +46,12 @@ class SymptomViews(IndividualRecordCRUDView,CRUDView):
     )
     url_path = '/symptom'
     list_display=('symptomtype','start_time','end_time',)
+
+    def dictify(self,obj):
+
+        appstruct=super(SymptomViews,self).dictify(obj)
+
+        if obj.notes is not None:
+            appstruct['notes']=obj.notes.text
+
+        return appstruct
