@@ -618,18 +618,6 @@ class FunctionalTests(unittest.TestCase):
         delete_confirm_url=delete_confirm_url.format(weight_id)+'?referrer='+quote(edit_url.format(weight_id),'')
         self.assertEqual(resp.location,delete_confirm_url)
 
-        resp=self.testapp.post(
-            add_url,
-            params=[
-                ('__start__','time:mapping'),
-                ('date','2020-03-14'),
-                ('time','07:30'),
-                ('__end__','time:mapping'),
-                ('weight','72.4'),
-                ('save','save')
-            ]
-        )
-
     def test_symptom_addedit(self):
         self.login()
         from .models import Symptom
