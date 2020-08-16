@@ -1,10 +1,10 @@
 from pyramid.events import subscriber
-from .crud import ViewDbInsertEvent
+from .crud import ViewDbInsertEvent,ViewDbUpdateEvent
 from ..models.records import IndividualRecord
 from ..models.people import Person
 from .crud import CRUDView
 
-@subscriber(ViewDbEvent)
+@subscriber(ViewDbInsertEvent,ViewDbUpdateEvent)
 def set_record_person(event):
 
     if isinstance(event.obj,IndividualRecord) and event.obj.person==None:

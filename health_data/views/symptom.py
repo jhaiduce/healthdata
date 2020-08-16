@@ -1,12 +1,13 @@
 from pyramid.events import subscriber
-from .crud import CRUDView, ViewDbInsertEvent
+from .crud import CRUDView, ViewDbInsertEvent,ViewDbUpdateEvent
+
 from ..models import Symptom,SymptomType,Note
 from colanderalchemy import SQLAlchemySchemaNode
 from .individual_record import IndividualRecordCRUDView
 import colander
 import deform
 
-@subscriber(ViewDbEvent)
+@subscriber(ViewDbInsertEvent,ViewDbUpdateEvent)
 def finalize_symptom_fields(event):
 
     if isinstance(event.obj,Symptom):
