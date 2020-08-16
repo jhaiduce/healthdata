@@ -170,3 +170,8 @@ class SymptomViews(IndividualRecordCRUDView,CRUDView):
             appstruct['symptomtype']=obj.symptomtype.name
 
         return appstruct
+
+    def get_list_query(self):
+        query=super(SymptomViews,self).get_list_query()
+
+        return query.order_by(Symptom.end_time.desc())
