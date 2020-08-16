@@ -18,6 +18,8 @@ def includeme(config):
     config.add_route('temperature_plot','/temperature')
     config.add_route('temperature_list','/temperature/list')
 
+    config.add_route('symptomtype_autocomplete','/symptomtype/autocomplete')
+
     config.add_route('home', '/')
     config.add_route('login', '/login')
     config.add_route('logout', '/logout')
