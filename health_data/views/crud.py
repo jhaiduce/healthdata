@@ -972,15 +972,21 @@ class CRUDView(object,metaclass=CRUDCreator):
             except deform.ValidationFailure as e:
                 return dict(form=e.render())
 
+            # Remove custom nodes from appstruct
+            appstruct_objectify={
+                key:value for key,value in appstruct.items()
+                if key in self.schema.inspector.column_attrs
+            }
+
             # New object or existing one?
             # Here we do stuff specific to the is_new state, followed by
             # general operations
             if is_new:
-                obj = self.schema.objectify(appstruct)
+                obj = self.schema.objectify(appstruct_objectify)
                 self.dbsession.add(obj)
                 self.request.registry.notify(ViewDbInsertEvent(self.request,appstruct,self.schema,obj))
             else:
-                obj = self.schema.objectify(appstruct,obj)
+                obj = self.schema.objectify(appstruct_objectify,obj)
                 self.request.registry.notify(ViewDbUpdateEvent(self.request,appstruct,self.schema,obj))
 
             # Determine redirect
