@@ -36,9 +36,13 @@
   <body>
 
 	{% if show_header %}
-	<header class="navbar navbar-expand navbar-light bg-dark">
+	<header class="navbar navbar-expand-lg navbar-light bg-dark bd-navbar">
 
-	  <div class="collapse navbar-collapse">
+	  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+	    <span class="navbar-toggler-icon"></span>
+	  </button>
+
+          <div class="collapse navbar-collapse" id="navbarNav">
 
 	    <ul class="navbar-nav mr-auto">
 	      <li class="nav-item active dropdown">
@@ -66,6 +70,8 @@
 	      </li>
 	    </ul>
 
+	  </div>
+	  <div class="dropdown show">
 	    <ul class="navbar-nav flex-row ml-md-auto">
 	      <li class="nav-item active dropdown">
 		<a class="nav-item nav-link dropdown-toggle" data-toggle="dropdown" href="#">
@@ -80,7 +86,6 @@
 	      </div>
 	      </li>
 	    </ul>
-
 	  </div>
 	</header>
 
