@@ -1,18 +1,73 @@
+from pyramid.view import view_config
 from .crud import CRUDView
 from ..models import Weight
 from colanderalchemy import SQLAlchemySchemaNode
 from .individual_record import IndividualRecordCRUDView
+from .header import view_with_header
+from ..models.people import Person
 
-class WeightView(IndividualRecordCRUDView,CRUDView):
-    model=Weight
-    schema=SQLAlchemySchemaNode(
-        Weight,
-        includes=['time','weight']
-    )
-    url_path = '/weight'
-    list_display=('time','weight',)
+class WeightCrudViews(IndividualRecordCRUDView,CRUDView):
+   model=Weight
+   schema=SQLAlchemySchemaNode(
+       Weight,
+       includes=['time','weight']
+   )
+   url_path = '/weight'
+   list_display=('time','weight',)
 
-    def get_list_query(self):
-        query=super(WeightView,self).get_list_query()
+   def get_list_query(self):
+       query=super(WeightCrudViews,self).get_list_query()
 
-        return query.order_by(Weight.time.desc())
+       return query.order_by(Weight.time.desc())
+
+class WeightViews(object):
+    def __init__(self,request):
+        self.request=request
+
+    @view_with_header
+    @view_config(route_name='weight_plot',renderer='../templates/weight_plot.jinja2')
+    def plot(self):
+
+        import json
+        import plotly
+
+        import pandas as pd
+        import numpy as np
+
+        dbsession=self.request.dbsession
+
+        session_person=dbsession.query(Person).filter(
+            Person.id==self.request.session['person_id']).first()
+        query=dbsession.query(Weight).filter(
+            Weight.person==session_person
+        ).order_by(Weight.time)
+
+        weights=pd.read_sql(query.statement,dbsession.bind)
+        weights=weights.dropna(subset=['time'])
+        dates=weights['time']
+        dates=dates.apply(lambda x: x.strftime('%Y-%m-%d %H:%M:%S'))
+
+        graphs=[
+            {
+                'data':[{
+                    'x':list(dates),
+                    'y':list(weights.weight),
+                    'type':'scatter'
+                }],
+                'layout':{
+                    'margin':0
+                },
+                'config':{'responsive':True}
+            }
+        ]
+
+        # Add "ids" to each of the graphs to pass up to the client
+        # for templating
+        ids = ['graph-{}'.format(i) for i, _ in enumerate(graphs)]
+
+        # Convert the figures to JSON
+        # PlotlyJSONEncoder appropriately converts pandas, datetime, etc
+        # objects to their JSON equivalents
+        graphJSON = json.dumps(graphs, cls=plotly.utils.PlotlyJSONEncoder)
+
+        return {'graphJSON':graphJSON, 'ids':ids}

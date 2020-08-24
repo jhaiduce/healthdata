@@ -17,6 +17,7 @@ def includeme(config):
     config.add_route('temperature_delete','/temperature/{temperature_id}/delete')
     config.add_route('temperature_plot','/temperature')
     config.add_route('temperature_list','/temperature/list')
+    config.add_route('weight_plot','/weight/plot')
 
     config.add_route('symptomtype_autocomplete','/symptomtype/autocomplete')
 
