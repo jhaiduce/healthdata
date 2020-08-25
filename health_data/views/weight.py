@@ -55,7 +55,12 @@ class WeightViews(object):
                     'type':'scatter'
                 }],
                 'layout':{
-                    'margin':0
+                    'margin':0,
+                    'yaxis':{
+                        'title':{
+                            'text':'Weight (kg)'
+                        }
+                    }
                 },
                 'config':{'responsive':True}
             }
