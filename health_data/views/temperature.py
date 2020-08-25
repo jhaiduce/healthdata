@@ -178,10 +178,7 @@ class TemperatureViews(object):
     @view_config(route_name='temperature_plot',renderer='../templates/temperature_plot.jinja2')
     def temperature_plot(self):
 
-        from bokeh.layouts import gridplot,layout
-        from bokeh.plotting import figure
-        from bokeh.embed import components
-        from bokeh.models.widgets import Button
+        import plotly
 
         import numpy as np
 
@@ -199,43 +196,34 @@ class TemperatureViews(object):
         temperatures=pd.read_sql(query.statement,dbsession.bind)
         temperatures=temperatures.dropna(subset=['time'])
         dates=temperatures['time']
-        
-        ptemp=figure(x_axis_type='datetime',width=800,height=400)
+        dates=dates.apply(lambda x: x.strftime('%Y-%m-%d %H:%M:%S'))
 
-        ptemp.y_range.start=min(temperatures.temperature.min(),97) if not np.isnan(temperatures.temperature.min()) else 97
-        ptemp.y_range.end=max(temperatures.temperature.max(),99) if not np.isnan(temperatures.temperature.max()) else 99
+        graphs=[
+            {
+                'data':[{
+                    'x':dates,
+                    'y':temperatures.temperature,
+                    'type':'scatter'
+                }],
+                'layout':{
+                    'margin':0,
+                    'yaxis':{
+                        'title':{
+                            'text':'Temperature (F)'
+                        }
+                    }
+                },
+                'config':{'responsive':True}
+            }
+        ]
 
-        ptemp.line(dates,temperatures.temperature),
-        ptemp.scatter(dates,temperatures.temperature,marker='circle',size=8,fill_alpha=0)
-        ptemp.yaxis.axis_label='Temperature (F)'
+        # Add "ids" to each of the graphs to pass up to the client
+        # for templating
+        ids = ['graph-{}'.format(i) for i, _ in enumerate(graphs)]
 
-        from bokeh.models.callbacks import CustomJS
-        from bokeh.events import ButtonClick
+        # Convert the figures to JSON
+        # PlotlyJSONEncoder appropriately converts pandas, datetime, etc
+        # objects to their JSON equivalents
+        graphJSON = json.dumps(graphs, cls=plotly.utils.PlotlyJSONEncoder)
 
-        pager_args=dict(source=ptemp)
-        pager_code="""
-        var xr=source.x_range;
-        var oldStart=xr.start
-        var oldEnd=xr.end
-        var oldRange=oldEnd-oldStart
-
-        var newStart=oldStart+oldRange*step;
-        var newEnd=oldEnd+oldRange*step
-
-        xr.start=newStart;
-        xr.end=newEnd;
-        source.change.emit();
-        """
-        callback_prev=CustomJS(args={**pager_args,'step':-1},code=pager_code)
-        callback_next=CustomJS(args={**pager_args,'step':1},code=pager_code)
-        
-        button_prev=Button(label='<')
-        button_prev.js_on_event(ButtonClick,callback_prev)
-        button_next=Button(label='>')
-        button_next.js_on_event(ButtonClick,callback_next)
-
-        layout=gridplot([[layout([[button_prev,button_next]])],[ptemp]])
-        
-        bokeh_script,bokeh_div=components(layout)
-
-        return dict(bokeh_script=bokeh_script,bokeh_div=bokeh_div)
+        return {'graphJSON':graphJSON, 'ids':ids}
