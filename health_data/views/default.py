@@ -6,10 +6,17 @@ from sqlalchemy.exc import DBAPIError
 from .. import models
 
 
-@view_config(route_name='home', renderer='../templates/mytemplate.jinja2')
-def my_view(request):
-    return {'project': 'Health Data'}
+from .header import view_with_header
 
+class default_views(object):
+
+    def __init__(self,request):
+        self.request=request
+
+    @view_with_header
+    @view_config(route_name='home', renderer='../templates/home.jinja2')
+    def my_view(self):
+        return {'project': 'Health Data'}
 
 db_err_msg = """\
 Pyramid is having a problem using your SQL database.  The problem
