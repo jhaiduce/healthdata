@@ -22,12 +22,12 @@ requires = [
     'zope.sqlalchemy',
     'bcrypt',
     'deform',
-    'bokeh',
     'pandas',
     'paginate',
     'pyramid_nacl_session',
     'six',
-    'colanderalchemy'
+    'colanderalchemy',
+    'plotly'
 ]
 
 tests_require = [
