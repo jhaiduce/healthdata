@@ -56,7 +56,7 @@ class BaseTest(unittest.TestCase):
 
     def test_period_plot(self):
         resp=self.session.get('http://healthdata_web/period')
-        self.assertGreater(resp.text.find('<div class="bk-root"'),0)
+        self.assertGreater(resp.text.find('<div id="graph-0"'),0)
 
     def test_period_add(self):
         resp=self.session.get('http://healthdata_web/period/list')
