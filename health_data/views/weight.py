@@ -52,7 +52,9 @@ class WeightViews(object):
                 'data':[{
                     'x':list(dates),
                     'y':list(weights.weight),
-                    'type':'scatter'
+                    'type':'scatter',
+                    'mode':'lines+markers',
+                    'name':'Weight'
                 }],
                 'layout':{
                     'margin':0,

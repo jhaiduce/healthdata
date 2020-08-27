@@ -203,7 +203,9 @@ class TemperatureViews(object):
                 'data':[{
                     'x':dates,
                     'y':temperatures.temperature,
-                    'type':'scatter'
+                    'type':'scatter',
+                    'mode':'lines+markers',
+                    'name':'Temperature'
                 }],
                 'layout':{
                     'margin':0,
