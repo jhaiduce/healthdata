@@ -57,7 +57,13 @@ class WeightViews(object):
                     'name':'Weight'
                 }],
                 'layout':{
-                    'margin':0,
+                    'margin':{
+                        'l':55,
+                        'r':25,
+                        'b':50,
+                        't':45,
+                        'pad':2,
+                    },
                     'yaxis':{
                         'title':{
                             'text':'Weight (kg)'

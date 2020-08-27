@@ -208,7 +208,13 @@ class TemperatureViews(object):
                     'name':'Temperature'
                 }],
                 'layout':{
-                    'margin':0,
+                    'margin':{
+                        'l':55,
+                        'r':25,
+                        'b':50,
+                        't':45,
+                        'pad':2,
+                    },
                     'yaxis':{
                         'title':{
                             'text':'Temperature (F)'
