@@ -47,6 +47,8 @@ class WeightViews(object):
         dates=weights['time']
         dates=dates.apply(lambda x: x.strftime('%Y-%m-%d %H:%M:%S'))
 
+        from .plotly_defaults import default_axis_style
+
         graphs=[
             {
                 'data':[{
@@ -64,11 +66,14 @@ class WeightViews(object):
                         't':45,
                         'pad':2,
                     },
+                    'plot_bgcolor': '#E5ECF6',
                     'yaxis':{
+                        **default_axis_style,
                         'title':{
                             'text':'Weight (kg)'
                         }
-                    }
+                    },
+                    'xaxis':default_axis_style
                 },
                 'config':{'responsive':True}
             }

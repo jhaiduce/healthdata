@@ -251,6 +251,8 @@ class PeriodViews(object):
         start_inds=(intensities>1)&(intensities.shift(1)==1)
         start_dates=dates[start_inds]
 
+        from .plotly_defaults import default_axis_style
+
         graphs=[
             {
                 'data':[{
@@ -303,7 +305,10 @@ class PeriodViews(object):
                         'x':1,
                         'y':1,
                         'xanchor':'right'
-                    }
+                    },
+                    'plot_bgcolor': '#E5ECF6',
+                    "xaxis": default_axis_style,
+                    "yaxis": default_axis_style
                 },
                 'config':{'responsive':True}
             }

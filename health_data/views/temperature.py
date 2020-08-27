@@ -198,6 +198,8 @@ class TemperatureViews(object):
         dates=temperatures['time']
         dates=dates.apply(lambda x: x.strftime('%Y-%m-%d %H:%M:%S'))
 
+        from .plotly_defaults import default_axis_style
+
         graphs=[
             {
                 'data':[{
@@ -216,10 +218,13 @@ class TemperatureViews(object):
                         'pad':2,
                     },
                     'yaxis':{
+                        **default_axis_style,
                         'title':{
                             'text':'Temperature (F)'
                         }
-                    }
+                    },
+                    'plot_bgcolor': '#E5ECF6',
+                    'xaxis': default_axis_style,
                 },
                 'config':{'responsive':True}
             }
