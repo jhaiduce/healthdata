@@ -268,14 +268,16 @@ class PeriodViews(object):
                     'y':periods.period_intensity-1,
                     'type':'bar',
                     'marker':{'color':'red'},
-                    'name':'Period intensity'
+                    'name':'Period intensity',
+                    'yaxis':'y1'
                 },
                 {
                     'x':dates,
                     'y':-(periods.cervical_fluid_character-1),
                     'type':'bar',
                     'marker':{'color':'blue'},
-                    'name':'Cervical fluid'
+                    'name':'Cervical fluid',
+                    'yaxis':'y1'
                 }],
                 'layout':{
                     'plot_bgcolor':'white',
@@ -287,7 +289,10 @@ class PeriodViews(object):
                         'pad':2,
                     },
                     'yaxis':{
+                        **default_axis_style,
                         'domain':[0,0.2],
+                        'range':[-6,6],
+                        'fixedrange':True
                     },
                     'yaxis2':{
                         'title':{
@@ -308,7 +313,6 @@ class PeriodViews(object):
                     },
                     'plot_bgcolor': '#E5ECF6',
                     "xaxis": default_axis_style,
-                    "yaxis": default_axis_style
                 },
                 'config':{'responsive':True}
             }
