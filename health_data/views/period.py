@@ -224,10 +224,7 @@ class PeriodViews(object):
     @view_config(route_name='period_plot',renderer='../templates/period_plot.jinja2')
     def period_plot(self):
 
-        from bokeh.layouts import gridplot,layout
-        from bokeh.plotting import figure
-        from bokeh.embed import components
-        from bokeh.models.widgets import Button
+        import plotly
 
         import numpy as np
 
@@ -244,6 +241,7 @@ class PeriodViews(object):
         ).options(
             joinedload(Period.temperature).load_only(Temperature.temperature)
         ).order_by(Period.date)
+
         periods=pd.read_sql(query.statement,dbsession.bind)
         periods.period_intensity=periods.period_intensity.fillna(1)
 
@@ -253,47 +251,71 @@ class PeriodViews(object):
         start_inds=(intensities>1)&(intensities.shift(1)==1)
         start_dates=dates[start_inds]
 
-        ptemp=figure(x_axis_type='datetime',width=800,height=400)
-        pcerv_period=figure(plot_width=ptemp.plot_width,x_range=ptemp.x_range,x_axis_type='datetime',height=100)
+        graphs=[
+            {
+                'data':[{
+                    'x':dates,
+                    'y':periods.temperature,
+                    'type':'scatter',
+                    'mode':'lines+markers',
+                    'name':'Temperature',
+                    'yaxis':'y2'
+                },
+                {
+                    'x':dates,
+                    'y':periods.period_intensity-1,
+                    'type':'bar',
+                    'marker':{'color':'red'},
+                    'name':'Period intensity'
+                },
+                {
+                    'x':dates,
+                    'y':-(periods.cervical_fluid_character-1),
+                    'type':'bar',
+                    'marker':{'color':'blue'},
+                    'name':'Cervical fluid'
+                }],
+                'layout':{
+                    'plot_bgcolor':'white',
+                    'margin':{
+                        'l':55,
+                        'r':25,
+                        'b':50,
+                        't':45,
+                        'pad':2,
+                    },
+                    'yaxis':{
+                        'domain':[0,0.2],
+                    },
+                    'yaxis2':{
+                        'title':{
+                            'text':'Temperature (F)'
+                        },
+                        'range':[
+                            min(periods.temperature.min(),97) if not np.isnan(periods.temperature.min()) else 97,
+                            max(periods.temperature.max(),99) if not np.isnan(periods.temperature.max()) else 99
+                        ],
+                        'domain':[0.2,1],
+                    },
+                    'barmode':'stack',
+                    'legend':{
+                        'traceorder':'normal',
+                        'x':1,
+                        'y':1,
+                        'xanchor':'right'
+                    }
+                },
+                'config':{'responsive':True}
+            }
+        ]
 
-        ptemp.y_range.start=min(periods.temperature.min(),97) if not np.isnan(periods.temperature.min()) else 97
-        ptemp.y_range.end=max(periods.temperature.max(),99) if not np.isnan(periods.temperature.max()) else 99
+        # Add "ids" to each of the graphs to pass up to the client
+        # for templating
+        ids = ['graph-{}'.format(i) for i, _ in enumerate(graphs)]
 
-        ptemp.line(dates,periods.temperature),
-        ptemp.scatter(dates,periods.temperature,marker='circle',size=8,fill_alpha=0)
-        ptemp.yaxis.axis_label='Temperature (F)'
-        pcerv_period.vbar(x=dates,width=timedelta(1),top=-(periods.cervical_fluid_character-1))
-        pcerv_period.vbar(x=dates,width=timedelta(1),top=periods.period_intensity-1,color='red')
+        # Convert the figures to JSON
+        # PlotlyJSONEncoder appropriately converts pandas, datetime, etc
+        # objects to their JSON equivalents
+        graphJSON = json.dumps(graphs, cls=plotly.utils.PlotlyJSONEncoder)
 
-        from bokeh.models.callbacks import CustomJS
-        from bokeh.events import ButtonClick
-
-        pager_args=dict(source=ptemp,start_dates=start_dates)
-        pager_code="""
-        var xr=source.x_range;
-        var oldStart=xr.start
-        newStartIndex=start_dates.findIndex(function(date){
-          return date>(oldStart-Math.abs(step));
-        });
-        if(oldStart>start_dates[start_dates.length-1]) newStartIndex=start_dates.length-1;
-        if(step<0 && start_dates[Math.max(newStartIndex,0)]>(oldStart+step)) newStartIndex=Math.max(newStartIndex-1,0);
-        if(step>=0 && start_dates[newStartIndex]<(oldStart+step)) newStartIndex+=1;
-        newStartIndex=Math.max(Math.min(newStartIndex,start_dates.length-1),0);
-        newStart=start_dates[newStartIndex];
-        xr.start=newStart;
-        xr.end=newStart+40*3600*24*1000;
-        source.change.emit();
-        """
-        callback_prev=CustomJS(args={**pager_args,'step':-3600*24*1000},code=pager_code)
-        callback_next=CustomJS(args={**pager_args,'step':3600*24*1000},code=pager_code)
-        
-        button_prev=Button(label='<')
-        button_prev.js_on_event(ButtonClick,callback_prev)
-        button_next=Button(label='>')
-        button_next.js_on_event(ButtonClick,callback_next)
-
-        layout=gridplot([[layout([[button_prev,button_next]])],[ptemp],[pcerv_period]])
-        
-        bokeh_script,bokeh_div=components(layout)
-
-        return dict(bokeh_script=bokeh_script,bokeh_div=bokeh_div)
+        return {'graphJSON':graphJSON, 'ids':ids}
