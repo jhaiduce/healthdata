@@ -292,7 +292,8 @@ class PeriodViews(object):
                         **default_axis_style,
                         'domain':[0,0.2],
                         'range':[-6,6],
-                        'fixedrange':True
+                        'fixedrange':True,
+                        **default_axis_style
                     },
                     'yaxis2':{
                         'title':{
@@ -303,6 +304,7 @@ class PeriodViews(object):
                             max(periods.temperature.max(),99) if not np.isnan(periods.temperature.max()) else 99
                         ],
                         'domain':[0.2,1],
+                        **default_axis_style
                     },
                     'barmode':'stack',
                     'legend':{
