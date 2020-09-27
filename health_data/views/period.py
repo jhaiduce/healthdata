@@ -306,7 +306,7 @@ class PeriodViews(object):
                         'domain':[0.2,1],
                         **default_axis_style
                     },
-                    'barmode':'stack',
+                    'barmode':'overlay',
                     'legend':{
                         'traceorder':'normal',
                         'x':1,
