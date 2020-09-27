@@ -9,7 +9,7 @@ from pyramid.httpexceptions import HTTPFound
 import re
 
 import json
-from datetime import date, datetime
+from datetime import date, datetime, time
 
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -180,6 +180,29 @@ class TestPeriod(BaseTest):
         info=views.period_edit()
         record=self.session.query(Period).filter(Period.id==record_id).one()
         self.assertEqual(record.temperature.temperature,97.2)
+        self.assertEqual(record.notes.text,'Updated note')
+
+        request=testing.DummyRequest(MultiDict([
+            ('form.submitted',True),
+            ('submit','submit'),
+            ('period_intensity','5'),
+            ('cervical_fluid','1'),
+            ('__start__','date:mapping'),
+            ('date','2019-10-29'),
+            ('__end__','date:mapping'),
+            ('temperature','97.2'),
+            ('__start__','temperature_time:mapping'),
+            ('time',''),
+            ('__end__','temperature_time:mapping'),
+            ('notes','Updated note')
+        ]),dbsession=self.session)
+        request.session['person_id']=self.person_id
+        request.matchdict['period_id']=record_id
+        views = PeriodViews(request)
+        info=views.period_edit()
+        record=self.session.query(Period).filter(Period.id==record_id).one()
+        self.assertEqual(record.temperature.temperature,97.2)
+        self.assertEqual(record.temperature.time,datetime(2019,10,29))
         self.assertEqual(record.notes.text,'Updated note')
 
         request=testing.DummyRequest(MultiDict([
