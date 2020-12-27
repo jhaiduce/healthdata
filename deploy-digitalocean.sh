@@ -43,6 +43,9 @@ for i in $(seq 1 $numworkers); do
     fi
 done
 
+docker-machine ssh $host_prefix-master docker node update --label-add db=true $host_prefix-1
+docker-machine ssh $host_prefix-master docker node update --label-add db=false $host_prefix-master
+
 join_token=$(docker-machine ssh $host_prefix-master docker swarm join-token -q worker)
 
 transfer_files="docker-compose.yml docker-compose.migrate.yml mysql-config-healthdata.cnf secrets"
