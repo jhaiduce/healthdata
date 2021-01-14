@@ -19,8 +19,15 @@ def setup_models(dbsession,ini_file):
         '--raiseerr',
         'upgrade', 'head',
     ]
-    alembic.config.main(argv=alembicArgs)
-    engine=dbsession.bind
+    try:
+        alembic.config.main(argv=alembicArgs)
+    except OperationalError:
+        engine=dbsession.bind
+        conn=engine.connect()
+        result=conn.execute('SHOW WARNINGS')
+        for row in result:
+            print(row)
+        raise
 
 def create_database(engine,settings):
 
