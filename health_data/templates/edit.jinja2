@@ -46,7 +46,7 @@
 
 {% block content %}
 
-  <h1>{{'New' if is_new else 'Edit'}} {{view.model.__tablename__}}</h1>
+  <h1>{{'New' if is_new else 'Edit'}} {{view.title if view.title else view.model.__tablename__}}</h1>
 
 {{form | safe}}
 
