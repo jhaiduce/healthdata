@@ -14,6 +14,8 @@ services:
         target: /etc/mysql/conf.d/mysql-config-healthdata.cnf
     logging:
       driver: journald
+    ports:
+      - 3306:3306
     secrets:
       - source: mysql_root_password.1
         target: mysql_root_password
