@@ -1,6 +1,6 @@
 #FROM python:3.7.2-alpine
 #FROM node:8-alpine
-FROM jhaiduce/cycling-pyramid
+FROM jhaiduce/healthdata
 
 USER root
 
