@@ -1,9 +1,18 @@
 export VENV=`pwd`/../venv
 
+
+
 # Kill running containers
 sudo docker kill healthdata_web
 sudo docker kill healthdata_ci_sut_1
 sudo docker kill healthdata_ci_migration_1
+
+sandbox_files=("mysql-config-healthdata.cnf" "integration_test_secrets")
+
+for file in "${sandbox_files[@]}"
+do
+    chcon -Rt svirt_sandbox_file_t "$file"
+done
 
 set -e
 
