@@ -24,6 +24,8 @@ from datetime import datetime
 class Record(Base):
 
     __tablename__='record'
+    __table_args__ = {'mysql_encrypted':'yes'}
+
     id = Column(Integer, Sequence('record_seq'), primary_key=True)
     record_type = Column(String(255))
 
@@ -53,6 +55,8 @@ import deform
 
 class Note(TimestampedRecord,Record):
     __tablename__ = 'note'
+    __table_args__ = {'mysql_encrypted':'yes'}
+
     id = Column(Integer, ForeignKey('record.id'), primary_key=True)
     date = Column(DateTime)
     text = Column(Text,info={'colanderalchemy':{'widget':deform.widget.TextAreaWidget()}})
@@ -63,6 +67,8 @@ class Note(TimestampedRecord,Record):
 
 class Temperature(TimestampedRecord,IndividualRecord,Record):
     __tablename__ = 'temperature'
+    __table_args__ = {'mysql_encrypted':'yes'}
+
     id = Column(Integer, ForeignKey('record.id'), primary_key=True)
     time = Column(DateTime)
     utcoffset = Column(Integer)
@@ -74,6 +80,8 @@ class Temperature(TimestampedRecord,IndividualRecord,Record):
 
 class Weight(TimestampedRecord,IndividualRecord,Record):
     __tablename__ = 'weight'
+    __table_args__ = {'mysql_encrypted':'yes'}
+
     id = Column(Integer, ForeignKey('record.id'), primary_key=True)
     time = Column(DateTime)
     utcoffset = Column(Integer)
@@ -85,11 +93,15 @@ class Weight(TimestampedRecord,IndividualRecord,Record):
 
 class SymptomType(TimestampedRecord,Base):
     __tablename__ = 'symptomtype'
+    __table_args__ = {'mysql_encrypted':'yes'}
+
     id = Column(Integer,Sequence('symptomtype_seq'), primary_key=True)
     name = Column(String(255))
 
 class Symptom(TimestampedRecord,IndividualRecord,Record):
     __tablename__ = 'symptom'
+    __table_args__ = {'mysql_encrypted':'yes'}
+
     id = Column(Integer, ForeignKey('record.id'), primary_key=True)
     symptomtype_id = Column(Integer,ForeignKey('symptomtype.id',name='fk_symtomtype_id'))
     start_time = Column(DateTime)
@@ -105,6 +117,8 @@ class Symptom(TimestampedRecord,IndividualRecord,Record):
 
 class Period(TimestampedRecord,IndividualRecord,Record):
     __tablename__ = 'period'
+    __table_args__ = {'mysql_encrypted':'yes'}
+
     id = Column(Integer, ForeignKey('record.id'), primary_key=True)
     period_intensity = Column(Integer)
     cervical_fluid_character = Column(Integer)
@@ -125,6 +139,8 @@ class Period(TimestampedRecord,IndividualRecord,Record):
 
 class MenstrualCupFill(TimestampedRecord,IndividualRecord,Record):
     __tablename__ = 'menstrual_cup_fill'
+    __table_args__ = {'mysql_encrypted':'yes'}
+
     id = Column(Integer, ForeignKey('record.id'), primary_key=True)
     time = Column(DateTime)
     fill = Column(Float)
