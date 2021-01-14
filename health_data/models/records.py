@@ -123,6 +123,19 @@ class Period(TimestampedRecord,IndividualRecord,Record):
         'polymorphic_identity':'period'
     }
 
+class MenstrualCupFill(TimestampedRecord,IndividualRecord,Record):
+    __tablename__ = 'menstrual_cup_fill'
+    id = Column(Integer, ForeignKey('record.id'), primary_key=True)
+    time = Column(DateTime)
+    fill = Column(Float)
+    notes_id=Column(Integer,ForeignKey('note.id'))
+
+    notes=relationship(Note,foreign_keys=notes_id)
+
+    __mapper_args__ = {
+        'polymorphic_identity':'menstrual_cup_fill'
+    }
+
 period_intensity_choices={
     1:'None',
     2:'.',

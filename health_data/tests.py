@@ -733,3 +733,74 @@ class FunctionalTests(unittest.TestCase):
 
         with self.assertRaises(NoResultFound):
             weight=session.query(Symptom).filter(Symptom.id==symptom_id).one()
+
+    def test_menstrual_cup_addedit(self):
+        self.login()
+        from .models import MenstrualCupFill
+        add_url='http://localhost/period/menstrual_cup_fill/new'
+        edit_url='http://localhost/period/menstrual_cup_fill/{}/edit'
+        delete_confirm_url='http://localhost/period/menstrual_cup_fill/{}/delete_confirm'
+        session=self.get_session()
+
+        resp=self.testapp.post(
+            add_url,
+            params=[
+                ('__start__','time:mapping'),
+                ('date','2020-03-14'),
+                ('time','07:30'),
+                ('__end__','time:mapping'),
+                ('fill','10'),
+                ('notes','Note'),
+                ('save','save')
+            ]
+        )
+        self.assertEqual(resp.status_code,302)
+        record_id=json.loads(resp.text)['id']
+        record=session.query(MenstrualCupFill).filter(MenstrualCupFill.id==record_id).one()
+        self.assertEqual(record.time,datetime(2020,3,14,7,30))
+        self.assertEqual(record.notes.text,'Note')
+        self.assertEqual(record.fill,10)
+
+        resp=self.testapp.post(
+            edit_url.format(record_id),
+            params=[
+                ('__start__','time:mapping'),
+                ('date','2020-03-14'),
+                ('time','07:30'),
+                ('__end__','time:mapping'),
+                ('fill','12'),
+                ('notes',''),
+                ('save','save')
+            ]
+        )
+        self.assertEqual(resp.status_code,302)
+        session.flush()
+        transaction.commit()
+        record=session.query(MenstrualCupFill).filter(MenstrualCupFill.id==record_id).one()
+        self.assertIsNone(record.notes)
+        self.assertEqual(record.fill,12)
+
+        resp=self.testapp.post(
+            edit_url.format(record_id),
+            params=[
+                ('delete','delete')
+            ])
+
+        self.assertEqual(resp.status_code,302)
+
+        from urllib.parse import quote
+        delete_confirm_url=delete_confirm_url.format(record_id)+'?referrer='+quote(edit_url.format(record_id),'')
+        self.assertEqual(resp.location,delete_confirm_url)
+        record=session.query(MenstrualCupFill).filter(MenstrualCupFill.id==record_id).one()
+
+        resp=self.testapp.post(
+            delete_confirm_url.format(record_id),
+            params=[
+                ('delete','delete')
+        ])
+
+        session.flush()
+        transaction.commit()
+
+        with self.assertRaises(NoResultFound):
+            weight=session.query(MenstrualCupFill).filter(MenstrualCupFill.id==record_id).one()
