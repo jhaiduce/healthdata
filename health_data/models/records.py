@@ -14,7 +14,7 @@ from sqlalchemy import (
 
 from sqlalchemy.sql import func
 
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, object_session
 
 from sqlalchemy.ext.declarative import declared_attr
 
@@ -175,6 +175,24 @@ class AbsorbentWeights(TimestampedRecord,IndividualRecord,Record):
 
     notes=relationship(Note,foreign_keys=notes_id)
     garment=relationship(AbsorbentGarment,foreign_keys=garment_id)
+
+    @property
+    def difference(self):
+        if self.weight_after is None:
+            return None
+
+        weight_before=self.weight_before
+        if weight_before is None:
+            session=object_session(self)
+            weight_before=session.query(
+                func.avg(AbsorbentWeights.weight_before).label('average')
+            ).filter(
+                AbsorbentWeights.garment_id==self.garment_id).one().average
+
+        if weight_before is None:
+            return None
+
+        return self.weight_after-weight_before
 
     __mapper_args__ = {
         'polymorphic_identity':'absorbent_weights'

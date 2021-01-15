@@ -22,6 +22,9 @@ def notes(obj):
 
     return obj.notes.text if obj.notes else None
 
+def garment(obj):
+   return obj.garment.name if obj.garment else None
+
 class MenstrualCupFillCrudViews(IndividualRecordCRUDView,CRUDView):
     model=MenstrualCupFill
     schema=SQLAlchemySchemaNode(
@@ -116,7 +119,7 @@ class AbsorbentWeightCrudViews(IndividualRecordCRUDView,CRUDView):
     )
     title='absorbent weights'
     url_path = '/period/absorbent_weights'
-    list_display=('time_before','time_after','weight_before','weight_after',notes)
+    list_display=(garment,'time_before','time_after','weight_before','weight_after','difference',notes)
 
     def get_list_query(self):
        query=super(AbsorbentWeightCrudViews,self).get_list_query()

@@ -428,6 +428,41 @@ class AuthenticationTests(BaseTest):
         self.assertTrue(user.check_password('password'))
         self.assertFalse(user.check_password('pa$$word'))
 
+class TestMenstrualFlow(BaseTest):
+
+    def setUp(self):
+        super(TestMenstrualFlow,self).setUp()
+        self.init_database()
+
+    def test_difference(self):
+
+        from .models import AbsorbentGarment, AbsorbentWeights
+
+        pad=AbsorbentGarment(name='pad')
+        self.session.add(pad)
+        self.session.flush()
+
+        weights_without_before=AbsorbentWeights(
+            garment=pad,
+            weight_after=15
+        )
+
+        self.session.add(weights_without_before)
+
+        self.assertIsNone(weights_without_before.difference)
+
+        weights_with_before=AbsorbentWeights(
+            garment=pad,
+            weight_before=13,
+            weight_after=13
+        )
+
+        self.assertEqual(weights_with_before.difference,0)
+
+        self.session.add(weights_with_before)
+
+        self.assertEqual(weights_without_before.difference,2)
+
 import webtest
 
 class FunctionalTests(unittest.TestCase):
