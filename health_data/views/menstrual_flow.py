@@ -72,4 +72,4 @@ def finalize_menstrualcupfill_fields(event):
 
             event.obj.notes=None
 
-    event.request.dbsession.flush()
+        event.request.dbsession.flush()
