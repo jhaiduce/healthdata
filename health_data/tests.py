@@ -804,3 +804,121 @@ class FunctionalTests(unittest.TestCase):
 
         with self.assertRaises(NoResultFound):
             weight=session.query(MenstrualCupFill).filter(MenstrualCupFill.id==record_id).one()
+
+    def test_absorbent_weight_addedit(self):
+        self.login()
+        from .models import AbsorbentGarment, AbsorbentWeights
+        add_garments_url='http://localhost/period/absorbent_garments/new'
+        edit_garments_url='http://localhost/period/absorbent_garments/{}/edit'
+        delete_garments_confirm_url='http://localhost/period/absorbent_garments/{}/delete_confirm'
+        add_weights_url='http://localhost/period/absorbent_weights/new'
+        edit_weights_url='http://localhost/period/absorbent_weights/{}/edit'
+        delete_weights_confirm_url='http://localhost/period/absorbent_weights/{}/delete_confirm'
+        session=self.get_session()
+
+        resp=self.testapp.post(
+            add_garments_url,
+            params=[
+                ('name','pad'),
+                ('save','save')
+            ]
+        )
+        self.assertEqual(resp.status_code,302)
+        pad_id=json.loads(resp.text)['id']
+        pad=session.query(AbsorbentGarment).filter(AbsorbentGarment.id==pad_id).one()
+        self.assertEqual(pad.name,'pad')
+
+        resp=self.testapp.post(
+            add_garments_url,
+            params=[
+                ('name','panty liner'),
+                ('save','save')
+            ]
+        )
+        self.assertEqual(resp.status_code,302)
+        pantyliner_id=json.loads(resp.text)['id']
+        pantyliner=session.query(AbsorbentGarment).filter(AbsorbentGarment.id==pantyliner_id).one()
+        self.assertEqual(pantyliner.name,'panty liner')
+
+        resp=self.testapp.post(
+            add_weights_url,
+            params=[
+                ('garment',str(pad_id)),
+                ('__start__','time_before:mapping'),
+                ('date','2020-12-27'),
+                ('time','07:30'),
+                ('__end__','time_before:mapping'),
+                ('__start__','time_after:mapping'),
+                ('date','2020-12-27'),
+                ('time','17:30'),
+                ('__end__','time_after:mapping'),
+                ('weight_before','116'),
+                ('weight_after','120'),
+                ('notes','Note'),
+                ('save','save')
+            ]
+        )
+        self.assertEqual(resp.status_code,302)
+        record_id=json.loads(resp.text)['id']
+        record=session.query(AbsorbentWeights).filter(AbsorbentWeights.id==record_id).one()
+        self.assertEqual(record.garment_id,pad_id)
+        self.assertEqual(record.garment,pad)
+        self.assertEqual(record.time_before,datetime(2020,12,27,7,30))
+        self.assertEqual(record.time_after,datetime(2020,12,27,17,30))
+        self.assertAlmostEqual(record.weight_before,116)
+        self.assertAlmostEqual(record.weight_after,120)
+        self.assertEqual(record.notes.text,'Note')
+
+        resp=self.testapp.post(
+            edit_weights_url.format(record_id),
+            params=[
+                ('garment',str(pantyliner_id)),
+                ('__start__','time_before:mapping'),
+                ('date','2020-12-28'),
+                ('time','07:45'),
+                ('__end__','time_before:mapping'),
+                ('__start__','time_after:mapping'),
+                ('date','2020-12-28'),
+                ('time','16:32'),
+                ('__end__','time_after:mapping'),
+                ('weight_before','115'),
+                ('weight_after','121'),
+                ('notes','Note'),
+                ('save','save')
+            ]
+        )
+        record_id=json.loads(resp.text)['id']
+        session=self.get_session()
+        record=session.query(AbsorbentWeights).filter(AbsorbentWeights.id==record_id).one()
+        self.assertEqual(record.garment_id,pantyliner_id)
+        self.assertEqual(record.time_before,datetime(2020,12,28,7,45))
+        self.assertEqual(record.time_after,datetime(2020,12,28,16,32))
+        self.assertAlmostEqual(record.weight_before,115)
+        self.assertAlmostEqual(record.weight_after,121)
+        self.assertEqual(record.notes.text,'Note')
+
+        resp=self.testapp.post(
+            edit_weights_url.format(record_id),
+            params=[
+                ('garment',str(pantyliner_id)),
+                ('delete','delete')
+            ])
+
+        self.assertEqual(resp.status_code,302)
+
+        from urllib.parse import quote
+        delete_confirm_url=delete_weights_confirm_url.format(record_id)+'?referrer='+quote(edit_weights_url.format(record_id),'')
+        self.assertEqual(resp.location,delete_confirm_url)
+        record=session.query(AbsorbentWeights).filter(AbsorbentWeights.id==record_id).one()
+
+        resp=self.testapp.post(
+            delete_weights_confirm_url.format(record_id),
+            params=[
+                ('delete','delete')
+        ])
+
+        session.flush()
+        transaction.commit()
+
+        with self.assertRaises(NoResultFound):
+            weight=session.query(AbsorbentWeights).filter(AbsorbentWeights.id==record_id).one()

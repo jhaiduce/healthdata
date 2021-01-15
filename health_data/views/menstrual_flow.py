@@ -1,7 +1,7 @@
 from pyramid.events import subscriber
 from pyramid.view import view_config
 from .crud import CRUDView, ViewDbInsertEvent,ViewDbUpdateEvent
-from ..models import MenstrualCupFill, Note
+from ..models import MenstrualCupFill, AbsorbentGarment, AbsorbentWeights, Note
 from colanderalchemy import SQLAlchemySchemaNode
 from .individual_record import IndividualRecordCRUDView
 import deform
@@ -71,5 +71,90 @@ def finalize_menstrualcupfill_fields(event):
         else:
 
             event.obj.notes=None
+
+        event.request.dbsession.flush()
+
+class AbsorbentGarmentViews(CRUDView):
+    model=AbsorbentGarment
+    schema=SQLAlchemySchemaNode(
+       AbsorbentGarment,
+       includes=['name'],
+    )
+    title='absorbent garment'
+    url_path = '/period/absorbent_garments'
+    list_display=('name',)
+
+@colander.deferred
+def get_garment_select_widget(node,kw):
+    dbsession=kw['request'].dbsession
+    garments=dbsession.query(AbsorbentGarment)
+    choices=[('','')]+[(garment.id, garment.name) for garment in garments]
+    return deform.widget.SelectWidget(values=choices)
+
+class AbsorbentWeightCrudViews(IndividualRecordCRUDView,CRUDView):
+    model=AbsorbentWeights
+    schema=SQLAlchemySchemaNode(
+       AbsorbentWeights,
+       includes=[
+          colander.SchemaNode(
+             colander.Integer(),
+             name='garment',
+             title='Garment',
+             widget=get_garment_select_widget,
+          ),
+          'time_before',
+          'time_after',
+          'weight_before',
+          'weight_after',
+          notes_schema
+       ],
+       overrides={
+           'notes':{
+               'widget':deform.widget.TextAreaWidget()
+           },
+       }
+    )
+    title='absorbent weights'
+    url_path = '/period/absorbent_weights'
+    list_display=('time_before','time_after','weight_before','weight_after',notes)
+
+    def get_list_query(self):
+       query=super(AbsorbentWeightCrudViews,self).get_list_query()
+
+       return query.order_by(AbsorbentWeights.time_after.desc())
+
+    def dictify(self,obj):
+        """
+        Serialize an AbsorbentWeights object to a dict for CRUD view
+        """
+
+        appstruct=super(AbsorbentWeightCrudViews,self).dictify(obj)
+
+        appstruct['garment']=obj.garment_id
+
+        if obj.notes is not None:
+           appstruct['notes']=obj.notes.text
+
+        return appstruct
+
+@subscriber(ViewDbInsertEvent,ViewDbUpdateEvent)
+def finalize_absorbentweights_fields(event):
+
+    """
+    Post-process an automatically deserialized MenstrualCupFill object
+    """
+
+    if isinstance(event.obj,AbsorbentWeights):
+        if event.appstruct['notes']:
+            if event.obj.notes is None:
+               event.obj.notes=Note()
+               event.obj.notes.text=event.appstruct['notes']
+               event.obj.notes.date=event.obj.time_before
+
+        else:
+
+            event.obj.notes=None
+
+        event.obj.garment_id=event.appstruct['garment']
 
         event.request.dbsession.flush()
