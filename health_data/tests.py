@@ -889,6 +889,7 @@ class FunctionalTests(unittest.TestCase):
                 ('__end__','time_after:mapping'),
                 ('weight_before','116'),
                 ('weight_after','120'),
+                ('blood_observed_s','True'),
                 ('notes','Note'),
                 ('save','save')
             ]
@@ -902,6 +903,7 @@ class FunctionalTests(unittest.TestCase):
         self.assertEqual(record.time_after,datetime(2020,12,27,17,30))
         self.assertAlmostEqual(record.weight_before,116)
         self.assertAlmostEqual(record.weight_after,120)
+        self.assertEqual(record.blood_observed,True)
         self.assertEqual(record.notes.text,'Note')
 
         resp=self.testapp.post(
@@ -918,6 +920,7 @@ class FunctionalTests(unittest.TestCase):
                 ('__end__','time_after:mapping'),
                 ('weight_before','115'),
                 ('weight_after','121'),
+                ('blood_observed_s','False'),
                 ('notes','Note'),
                 ('save','save')
             ]
@@ -930,12 +933,14 @@ class FunctionalTests(unittest.TestCase):
         self.assertEqual(record.time_after,datetime(2020,12,28,16,32))
         self.assertAlmostEqual(record.weight_before,115)
         self.assertAlmostEqual(record.weight_after,121)
+        self.assertEqual(record.blood_observed,False)
         self.assertEqual(record.notes.text,'Note')
 
         resp=self.testapp.post(
             edit_weights_url.format(record_id),
             params=[
                 ('garment',str(pantyliner_id)),
+                ('blood_observed_s','False'),
                 ('delete','delete')
             ])
 
