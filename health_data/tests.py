@@ -780,10 +780,14 @@ class FunctionalTests(unittest.TestCase):
         resp=self.testapp.post(
             add_url,
             params=[
-                ('__start__','time:mapping'),
+                ('__start__','insertion_time:mapping'),
+                ('date','2020-03-14'),
+                ('time','06:30'),
+                ('__end__','insertion_time:mapping'),
+                ('__start__','removal_time:mapping'),
                 ('date','2020-03-14'),
                 ('time','07:30'),
-                ('__end__','time:mapping'),
+                ('__end__','removal_time:mapping'),
                 ('fill','10'),
                 ('notes','Note'),
                 ('save','save')
@@ -792,6 +796,7 @@ class FunctionalTests(unittest.TestCase):
         self.assertEqual(resp.status_code,302)
         record_id=json.loads(resp.text)['id']
         record=session.query(MenstrualCupFill).filter(MenstrualCupFill.id==record_id).one()
+        self.assertEqual(record.insertion_time,datetime(2020,3,14,6,30))
         self.assertEqual(record.time,datetime(2020,3,14,7,30))
         self.assertEqual(record.removal_time,datetime(2020,3,14,7,30))
         self.assertEqual(record.notes.text,'Note')
@@ -800,10 +805,14 @@ class FunctionalTests(unittest.TestCase):
         resp=self.testapp.post(
             edit_url.format(record_id),
             params=[
-                ('__start__','time:mapping'),
+                ('__start__','insertion_time:mapping'),
+                ('date','2020-03-14'),
+                ('time','05:30'),
+                ('__end__','insertion_time:mapping'),
+                ('__start__','removal_time:mapping'),
                 ('date','2020-03-14'),
                 ('time','06:30'),
-                ('__end__','time:mapping'),
+                ('__end__','removal_time:mapping'),
                 ('fill','12'),
                 ('notes',''),
                 ('save','save')
@@ -814,6 +823,7 @@ class FunctionalTests(unittest.TestCase):
         transaction.commit()
         record=session.query(MenstrualCupFill).filter(MenstrualCupFill.id==record_id).one()
         self.assertIsNone(record.notes)
+        self.assertEqual(record.insertion_time,datetime(2020,3,14,5,30))
         self.assertEqual(record.time,datetime(2020,3,14,6,30))
         self.assertEqual(record.removal_time,datetime(2020,3,14,6,30))
         self.assertEqual(record.fill,12)

@@ -40,7 +40,7 @@ class MenstrualCupFillCrudViews(IndividualRecordCRUDView,CRUDView):
     model=MenstrualCupFill
     schema=SQLAlchemySchemaNode(
        MenstrualCupFill,
-       includes=['time','fill',notes_schema],
+       includes=['insertion_time','removal_time','fill',notes_schema],
        overrides={
            'notes':{
                'widget':deform.widget.TextAreaWidget()
@@ -49,7 +49,7 @@ class MenstrualCupFillCrudViews(IndividualRecordCRUDView,CRUDView):
     )
     title='menstrual cup fill'
     url_path = '/period/menstrual_cup_fill'
-    list_display=('time','fill',notes)
+    list_display=('insertion_time','removal_time','fill',notes)
 
     def get_list_query(self):
        query=super(MenstrualCupFillCrudViews,self).get_list_query()
