@@ -17,6 +17,7 @@ depends_on = None
 
 def upgrade():
     with op.batch_alter_table('menstrual_cup_fill', schema=None) as batch_op:
+        batch_op.alter_column('removal_time', server_default=None)
         batch_op.drop_column('time')
 
 def downgrade():
