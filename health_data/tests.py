@@ -797,7 +797,6 @@ class FunctionalTests(unittest.TestCase):
         record_id=json.loads(resp.text)['id']
         record=session.query(MenstrualCupFill).filter(MenstrualCupFill.id==record_id).one()
         self.assertEqual(record.insertion_time,datetime(2020,3,14,6,30))
-        self.assertEqual(record.time,datetime(2020,3,14,7,30))
         self.assertEqual(record.removal_time,datetime(2020,3,14,7,30))
         self.assertEqual(record.notes.text,'Note')
         self.assertEqual(record.fill,10)
@@ -824,7 +823,6 @@ class FunctionalTests(unittest.TestCase):
         record=session.query(MenstrualCupFill).filter(MenstrualCupFill.id==record_id).one()
         self.assertIsNone(record.notes)
         self.assertEqual(record.insertion_time,datetime(2020,3,14,5,30))
-        self.assertEqual(record.time,datetime(2020,3,14,6,30))
         self.assertEqual(record.removal_time,datetime(2020,3,14,6,30))
         self.assertEqual(record.fill,12)
 

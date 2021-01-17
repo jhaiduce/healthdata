@@ -54,7 +54,7 @@ class MenstrualCupFillCrudViews(IndividualRecordCRUDView,CRUDView):
     def get_list_query(self):
        query=super(MenstrualCupFillCrudViews,self).get_list_query()
 
-       return query.order_by(MenstrualCupFill.time.desc())
+       return query.order_by(MenstrualCupFill.removal_time.desc())
 
     def dictify(self,obj):
         """
@@ -80,7 +80,7 @@ def finalize_menstrualcupfill_fields(event):
             if event.obj.notes is None:
                event.obj.notes=Note()
                event.obj.notes.text=event.appstruct['notes']
-               event.obj.notes.date=event.obj.time
+               event.obj.notes.date=event.obj.removal_time
 
         else:
 

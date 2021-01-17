@@ -147,14 +147,8 @@ class MenstrualCupFill(TimestampedRecord,IndividualRecord,Record):
     id = Column(Integer, ForeignKey('record.id'), primary_key=True)
     insertion_time = Column(DateTime)
     removal_time = Column(DateTime)
-    time = Column(DateTime)
     fill = Column(Float)
     notes_id=Column(Integer,ForeignKey('note.id'))
-
-    @validates('removal_time')
-    def removal_time_to_time(self,key,value):
-        self.time=value
-        return value
 
     notes=relationship(Note,foreign_keys=notes_id)
 
