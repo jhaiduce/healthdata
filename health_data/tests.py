@@ -813,7 +813,7 @@ class FunctionalTests(unittest.TestCase):
                 ('time','06:30'),
                 ('__end__','removal_time:mapping'),
                 ('fill','12'),
-                ('notes',''),
+                ('notes','Note1'),
                 ('save','save')
             ]
         )
@@ -821,9 +821,9 @@ class FunctionalTests(unittest.TestCase):
         session.flush()
         transaction.commit()
         record=session.query(MenstrualCupFill).filter(MenstrualCupFill.id==record_id).one()
-        self.assertIsNone(record.notes)
         self.assertEqual(record.insertion_time,datetime(2020,3,14,5,30))
         self.assertEqual(record.removal_time,datetime(2020,3,14,6,30))
+        self.assertEqual(record.notes.text,'Note1')
         self.assertEqual(record.fill,12)
 
         resp=self.testapp.post(
@@ -932,7 +932,7 @@ class FunctionalTests(unittest.TestCase):
                 ('weight_before','115'),
                 ('weight_after','121'),
                 ('blood_observed_s','False'),
-                ('notes','Note'),
+                ('notes','Note1'),
                 ('save','save')
             ]
         )
@@ -945,7 +945,7 @@ class FunctionalTests(unittest.TestCase):
         self.assertAlmostEqual(record.weight_before,115)
         self.assertAlmostEqual(record.weight_after,121)
         self.assertEqual(record.blood_observed,False)
-        self.assertEqual(record.notes.text,'Note')
+        self.assertEqual(record.notes.text,'Note1')
 
         resp=self.testapp.post(
             edit_weights_url.format(record_id),

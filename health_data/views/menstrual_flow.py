@@ -79,8 +79,8 @@ def finalize_menstrualcupfill_fields(event):
         if event.appstruct['notes']:
             if event.obj.notes is None:
                event.obj.notes=Note()
-               event.obj.notes.text=event.appstruct['notes']
-               event.obj.notes.date=event.obj.removal_time
+            event.obj.notes.text=event.appstruct['notes']
+            event.obj.notes.date=event.obj.removal_time
 
         else:
 
@@ -176,8 +176,8 @@ def finalize_absorbentweights_fields(event):
         if event.appstruct['notes']:
             if event.obj.notes is None:
                event.obj.notes=Note()
-               event.obj.notes.text=event.appstruct['notes']
-               event.obj.notes.date=event.obj.time_before
+            event.obj.notes.text=event.appstruct['notes']
+            event.obj.notes.date=event.obj.time_before
 
         else:
 
