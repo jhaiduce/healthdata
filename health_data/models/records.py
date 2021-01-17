@@ -12,9 +12,11 @@ from sqlalchemy import (
     Boolean
 )
 
+import sqlalchemy as sa
+
 from sqlalchemy.sql import func
 
-from sqlalchemy.orm import relationship, object_session
+from sqlalchemy.orm import relationship, object_session, validates
 
 from sqlalchemy.ext.declarative import declared_attr
 
@@ -143,9 +145,16 @@ class MenstrualCupFill(TimestampedRecord,IndividualRecord,Record):
     __table_args__ = {'mysql_encrypted':'yes'}
 
     id = Column(Integer, ForeignKey('record.id'), primary_key=True)
+    insertion_time = Column(DateTime)
+    removal_time = Column(DateTime)
     time = Column(DateTime)
     fill = Column(Float)
     notes_id=Column(Integer,ForeignKey('note.id'))
+
+    @validates('time')
+    def time_to_removal_time(self,key,value):
+        self.removal_time=value
+        return value
 
     notes=relationship(Note,foreign_keys=notes_id)
 

@@ -95,7 +95,13 @@ class TestExample(unittest.TestCase):
         prepare_schema_from_models(self.uri_right, Base)
 
         result = compare(
-            self.uri_left, self.uri_right, set(['alembic_version']))
+            self.uri_left, self.uri_right,
+            ignores=set([
+                'alembic_version',
+                'menstrual_cup_fill.col.removal_time',
+                'menstrual_cup_fill.col.time'
+            ])
+        )
 
         import json
         assert result.is_match, json.dumps(result.errors,indent=True)
