@@ -1,3 +1,5 @@
+#!/bin/bash
+
 export VENV=`pwd`/../venv
 
 
