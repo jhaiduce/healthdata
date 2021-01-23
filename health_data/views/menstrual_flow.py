@@ -40,7 +40,7 @@ class MenstrualCupFillCrudViews(IndividualRecordCRUDView,CRUDView):
     model=MenstrualCupFill
     schema=SQLAlchemySchemaNode(
        MenstrualCupFill,
-       includes=['insertion_time','removal_time','fill',notes_schema],
+       includes=['insertion_time_','removal_time','fill',notes_schema],
        overrides={
            'notes':{
                'widget':deform.widget.TextAreaWidget()

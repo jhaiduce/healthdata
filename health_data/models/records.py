@@ -9,20 +9,23 @@ from sqlalchemy import (
     ForeignKey,
     Sequence,
     Date,
-    Boolean
+    Boolean,
+    case
 )
 
 import sqlalchemy as sa
 
 from sqlalchemy.sql import func
 
-from sqlalchemy.orm import relationship, object_session, validates
+from sqlalchemy.orm import relationship, object_session, validates, aliased
 
 from sqlalchemy.ext.declarative import declared_attr
 
+from sqlalchemy.ext.hybrid import hybrid_property
+
 from .meta import Base
 
-from datetime import datetime
+from datetime import datetime, time, timedelta
 
 class Record(Base):
 
@@ -145,12 +148,82 @@ class MenstrualCupFill(TimestampedRecord,IndividualRecord,Record):
     __table_args__ = {'mysql_encrypted':'yes'}
 
     id = Column(Integer, ForeignKey('record.id'), primary_key=True)
-    insertion_time = Column(DateTime)
+    insertion_time_ = Column('insertion_time',DateTime)
     removal_time = Column(DateTime)
     fill = Column(Float)
     notes_id=Column(Integer,ForeignKey('note.id'))
 
     notes=relationship(Note,foreign_keys=notes_id)
+
+    def __init__(self,*args,insertion_time=None,**kwargs):
+        super(MenstrualCupFill,self).__init__(*args,**kwargs)
+        self.insertion_time=insertion_time
+
+    @hybrid_property
+    def insertion_time(self):
+
+        if self.insertion_time_ is not None:
+            return self.insertion_time_
+
+        if self.removal_time is None:
+            return None
+
+        last_entry=object_session(self).query(
+            MenstrualCupFill
+        ).filter(
+            MenstrualCupFill.insertion_time_<self.removal_time
+        ).order_by(
+            MenstrualCupFill.removal_time.desc()
+        ).with_entities(
+            MenstrualCupFill.removal_time
+        ).limit(1).first()
+
+        if last_entry is not None:
+            last_removal_time=last_entry.removal_time
+        else:
+            last_removal_time=datetime.combine(
+                self.removal_time.date(),time(8)
+            ) - timedelta(days=1)
+
+        return max(last_removal_time,datetime.combine(self.removal_time.date(),time(8)))
+
+    @insertion_time.expression
+    def insertion_time(cls):
+
+        previous=aliased(cls)
+
+        last_removal_time=sa.select([
+            func.max(previous.removal_time,func.to_date(cls.removal_time)-1)
+        ]).where(
+            previous.removal_time<cls.removal_time
+        ).order_by(previous.removal_time.desc()).limit(1).as_scalar()
+
+        insertion_time=case(
+            [
+                (cls.insertion_time_==None,func.max(last_removal_time,func.to_date(cls.removal_time))),
+            ], else_ = cls.insertion_time_
+        )
+
+        return insertion_time
+
+    @insertion_time.setter
+    def insertion_time(self,value):
+        self.insertion_time_=value
+
+    @insertion_time.update_expression
+    def insertion_time(cls,value):
+        return [(cls.insertion_time_,value)]
+
+    @hybrid_property
+    def flow_rate(self):
+        hours=(self.removal_time-self.insertion_time).total_seconds()/3600
+        return self.fill/hours
+
+    @flow_rate.expression
+    def flow_rate(self):
+
+        return func.time_to_sec(
+            func.timediff(cls.removal_time,cls.insertion_time))
 
     __mapper_args__ = {
         'polymorphic_identity':'menstrual_cup_fill'

@@ -434,6 +434,47 @@ class TestMenstrualFlow(BaseTest):
         super(TestMenstrualFlow,self).setUp()
         self.init_database()
 
+    def test_flow_rate(self):
+        from .models import MenstrualCupFill
+
+        cup_with_insertion_date=MenstrualCupFill(
+            insertion_time=datetime(2020,1,15,8,0),
+            removal_time=datetime(2020,1,15,12,0),
+            fill=10
+        )
+        self.session.add(cup_with_insertion_date)
+
+        cup_without_insertion_date=MenstrualCupFill(
+            insertion_time=None,
+            removal_time=datetime(2020,1,15,16,0),
+            fill=10
+        )
+        self.session.add(cup_without_insertion_date)
+
+        cup_without_insertion_date_first_of_day=MenstrualCupFill(
+            insertion_time=None,
+            removal_time=datetime(2020,1,16,12,0),
+            fill=10
+        )
+        self.session.add(cup_without_insertion_date_first_of_day)
+
+        self.session.flush()
+
+        self.assertEqual(
+            cup_without_insertion_date.insertion_time,
+            cup_with_insertion_date.removal_time)
+        self.assertEqual(
+            cup_without_insertion_date.insertion_time,
+            cup_with_insertion_date.removal_time)
+        self.assertEqual(
+            cup_without_insertion_date_first_of_day.insertion_time,
+            datetime.combine(
+                cup_without_insertion_date_first_of_day.removal_time.date(),
+                time(8)))
+        self.assertAlmostEqual(cup_with_insertion_date.flow_rate,2.5)
+        self.assertAlmostEqual(cup_without_insertion_date.flow_rate,2.5)
+        self.assertAlmostEqual(cup_without_insertion_date_first_of_day.flow_rate,2.5)
+
     def test_difference(self):
 
         from .models import AbsorbentGarment, AbsorbentWeights
@@ -780,10 +821,10 @@ class FunctionalTests(unittest.TestCase):
         resp=self.testapp.post(
             add_url,
             params=[
-                ('__start__','insertion_time:mapping'),
+                ('__start__','insertion_time_:mapping'),
                 ('date','2020-03-14'),
                 ('time','06:30'),
-                ('__end__','insertion_time:mapping'),
+                ('__end__','insertion_time_:mapping'),
                 ('__start__','removal_time:mapping'),
                 ('date','2020-03-14'),
                 ('time','07:30'),
@@ -804,10 +845,10 @@ class FunctionalTests(unittest.TestCase):
         resp=self.testapp.post(
             edit_url.format(record_id),
             params=[
-                ('__start__','insertion_time:mapping'),
+                ('__start__','insertion_time_:mapping'),
                 ('date','2020-03-14'),
                 ('time','05:30'),
-                ('__end__','insertion_time:mapping'),
+                ('__end__','insertion_time_:mapping'),
                 ('__start__','removal_time:mapping'),
                 ('date','2020-03-14'),
                 ('time','06:30'),
