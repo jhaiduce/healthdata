@@ -314,7 +314,7 @@ class AbsorbentWeights(TimestampedRecord,IndividualRecord,Record):
 
         return max(last_time_after,datetime.combine(self.time_after.date(),time(8)))
 
-    @property
+    @hybrid_property
     def difference(self):
         if self.weight_after is None:
             return None
@@ -331,6 +331,25 @@ class AbsorbentWeights(TimestampedRecord,IndividualRecord,Record):
             return None
 
         return self.weight_after-weight_before
+
+    @difference.expression
+    def difference(cls):
+
+        all_records=aliased(cls)
+
+        weight_before=case(
+            [
+                (
+                    cls.weight_before==None,
+                    sa.select(
+                        [func.avg(all_records.weight_before)]
+                    ).where(all_records.garment_id==cls.garment_id).as_scalar()
+                ),
+            ],
+            else_ = cls.weight_before
+        )
+
+        return cls.weight_after - weight_before
 
     @property
     def flow_rate(self):
