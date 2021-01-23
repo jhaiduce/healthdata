@@ -435,7 +435,7 @@ class TestMenstrualFlow(BaseTest):
         self.init_database()
 
     def test_flow_rate(self):
-        from .models import MenstrualCupFill
+        from .models import MenstrualCupFill, Period
 
         cup_with_insertion_date=MenstrualCupFill(
             insertion_time=datetime(2020,1,15,8,0),
@@ -475,9 +475,13 @@ class TestMenstrualFlow(BaseTest):
         self.assertAlmostEqual(cup_without_insertion_date.flow_rate,2.5)
         self.assertAlmostEqual(cup_without_insertion_date_first_of_day.flow_rate,2.5)
 
+        period=Period(date=datetime(2020,1,15))
+        self.session.add(period)
+        self.assertAlmostEqual(period.total_flow,20)
+
     def test_difference(self):
 
-        from .models import AbsorbentGarment, AbsorbentWeights
+        from .models import AbsorbentGarment, AbsorbentWeights, Period
 
         pad=AbsorbentGarment(name='pad')
         self.session.add(pad)
@@ -506,18 +510,18 @@ class TestMenstrualFlow(BaseTest):
 
         weights_with_time_before=AbsorbentWeights(
             garment=pad,
-            time_before=datetime(2015,1,15,8),
-            time_after=datetime(2015,1,15,12),
+            time_before=datetime(2015,1,17,8),
+            time_after=datetime(2015,1,17,12),
             weight_before=13,
             weight_after=15,
         )
 
-        self.assertEqual(weights_with_time_before.time_before_inferred,datetime(2015,1,15,8))
+        self.assertEqual(weights_with_time_before.time_before_inferred,datetime(2015,1,17,8))
         self.assertAlmostEqual(weights_with_time_before.flow_rate,0.5)
 
         weights_without_time_before=AbsorbentWeights(
             garment=pad,
-            time_after=datetime(2015,1,15,16),
+            time_after=datetime(2015,1,17,16),
             weight_before=13,
             weight_after=15,
         )
@@ -525,8 +529,12 @@ class TestMenstrualFlow(BaseTest):
         self.session.add(weights_without_time_before)
         self.session.flush()
 
-        self.assertEqual(weights_without_time_before.time_before_inferred,datetime(2015,1,15,12))
+        self.assertEqual(weights_without_time_before.time_before_inferred,datetime(2015,1,17,12))
         self.assertAlmostEqual(weights_without_time_before.flow_rate,0.5)
+
+        period=Period(date=datetime(2015,1,17))
+        self.session.add(period)
+        self.assertAlmostEqual(period.total_flow,4)
 
 import webtest
 

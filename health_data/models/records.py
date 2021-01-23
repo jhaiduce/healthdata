@@ -176,6 +176,30 @@ class Period(TimestampedRecord,IndividualRecord,Record):
 
     notes=relationship(Note,foreign_keys=notes_id)
 
+    @property
+    def total_flow(self):
+        menstrual_cup_flow=object_session(self).query(
+            func.sum(MenstrualCupFill.fill).label('fill')
+        ).filter(
+            func.subtime(MenstrualCupFill.removal_time,func.time(MenstrualCupFill.removal_time))==self.date
+        ).one().fill
+
+        if menstrual_cup_flow == None:
+            menstrual_cup_flow = 0
+
+        absorbent_flow_query=object_session(self).query(
+            func.sum(AbsorbentWeights.difference).label('difference')
+        ).filter(
+            func.subtime(AbsorbentWeights.time_after,func.time(AbsorbentWeights.time_after))==self.date
+        )
+
+        absorbent_flow=absorbent_flow_query.one().difference
+
+        if absorbent_flow == None:
+            absorbent_flow = 0
+
+        return menstrual_cup_flow + absorbent_flow
+
     __mapper_args__ = {
         'polymorphic_identity':'period'
     }
