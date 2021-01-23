@@ -21,7 +21,8 @@
 <th></th>
 <th>Date</th>
 <th>Temperature</th>
-<th>Period</th>
+<th>Period intensity</th>
+<th>Period flow</th>
 <th>Cervical fluid</th>
 <th>Remarks</th>
 </tr>
@@ -31,6 +32,7 @@
 <td>{{period.date}}</td>
 <td>{{period.temperature.temperature if period.temperature.temperature else ''}}</td>
 <td>{{period_intensity_choices[period.period_intensity]}}</td>
+<td>{{period.total_flow}}</td>
 <td>{{cervical_fluid_choices[period.cervical_fluid_character]}}</td>
 <td>{{period.notes.text if period.notes else ''}}</td>
 </tr>
