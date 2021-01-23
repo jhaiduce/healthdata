@@ -504,6 +504,30 @@ class TestMenstrualFlow(BaseTest):
 
         self.assertEqual(weights_without_before.difference,2)
 
+        weights_with_time_before=AbsorbentWeights(
+            garment=pad,
+            time_before=datetime(2015,1,15,8),
+            time_after=datetime(2015,1,15,12),
+            weight_before=13,
+            weight_after=15,
+        )
+
+        self.assertEqual(weights_with_time_before.time_before_inferred,datetime(2015,1,15,8))
+        self.assertAlmostEqual(weights_with_time_before.flow_rate,0.5)
+
+        weights_without_time_before=AbsorbentWeights(
+            garment=pad,
+            time_after=datetime(2015,1,15,16),
+            weight_before=13,
+            weight_after=15,
+        )
+        self.session.add(weights_with_time_before)
+        self.session.add(weights_without_time_before)
+        self.session.flush()
+
+        self.assertEqual(weights_without_time_before.time_before_inferred,datetime(2015,1,15,12))
+        self.assertAlmostEqual(weights_without_time_before.flow_rate,0.5)
+
 import webtest
 
 class FunctionalTests(unittest.TestCase):

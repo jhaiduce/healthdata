@@ -252,6 +252,31 @@ class AbsorbentWeights(TimestampedRecord,IndividualRecord,Record):
     notes=relationship(Note,foreign_keys=notes_id)
     garment=relationship(AbsorbentGarment,foreign_keys=garment_id)
 
+    @hybrid_property
+    def time_before_inferred(self):
+        if self.time_before is not None:
+            return self.time_before
+
+        if self.time_after is None:
+            return None
+
+        last_entry=object_session(self).query(
+            AbsorbentWeights
+        ).filter(
+            AbsorbentWeights.time_before<self.time_after
+        ).order_by(
+            AbsorbentWeights.time_after
+        ).limit(1).first()
+
+        if last_entry is not None:
+            last_time_after=last_entry.time_after
+        else:
+            last_time_after=datetime.combine(
+                self.time_after.date(),time(8)
+            ) - timedelta(days=1)
+
+        return max(last_time_after,datetime.combine(self.time_after.date(),time(8)))
+
     @property
     def difference(self):
         if self.weight_after is None:
@@ -269,6 +294,11 @@ class AbsorbentWeights(TimestampedRecord,IndividualRecord,Record):
             return None
 
         return self.weight_after-weight_before
+
+    @property
+    def flow_rate(self):
+        hours = (self.time_after-self.time_before_inferred).total_seconds()/3600
+        return self.difference/hours
 
     __mapper_args__ = {
         'polymorphic_identity':'absorbent_weights'
