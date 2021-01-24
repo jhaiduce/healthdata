@@ -181,7 +181,9 @@ class Period(TimestampedRecord,IndividualRecord,Record):
         menstrual_cup_flow=object_session(self).query(
             func.sum(MenstrualCupFill.fill).label('fill')
         ).filter(
-            func.subtime(MenstrualCupFill.removal_time,func.time(MenstrualCupFill.removal_time))==self.date
+            MenstrualCupFill.removal_time.between(
+                datetime.combine(self.date,time(3)),
+                datetime.combine(self.date+timedelta(days=1),time(3)))
         ).one().fill
 
         if menstrual_cup_flow == None:
@@ -190,7 +192,9 @@ class Period(TimestampedRecord,IndividualRecord,Record):
         absorbent_flow_query=object_session(self).query(
             func.sum(AbsorbentWeights.difference).label('difference')
         ).filter(
-            func.subtime(AbsorbentWeights.time_after,func.time(AbsorbentWeights.time_after))==self.date
+            AbsorbentWeights.time_after.between(
+                datetime.combine(self.date,time(3)),
+                datetime.combine(self.date+timedelta(days=1),time(3)))
         )
 
         absorbent_flow=absorbent_flow_query.one().difference
