@@ -317,7 +317,7 @@ class MenstrualCupFill(TimestampedRecord,IndividualRecord,Record):
     def flow_rate(cls):
 
         return func.time_to_sec(
-            func.subtime(cls.removal_time,cls.insertion_time))
+            func.timediff(cls.removal_time,cls.insertion_time))
 
     __mapper_args__ = {
         'polymorphic_identity':'menstrual_cup_fill'
