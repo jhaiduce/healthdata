@@ -59,7 +59,12 @@ def time_to_sec(time_str):
 
     inp_time=sqlite.TIME().result_processor(sqlite,sqlite.TIME())(time_str)
 
-    return (inp_time-time(0)).total_seconds()
+    inp_time_datetime=datetime.combine(datetime.min,inp_time)
+    inp_time_timedelta=inp_time_datetime-datetime.min
+
+    result=inp_time_timedelta.total_seconds()
+
+    return result
 
 @sa.event.listens_for(sa.engine.Engine,'connect')
 def register_functions(conn, connection_record):
