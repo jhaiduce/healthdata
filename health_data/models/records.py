@@ -42,6 +42,19 @@ def subtime(datetime_str,time_str):
 
     return result_str
 
+def timediff(datetime1_str,datetime2_str):
+    from sqlalchemy.dialects import sqlite
+
+    if datetime1_str is None or datetime2_str is None: return None
+
+    datetime1=sqlite.DATETIME().result_processor(sqlite,sqlite.DATETIME())(datetime1_str)
+    datetime2=sqlite.DATETIME().result_processor(sqlite,sqlite.DATETIME())(datetime2_str)
+
+    result=datetime1-datetime2
+    result_as_time=(datetime.min+result).time()
+
+    return sqlite.TIME().bind_processor(sqlite)(result_as_time)
+
 def get_time_from_datetime(datetime_str):
     from sqlalchemy.dialects import sqlite
 
@@ -78,6 +91,7 @@ def register_functions(conn, connection_record):
         conn.create_function("subtime", 2, subtime)
         conn.create_function("time", 1, get_time_from_datetime)
         conn.create_function("time_to_sec", 1, time_to_sec)
+        conn.create_function("timediff", 2, timediff)
 
 class Record(Base):
 
