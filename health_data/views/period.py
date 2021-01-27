@@ -8,7 +8,7 @@ import json
 
 from .showtable import SqlalchemyOrmPage
 
-from ..models.records import Period, period_intensity_choices, cervical_fluid_choices, Temperature, Note
+from ..models.records import Period, period_intensity_choices, cervical_fluid_choices, Temperature, Note, MenstrualCupFill, AbsorbentWeights
 from ..models.people import Person
 
 from .header import view_with_header
@@ -259,6 +259,67 @@ class PeriodViews(object):
         start_inds=(intensities>1)&(intensities.shift(1)==1)
         start_dates=dates[start_inds]
 
+        menstrual_cup_query=dbsession.query(MenstrualCupFill).with_entities(
+            MenstrualCupFill.insertion_time,
+            MenstrualCupFill.removal_time,
+            MenstrualCupFill.flow_rate
+        ).filter(
+            MenstrualCupFill.person==session_person
+        ).order_by(MenstrualCupFill.removal_time)
+
+        menstrual_cup_flow=pd.read_sql(
+            menstrual_cup_query.statement,dbsession.bind)
+
+        menstrual_cup_flow.insertion_time=pd.to_datetime(menstrual_cup_flow.insertion_time)
+
+        # Separate dataframe for insertion
+        menstrual_cup_insertion=menstrual_cup_flow[['insertion_time','flow_rate']]
+        menstrual_cup_insertion=menstrual_cup_insertion.rename(
+            columns={'insertion_time':'time'})
+
+        # Separate dataframe for removal
+        menstrual_cup_removal=menstrual_cup_flow[['removal_time','flow_rate']]
+        menstrual_cup_removal=menstrual_cup_removal.rename(
+            columns={'removal_time':'time'})
+
+        # Interleave insertion and removal
+        menstrual_cup_flow=pd.concat(
+            [menstrual_cup_insertion,menstrual_cup_removal]
+        ).sort_index().reset_index(drop=True)
+
+        absorbent_query=dbsession.query(AbsorbentWeights).with_entities(
+            AbsorbentWeights.time_before_inferred,
+            AbsorbentWeights.time_after,
+            AbsorbentWeights.flow_rate
+        ).filter(
+            AbsorbentWeights.person==session_person
+        ).order_by(AbsorbentWeights.time_after)
+
+        absorbent_flow=pd.read_sql(
+            absorbent_query.statement,dbsession.bind)
+
+        absorbent_flow.time_before_inferred=pd.to_datetime(absorbent_flow.time_before_inferred)
+
+        # Separate dataframe for donning
+        absorbent_donning=absorbent_flow[['time_before_inferred','flow_rate']]
+        absorbent_donning=absorbent_donning.rename(
+            columns={'time_before_inferred':'time'})
+
+        # Separate dataframe for doffing
+        absorbent_doffing=absorbent_flow[['time_after','flow_rate']]
+        absorbent_doffing=absorbent_doffing.rename(
+            columns={'time_after':'time'})
+
+        # Interleave donning and doffing
+        absorbent_flow=pd.concat(
+            [absorbent_donning,absorbent_doffing]
+        ).sort_index().reset_index(drop=True)
+
+        flow_times=pd.concat([absorbent_flow.time,menstrual_cup_flow.time]).sort_values()
+
+        absorbent_flow=absorbent_flow.drop_duplicates('time',keep='last').set_index('time').reindex(flow_times).fillna(method='ffill').reset_index()
+        menstrual_cup_flow=menstrual_cup_flow.drop_duplicates('time',keep='last').set_index('time').reindex(flow_times).fillna(method='ffill').reset_index()
+
         from .plotly_defaults import default_axis_style
 
         graphs=[
@@ -269,7 +330,7 @@ class PeriodViews(object):
                     'type':'scatter',
                     'mode':'lines+markers',
                     'name':'Temperature',
-                    'yaxis':'y2'
+                    'yaxis':'y3'
                 },
                 {
                     'x':dates,
@@ -277,7 +338,7 @@ class PeriodViews(object):
                     'type':'bar',
                     'marker':{'color':'red'},
                     'name':'Period intensity',
-                    'yaxis':'y1'
+                    'yaxis':'y2'
                 },
                 {
                     'x':dates,
@@ -285,7 +346,23 @@ class PeriodViews(object):
                     'type':'bar',
                     'marker':{'color':'blue'},
                     'name':'Cervical fluid',
-                    'yaxis':'y1'
+                    'yaxis':'y2'
+                },
+                {
+                    'x':absorbent_flow.time,
+                    'y':absorbent_flow.flow_rate,
+                    'stackgroup':'flow_rate',
+                    'marker':{'color':'brown'},
+                    'name':'Absorbent garment flow',
+                    'line':{'shape':'hv'},
+                },
+                {
+                    'x':menstrual_cup_flow.time,
+                    'y':menstrual_cup_flow.flow_rate,
+                    'stackgroup':'flow_rate',
+                    'marker':{'color':'red'},
+                    'name':'Menstrual cup flow',
+                    'line':{'shape':'hv'},
                 }],
                 'layout':{
                     'plot_bgcolor':'white',
@@ -297,13 +374,20 @@ class PeriodViews(object):
                         'pad':2,
                     },
                     'yaxis':{
+                        'title':{
+                            'text':'Flow rate (mL/h)'
+                        },
+                        'domain':[0,0.15],
+                        **default_axis_style
+                    },
+                    'yaxis2':{
                         **default_axis_style,
-                        'domain':[0,0.2],
+                        'domain':[0.15,0.3],
                         'range':[-6,6],
                         'fixedrange':True,
                         **default_axis_style
                     },
-                    'yaxis2':{
+                    'yaxis3':{
                         'title':{
                             'text':'Temperature (F)'
                         },
@@ -311,7 +395,7 @@ class PeriodViews(object):
                             min(periods.temperature.min(),97) if not np.isnan(periods.temperature.min()) else 97,
                             max(periods.temperature.max(),99) if not np.isnan(periods.temperature.max()) else 99
                         ],
-                        'domain':[0.2,1],
+                        'domain':[0.3,1],
                         **default_axis_style
                     },
                     'barmode':'overlay',
