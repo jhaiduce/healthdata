@@ -320,6 +320,21 @@ class PeriodViews(object):
         absorbent_flow=absorbent_flow.drop_duplicates('time',keep='last').set_index('time').reindex(flow_times).fillna(method='ffill').reset_index()
         menstrual_cup_flow=menstrual_cup_flow.drop_duplicates('time',keep='last').set_index('time').reindex(flow_times).fillna(method='ffill').reset_index()
 
+        def insert_gaps(df):
+
+            is_gap=(df.time.diff(periods=-1)<timedelta(days=-11)),
+            gap_times=df.time.loc[is_gap]
+            insert_times=[
+                {'time':time+timedelta(seconds=1), 'flow_rate':np.nan}
+                for time in gap_times.dropna()
+            ]
+            df=df.append(insert_times).sort_values('time')
+
+            return df
+
+        absorbent_flow=insert_gaps(absorbent_flow)
+        menstrual_cup_flow=insert_gaps(menstrual_cup_flow)
+
         from .plotly_defaults import default_axis_style
 
         graphs=[
