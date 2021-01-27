@@ -15,7 +15,9 @@ from sqlalchemy import (
 
 import sqlalchemy as sa
 
-from sqlalchemy.sql import func
+from sqlalchemy.sql import func, expression
+
+from sqlalchemy.ext.compiler import compiles
 
 from sqlalchemy.orm import relationship, object_session, validates, aliased
 
@@ -26,6 +28,18 @@ from sqlalchemy.ext.hybrid import hybrid_property
 from .meta import Base
 
 from datetime import datetime, time, timedelta
+
+class greatest(expression.FunctionElement):
+    name = 'greatest'
+
+@compiles(greatest)
+def default_greatest(element, compiler, **kw):
+    return compiler.visit_function(element)
+
+@compiles(greatest, 'sqlite')
+def case_greatest(element, compiler, **kw):
+    element.name='max'
+    return compiler.visit_function(element)
 
 def subtime(datetime_str,time_str):
     from sqlalchemy.dialects import sqlite
@@ -305,7 +319,7 @@ class MenstrualCupFill(TimestampedRecord,IndividualRecord,Record):
         day_start=func.subtime(cls.removal_time,func.time(cls.removal_time))
 
         last_removal_time=sa.select([
-            func.max(previous.removal_time,func.subtime(cls.removal_time,func.time(cls.removal_time))-1)
+            greatest(previous.removal_time,func.subtime(cls.removal_time,func.time(cls.removal_time))-1)
         ]).where(
             previous.removal_time<cls.removal_time
         ).order_by(previous.removal_time.desc()).limit(1).as_scalar()
@@ -320,7 +334,7 @@ class MenstrualCupFill(TimestampedRecord,IndividualRecord,Record):
 
         insertion_time=case(
             [
-                (cls.insertion_time_==None,func.max(
+                (cls.insertion_time_==None,greatest(
                     last_removal_time,func.addtime(day_start,time(8))))
             ], else_ = cls.insertion_time_
         )
@@ -407,7 +421,7 @@ class AbsorbentWeights(TimestampedRecord,IndividualRecord,Record):
         day_start=func.subtime(cls.time_after,func.time(cls.time_after))
 
         last_time_after=sa.select([
-            func.max(previous.time_after,day_start-1)
+            greatest(previous.time_after,day_start-1)
         ]).where(
             previous.time_after<cls.time_after
         ).order_by(previous.time_after.desc()).limit(1).as_scalar()
