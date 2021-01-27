@@ -377,13 +377,17 @@ class PeriodViews(object):
                         'title':{
                             'text':'Flow rate (mL/h)'
                         },
-                        'domain':[0,0.15],
+                        'domain':[0,0.12],
+                        'autotick':False,
+                        'dtick':3,
                         **default_axis_style
                     },
                     'yaxis2':{
                         **default_axis_style,
-                        'domain':[0.15,0.3],
+                        'domain':[0.18,0.3],
                         'range':[-6,6],
+                        'tickvals':[0],
+                        'ticktext':[''],
                         'fixedrange':True,
                         **default_axis_style
                     },
@@ -395,7 +399,7 @@ class PeriodViews(object):
                             min(periods.temperature.min(),97) if not np.isnan(periods.temperature.min()) else 97,
                             max(periods.temperature.max(),99) if not np.isnan(periods.temperature.max()) else 99
                         ],
-                        'domain':[0.3,1],
+                        'domain':[0.36,1],
                         **default_axis_style
                     },
                     'barmode':'overlay',
