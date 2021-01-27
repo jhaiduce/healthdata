@@ -383,6 +383,34 @@ class AbsorbentWeights(TimestampedRecord,IndividualRecord,Record):
 
         return max(last_time_after,datetime.combine(self.time_after.date(),time(8)))
 
+    @time_before_inferred.expression
+    def time_before_inferred(cls):
+        previous=aliased(cls)
+
+        day_start=func.subtime(cls.time_after,func.time(cls.time_after))
+
+        last_time_after=sa.select([
+            func.max(previous.time_after,day_start-1)
+        ]).where(
+            previous.time_after<cls.time_after
+        ).order_by(previous.time_after.desc()).limit(1).as_scalar()
+
+        last_time_after=case(
+            [
+                (last_time_after==None,day_start),
+                (last_time_after<func.subtime(day_start,time(23)),day_start)
+            ],
+            else_ = last_time_after
+        )
+
+        time_before_inferred=case(
+            [
+                (cls.time_before==None,last_time_after)
+            ], else_ = cls.time_before
+        )
+
+        return time_before_inferred
+
     @hybrid_property
     def difference(self):
         if self.weight_after is None:
@@ -420,10 +448,16 @@ class AbsorbentWeights(TimestampedRecord,IndividualRecord,Record):
 
         return cls.weight_after - weight_before
 
-    @property
+    @hybrid_property
     def flow_rate(self):
         hours = (self.time_after-self.time_before_inferred).total_seconds()/3600
         return self.difference/hours
+
+    @flow_rate.expression
+    def flow_rate(cls):
+        hours = func.time_to_sec(
+            func.timediff(cls.time_after,cls.time_before_inferred))/3600
+        return cls.difference/hours
 
     __mapper_args__ = {
         'polymorphic_identity':'absorbent_weights'
