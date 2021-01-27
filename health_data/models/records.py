@@ -286,15 +286,25 @@ class MenstrualCupFill(TimestampedRecord,IndividualRecord,Record):
 
         previous=aliased(cls)
 
+        day_start=func.subtime(cls.removal_time,func.time(cls.removal_time))
+
         last_removal_time=sa.select([
             func.max(previous.removal_time,func.subtime(cls.removal_time,func.time(cls.removal_time))-1)
         ]).where(
             previous.removal_time<cls.removal_time
         ).order_by(previous.removal_time.desc()).limit(1).as_scalar()
 
+        last_removal_time=case(
+            [
+                (last_removal_time==None,day_start),
+                (last_removal_time<func.subtime(day_start,time(23)),day_start)
+            ],
+            else_ = last_removal_time
+        )
+
         insertion_time=case(
             [
-                (cls.insertion_time_==None,func.max(last_removal_time,func.subtime(cls.removal_time,func.time(cls.removal_time)))),
+                (cls.insertion_time_==None,last_removal_time)
             ], else_ = cls.insertion_time_
         )
 
