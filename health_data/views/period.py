@@ -239,7 +239,7 @@ class PeriodViews(object):
         import pandas as pd
 
         from sqlalchemy.orm import joinedload
-        
+
         dbsession=self.request.dbsession
 
         session_person=dbsession.query(Person).filter(
