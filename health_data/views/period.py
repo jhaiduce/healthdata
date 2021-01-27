@@ -330,7 +330,7 @@ class PeriodViews(object):
                     'type':'scatter',
                     'mode':'lines+markers',
                     'name':'Temperature',
-                    'yaxis':'y3'
+                    'yaxis':'y2'
                 },
                 {
                     'x':dates,
@@ -338,7 +338,6 @@ class PeriodViews(object):
                     'type':'bar',
                     'marker':{'color':'red'},
                     'name':'Period intensity',
-                    'yaxis':'y2'
                 },
                 {
                     'x':dates,
@@ -346,7 +345,6 @@ class PeriodViews(object):
                     'type':'bar',
                     'marker':{'color':'blue'},
                     'name':'Cervical fluid',
-                    'yaxis':'y2'
                 },
                 {
                     'x':absorbent_flow.time,
@@ -374,24 +372,14 @@ class PeriodViews(object):
                         'pad':2,
                     },
                     'yaxis':{
+                        **default_axis_style,
                         'title':{
                             'text':'Flow rate (mL/h)'
                         },
-                        'domain':[0,0.12],
-                        'autotick':False,
-                        'dtick':3,
+                        'domain':[0,0.3],
                         **default_axis_style
                     },
                     'yaxis2':{
-                        **default_axis_style,
-                        'domain':[0.18,0.3],
-                        'range':[-6,6],
-                        'tickvals':[0],
-                        'ticktext':[''],
-                        'fixedrange':True,
-                        **default_axis_style
-                    },
-                    'yaxis3':{
                         'title':{
                             'text':'Temperature (F)'
                         },
