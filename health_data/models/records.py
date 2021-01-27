@@ -312,15 +312,16 @@ class MenstrualCupFill(TimestampedRecord,IndividualRecord,Record):
 
         last_removal_time=case(
             [
-                (last_removal_time==None,day_start),
-                (last_removal_time<func.subtime(day_start,time(23)),day_start)
+                (last_removal_time==None,func.subtime(day_start,time(16))),
+                (last_removal_time<func.subtime(day_start,time(23)),func.subtime(day_start,time(16)))
             ],
             else_ = last_removal_time
         )
 
         insertion_time=case(
             [
-                (cls.insertion_time_==None,last_removal_time)
+                (cls.insertion_time_==None,func.max(
+                    last_removal_time,func.addtime(day_start,time(8))))
             ], else_ = cls.insertion_time_
         )
 
