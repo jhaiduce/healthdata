@@ -472,8 +472,23 @@ class TestMenstrualFlow(BaseTest):
                 cup_without_insertion_date_first_of_day.removal_time.date(),
                 time(8)))
         self.assertAlmostEqual(cup_with_insertion_date.flow_rate,2.5)
+        self.assertAlmostEqual(self.session.query(MenstrualCupFill.flow_rate).filter(MenstrualCupFill.id==cup_with_insertion_date.id).one().flow_rate,2.5)
         self.assertAlmostEqual(cup_without_insertion_date.flow_rate,2.5)
+        self.assertAlmostEqual(
+            self.session.query(
+                MenstrualCupFill.flow_rate
+            ).filter(
+                MenstrualCupFill.id==cup_without_insertion_date.id
+            ).one().flow_rate,
+            2.5)
         self.assertAlmostEqual(cup_without_insertion_date_first_of_day.flow_rate,2.5)
+        self.assertAlmostEqual(
+            self.session.query(
+                MenstrualCupFill.flow_rate
+            ).filter(
+                MenstrualCupFill.id==cup_without_insertion_date_first_of_day.id
+            ).one().flow_rate,
+            2.5)
 
         period=Period(date=datetime(2020,1,15))
         self.session.add(period)
@@ -516,8 +531,18 @@ class TestMenstrualFlow(BaseTest):
             weight_after=15,
         )
 
+        self.session.add(weights_with_time_before)
+        self.session.flush()
+
         self.assertEqual(weights_with_time_before.time_before_inferred,datetime(2015,1,17,8))
         self.assertAlmostEqual(weights_with_time_before.flow_rate,0.5)
+        self.assertAlmostEqual(
+             self.session.query(
+                AbsorbentWeights.flow_rate
+            ).filter(
+                AbsorbentWeights.id==weights_with_time_before.id
+            ).one().flow_rate,
+            0.5)
 
         weights_without_time_before=AbsorbentWeights(
             garment=pad,
@@ -525,12 +550,17 @@ class TestMenstrualFlow(BaseTest):
             weight_before=13,
             weight_after=15,
         )
-        self.session.add(weights_with_time_before)
         self.session.add(weights_without_time_before)
         self.session.flush()
 
         self.assertEqual(weights_without_time_before.time_before_inferred,datetime(2015,1,17,12))
-        self.assertAlmostEqual(weights_without_time_before.flow_rate,0.5)
+        self.assertAlmostEqual(
+             self.session.query(
+                AbsorbentWeights.flow_rate
+            ).filter(
+                AbsorbentWeights.id==weights_without_time_before.id
+            ).one().flow_rate,
+            0.5)
 
         period=Period(date=datetime(2015,1,17))
         self.session.add(period)
