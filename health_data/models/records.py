@@ -93,7 +93,10 @@ def timediff(datetime1_str,datetime2_str):
         datetime2=sqlite.DATETIME().result_processor(sqlite,sqlite.DATETIME())(datetime2_str)
 
         result=datetime1-datetime2
-        result_as_time=(datetime.min+result).time()
+        if result>=timedelta(0):
+            result_as_time=(datetime.min+result).time()
+        else:
+            result_as_time=(datetime.max+result).time()
     except:
         if sqlite_trace_on_exception:
             import pdb; pdb.set_trace()
