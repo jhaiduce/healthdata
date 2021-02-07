@@ -255,7 +255,7 @@ class PeriodViews(object):
 
         dates=periods['date']
         
-        intensities=periods.period_intensity
+        intensities=pd.Series(periods.period_intensity)
         start_inds=(intensities>1)&(intensities.shift(1)==1)
         start_dates=dates[start_inds]
 
@@ -285,7 +285,7 @@ class PeriodViews(object):
         # Interleave insertion and removal
         menstrual_cup_flow=pd.concat(
             [menstrual_cup_insertion,menstrual_cup_removal]
-        ).sort_index().reset_index(drop=True)
+        ).set_index('time').sort_index()
 
         absorbent_query=dbsession.query(AbsorbentWeights).with_entities(
             AbsorbentWeights.time_before_inferred,
@@ -313,27 +313,35 @@ class PeriodViews(object):
         # Interleave donning and doffing
         absorbent_flow=pd.concat(
             [absorbent_donning,absorbent_doffing]
-        ).sort_index().reset_index(drop=True)
-
-        flow_times=pd.concat([absorbent_flow.time,menstrual_cup_flow.time]).sort_values()
-
-        absorbent_flow=absorbent_flow.drop_duplicates('time',keep='last').set_index('time').reindex(flow_times).fillna(method='ffill').reset_index()
-        menstrual_cup_flow=menstrual_cup_flow.drop_duplicates('time',keep='last').set_index('time').reindex(flow_times).fillna(method='ffill').reset_index()
+        ).set_index('time').sort_index()
 
         def insert_gaps(df):
 
-            is_gap=(df.time.diff(periods=-1)<timedelta(days=-11)),
-            gap_times=df.time.loc[is_gap]
-            insert_times=[
-                {'time':time+timedelta(seconds=1), 'flow_rate':np.nan}
-                for time in gap_times.dropna()
-            ]
-            df=df.append(insert_times).sort_values('time')
+            times=df.index.to_series()
+            is_gap=(times.diff(periods=-1)<timedelta(days=-11)),
+            gap_times=times.loc[is_gap]
+            insert_times=gap_times.dropna()+timedelta(seconds=1)
+            df=df.append(pd.Series([0]*len(insert_times),insert_times,name='flow_rate'))
 
             return df
 
         absorbent_flow=insert_gaps(absorbent_flow)
         menstrual_cup_flow=insert_gaps(menstrual_cup_flow)
+
+        flow_times=pd.concat([
+            absorbent_flow.index.to_series(),menstrual_cup_flow.index.to_series(),dates
+        ]).drop_duplicates().sort_values().reset_index(drop=True)
+
+        absorbent_flow=absorbent_flow.drop_duplicates(keep='last').reindex(flow_times).fillna(method='ffill').fillna(0)
+        menstrual_cup_flow=menstrual_cup_flow.drop_duplicates(keep='last').reindex(flow_times).fillna(0)
+
+        absorbent_flow=insert_gaps(absorbent_flow)
+        menstrual_cup_flow=insert_gaps(menstrual_cup_flow)
+
+        total_flow=pd.Series((absorbent_flow.flow_rate+menstrual_cup_flow.flow_rate),index=flow_times)
+
+        nonzero_flow=(total_flow[dates]!=0)
+        intensities.loc[nonzero_flow.values]=0
 
         from .plotly_defaults import default_axis_style
 
@@ -362,7 +370,7 @@ class PeriodViews(object):
                     'name':'Cervical fluid',
                 },
                 {
-                    'x':absorbent_flow.time,
+                    'x':absorbent_flow.index,
                     'y':absorbent_flow.flow_rate,
                     'stackgroup':'flow_rate',
                     'marker':{'color':'brown'},
@@ -370,7 +378,7 @@ class PeriodViews(object):
                     'line':{'shape':'hv'},
                 },
                 {
-                    'x':menstrual_cup_flow.time,
+                    'x':menstrual_cup_flow.index,
                     'y':menstrual_cup_flow.flow_rate,
                     'stackgroup':'flow_rate',
                     'marker':{'color':'red'},
