@@ -29,6 +29,8 @@ from .meta import Base
 
 from datetime import datetime, time, timedelta
 
+sqlite_trace_on_exception=True
+
 class greatest(expression.FunctionElement):
     name = 'greatest'
 
@@ -47,12 +49,17 @@ def subtime(datetime_str,time_str):
     if datetime_str is None or time_str is None:
         return None
 
-    inp_datetime=sqlite.DATETIME().result_processor(sqlite,sqlite.DATETIME())(datetime_str)
-    inp_time=sqlite.TIME().result_processor(sqlite,sqlite.TIME())(time_str)
+    try:
+        inp_datetime=sqlite.DATETIME().result_processor(sqlite,sqlite.DATETIME())(datetime_str)
+        inp_time=sqlite.TIME().result_processor(sqlite,sqlite.TIME())(time_str)
 
-    result = inp_datetime - (datetime.combine(datetime.min,inp_time) - datetime.combine(datetime.min,time(0)))
+        result = inp_datetime - (datetime.combine(datetime.min,inp_time) - datetime.combine(datetime.min,time(0)))
 
-    result_str=sqlite.DATETIME().bind_processor(sqlite)(result)
+        result_str=sqlite.DATETIME().bind_processor(sqlite)(result)
+    except:
+        if sqlite_trace_on_exception:
+            import pdb; pdb.set_trace()
+        raise
 
     return result_str
 
@@ -62,12 +69,17 @@ def addtime(datetime_str,time_str):
     if datetime_str is None or time_str is None:
         return None
 
-    inp_datetime=sqlite.DATETIME().result_processor(sqlite,sqlite.DATETIME())(datetime_str)
-    inp_time=sqlite.TIME().result_processor(sqlite,sqlite.TIME())(time_str)
+    try:
+        inp_datetime=sqlite.DATETIME().result_processor(sqlite,sqlite.DATETIME())(datetime_str)
+        inp_time=sqlite.TIME().result_processor(sqlite,sqlite.TIME())(time_str)
 
-    result = inp_datetime + (datetime.combine(datetime.min,inp_time) - datetime.combine(datetime.min,time(0)))
+        result = inp_datetime + (datetime.combine(datetime.min,inp_time) - datetime.combine(datetime.min,time(0)))
 
-    result_str=sqlite.DATETIME().bind_processor(sqlite)(result)
+        result_str=sqlite.DATETIME().bind_processor(sqlite)(result)
+    except:
+        if sqlite_trace_on_exception:
+            import pdb; pdb.set_trace()
+        raise
 
     return result_str
 
@@ -76,11 +88,16 @@ def timediff(datetime1_str,datetime2_str):
 
     if datetime1_str is None or datetime2_str is None: return None
 
-    datetime1=sqlite.DATETIME().result_processor(sqlite,sqlite.DATETIME())(datetime1_str)
-    datetime2=sqlite.DATETIME().result_processor(sqlite,sqlite.DATETIME())(datetime2_str)
+    try:
+        datetime1=sqlite.DATETIME().result_processor(sqlite,sqlite.DATETIME())(datetime1_str)
+        datetime2=sqlite.DATETIME().result_processor(sqlite,sqlite.DATETIME())(datetime2_str)
 
-    result=datetime1-datetime2
-    result_as_time=(datetime.min+result).time()
+        result=datetime1-datetime2
+        result_as_time=(datetime.min+result).time()
+    except:
+        if sqlite_trace_on_exception:
+            import pdb; pdb.set_trace()
+        raise
 
     return sqlite.TIME().bind_processor(sqlite)(result_as_time)
 
@@ -89,9 +106,15 @@ def get_time_from_datetime(datetime_str):
 
     if datetime_str is None: return None
 
-    inp_datetime=sqlite.DATETIME().result_processor(sqlite,sqlite.DATETIME())(datetime_str)
-    result=inp_datetime.time()
-    result_str=sqlite.TIME().bind_processor(sqlite)(result)
+    try:
+        inp_datetime=sqlite.DATETIME().result_processor(sqlite,sqlite.DATETIME())(datetime_str)
+        result=inp_datetime.time()
+        result_str=sqlite.TIME().bind_processor(sqlite)(result)
+    except:
+        if sqlite_trace_on_exception:
+            import pdb; pdb.set_trace()
+        raise
+
     return result_str
 
 def time_to_sec(time_str):
@@ -99,12 +122,17 @@ def time_to_sec(time_str):
 
     if time_str is None: return None
 
-    inp_time=sqlite.TIME().result_processor(sqlite,sqlite.TIME())(time_str)
+    try:
+        inp_time=sqlite.TIME().result_processor(sqlite,sqlite.TIME())(time_str)
 
-    inp_time_datetime=datetime.combine(datetime.min,inp_time)
-    inp_time_timedelta=inp_time_datetime-datetime.min
+        inp_time_datetime=datetime.combine(datetime.min,inp_time)
+        inp_time_timedelta=inp_time_datetime-datetime.min
 
-    result=inp_time_timedelta.total_seconds()
+        result=inp_time_timedelta.total_seconds()
+    except:
+        if sqlite_trace_on_exception:
+            import pdb; pdb.set_trace()
+        raise
 
     return result
 
