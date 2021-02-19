@@ -338,8 +338,8 @@ class PeriodViews(object):
             absorbent_flow.index.to_series(),menstrual_cup_flow.index.to_series(),dates
         ]).drop_duplicates().sort_values().reset_index(drop=True)
 
-        absorbent_flow=absorbent_flow.drop_duplicates(keep='last').reindex(flow_times).fillna(method='ffill').fillna(0)
-        menstrual_cup_flow=menstrual_cup_flow.drop_duplicates(keep='last').reindex(flow_times).fillna(0)
+        absorbent_flow=absorbent_flow.groupby(absorbent_flow.index).last().reindex(flow_times).fillna(method='ffill').fillna(0)
+        menstrual_cup_flow=menstrual_cup_flow.groupby(menstrual_cup_flow.index).last().reindex(flow_times).fillna(0)
 
         absorbent_flow=insert_gaps(absorbent_flow)
         menstrual_cup_flow=insert_gaps(menstrual_cup_flow)
