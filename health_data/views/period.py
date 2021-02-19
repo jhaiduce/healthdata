@@ -346,6 +346,8 @@ class PeriodViews(object):
 
         total_flow=pd.Series((absorbent_flow.flow_rate+menstrual_cup_flow.flow_rate),index=flow_times)
 
+        periods.period_intensity.loc[(total_flow[dates]>0).values]=0
+
         nonzero_flow=(total_flow[dates]!=0)
         intensities.loc[nonzero_flow.values]=0
 
