@@ -359,6 +359,7 @@ class PeriodViews(object):
                     'type':'scatter',
                     'mode':'lines+markers',
                     'name':'Temperature',
+                    'showlegend':False,
                     'yaxis':'y2'
                 },
                 {
@@ -380,7 +381,7 @@ class PeriodViews(object):
                     'y':absorbent_flow.flow_rate,
                     'stackgroup':'flow_rate',
                     'marker':{'color':'brown'},
-                    'name':'Absorbent garment flow',
+                    'name':'Abs. garment',
                     'line':{'shape':'hv'},
                 },
                 {
@@ -388,7 +389,7 @@ class PeriodViews(object):
                     'y':menstrual_cup_flow.flow_rate,
                     'stackgroup':'flow_rate',
                     'marker':{'color':'red'},
-                    'name':'Menstrual cup flow',
+                    'name':'Menstrual cup',
                     'line':{'shape':'hv'},
                 }],
                 'layout':{
