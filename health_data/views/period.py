@@ -346,10 +346,9 @@ class PeriodViews(object):
 
         total_flow=pd.Series((absorbent_flow.flow_rate+menstrual_cup_flow.flow_rate),index=flow_times)
 
-        periods.period_intensity.loc[(total_flow[dates]>0).values]=0
-
-        nonzero_flow=(total_flow[dates]!=0)
-        intensities.loc[nonzero_flow.values]=0
+        daily_flow=(total_flow.groupby(total_flow.index.date).sum())
+        nonzero_flow=(daily_flow[dates]!=0).values
+        intensities.loc[nonzero_flow]=1
 
         from .plotly_defaults import default_axis_style
 
@@ -366,7 +365,7 @@ class PeriodViews(object):
                 },
                 {
                     'x':dates,
-                    'y':periods.period_intensity-1,
+                    'y':intensities-1,
                     'type':'bar',
                     'marker':{'color':'red'},
                     'name':'Period intensity',
