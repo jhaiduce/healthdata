@@ -253,7 +253,7 @@ class PeriodViews(object):
         periods=pd.read_sql(query.statement,dbsession.bind)
         periods.period_intensity=periods.period_intensity.fillna(1)
 
-        dates=periods['date']
+        dates=pd.to_datetime(periods['date'])
         
         intensities=pd.Series(periods.period_intensity)
         start_inds=(intensities>1)&(intensities.shift(1)==1)
@@ -318,10 +318,16 @@ class PeriodViews(object):
         def insert_gaps(df):
 
             times=df.index.to_series()
-            is_gap=(times.diff(periods=-1)<timedelta(days=-11)),
+            is_gap=(times.diff(periods=-1)<timedelta(days=-1)),
             gap_times=times.loc[is_gap]
             insert_times=gap_times.dropna()+timedelta(seconds=1)
-            df=df.append(pd.Series([0]*len(insert_times),insert_times,name='flow_rate'))
+            if len(insert_times)>0:
+                df=df.append(pd.DataFrame(
+                    {
+                        'flow_rate':pd.Series([0]*len(insert_times),
+                                              index=insert_times.values)
+                    }
+                ))
 
             return df
 
