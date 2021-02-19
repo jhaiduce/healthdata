@@ -380,17 +380,19 @@ class PeriodViews(object):
                     'x':absorbent_flow.index,
                     'y':absorbent_flow.flow_rate,
                     'stackgroup':'flow_rate',
-                    'marker':{'color':'brown'},
+                    'fillcolor':'brown',
                     'name':'Abs. garment',
                     'line':{'shape':'hv'},
+                    'mode':'none'
                 },
                 {
                     'x':menstrual_cup_flow.index,
                     'y':menstrual_cup_flow.flow_rate,
                     'stackgroup':'flow_rate',
-                    'marker':{'color':'red'},
+                    'fillcolor':'red',
                     'name':'Menstrual cup',
                     'line':{'shape':'hv'},
+                    'mode':'none'
                 }],
                 'layout':{
                     'plot_bgcolor':'white',
