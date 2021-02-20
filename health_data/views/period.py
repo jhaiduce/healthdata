@@ -281,6 +281,7 @@ class PeriodViews(object):
         menstrual_cup_removal=menstrual_cup_flow[['removal_time','flow_rate']]
         menstrual_cup_removal=menstrual_cup_removal.rename(
             columns={'removal_time':'time'})
+        menstrual_cup_removal.time-=timedelta(seconds=1)
 
         # Interleave insertion and removal
         menstrual_cup_flow=pd.concat(
@@ -309,6 +310,7 @@ class PeriodViews(object):
         absorbent_doffing=absorbent_flow[['time_after','flow_rate']]
         absorbent_doffing=absorbent_doffing.rename(
             columns={'time_after':'time'})
+        absorbent_doffing.time-=timedelta(seconds=1)
 
         # Interleave donning and doffing
         absorbent_flow=pd.concat(
