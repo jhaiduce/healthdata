@@ -348,8 +348,9 @@ class MenstrualCupFill(TimestampedRecord,IndividualRecord,Record):
         if last_entry is not None and last_entry.removal_time>=self.removal_time-timedelta(seconds=12*3600):
             last_removal_time=last_entry.removal_time
         else:
-            last_removal_time=datetime.combine(
-                self.removal_time.date(),time(8)
+            last_removal_time=min(
+                datetime.combine(self.removal_time.date(),time(8)),
+                self.removal_time-timedelta(seconds=3600)
             )
 
         return last_removal_time
@@ -369,7 +370,12 @@ class MenstrualCupFill(TimestampedRecord,IndividualRecord,Record):
 
         last_removal_time=case(
             [
-                (last_removal_time==None,func.addtime(day_start,time(8))),
+                (last_removal_time==None,
+                 least(
+                    func.addtime(day_start,time(8)),
+                     func.subtime(cls.removal_time,time(1))
+                 )
+                 ),
                 (last_removal_time<func.subtime(cls.removal_time,time(12)),func.addtime(day_start,time(8)))
             ],
             else_ = last_removal_time
