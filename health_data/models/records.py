@@ -43,6 +43,18 @@ def case_greatest(element, compiler, **kw):
     element.name='max'
     return compiler.visit_function(element)
 
+class least(expression.FunctionElement):
+    name = 'least'
+
+@compiles(least)
+def default_greatest(element, compiler, **kw):
+    return compiler.visit_function(element)
+
+@compiles(least, 'sqlite')
+def case_greatest(element, compiler, **kw):
+    element.name='min'
+    return compiler.visit_function(element)
+
 def subtime(datetime_str,time_str):
     from sqlalchemy.dialects import sqlite
 
