@@ -253,9 +253,9 @@ class PeriodViews(object):
         periods=pd.read_sql(query.statement,dbsession.bind)
         periods.period_intensity=periods.period_intensity.fillna(1)
 
-        dates=periods['date']
+        dates=pd.to_datetime(periods['date'])
         
-        intensities=periods.period_intensity
+        intensities=pd.Series(periods.period_intensity)
         start_inds=(intensities>1)&(intensities.shift(1)==1)
         start_dates=dates[start_inds]
 
@@ -281,11 +281,12 @@ class PeriodViews(object):
         menstrual_cup_removal=menstrual_cup_flow[['removal_time','flow_rate']]
         menstrual_cup_removal=menstrual_cup_removal.rename(
             columns={'removal_time':'time'})
+        menstrual_cup_removal.time-=timedelta(seconds=1)
 
         # Interleave insertion and removal
         menstrual_cup_flow=pd.concat(
             [menstrual_cup_insertion,menstrual_cup_removal]
-        ).sort_index().reset_index(drop=True)
+        ).set_index('time').sort_index()
 
         absorbent_query=dbsession.query(AbsorbentWeights).with_entities(
             AbsorbentWeights.time_before_inferred,
@@ -309,31 +310,55 @@ class PeriodViews(object):
         absorbent_doffing=absorbent_flow[['time_after','flow_rate']]
         absorbent_doffing=absorbent_doffing.rename(
             columns={'time_after':'time'})
+        absorbent_doffing.time-=timedelta(seconds=1)
 
         # Interleave donning and doffing
         absorbent_flow=pd.concat(
             [absorbent_donning,absorbent_doffing]
-        ).sort_index().reset_index(drop=True)
-
-        flow_times=pd.concat([absorbent_flow.time,menstrual_cup_flow.time]).sort_values()
-
-        absorbent_flow=absorbent_flow.drop_duplicates('time',keep='last').set_index('time').reindex(flow_times).fillna(method='ffill').reset_index()
-        menstrual_cup_flow=menstrual_cup_flow.drop_duplicates('time',keep='last').set_index('time').reindex(flow_times).fillna(method='ffill').reset_index()
+        ).set_index('time').sort_index()
 
         def insert_gaps(df):
 
-            is_gap=(df.time.diff(periods=-1)<timedelta(days=-11)),
-            gap_times=df.time.loc[is_gap]
-            insert_times=[
-                {'time':time+timedelta(seconds=1), 'flow_rate':np.nan}
-                for time in gap_times.dropna()
-            ]
-            df=df.append(insert_times).sort_values('time')
+            times=df.index.to_series()
+            is_gap=(times.diff(periods=-1)<timedelta(days=-1)),
+            gap_times=times.loc[is_gap]
+            insert_times=gap_times.dropna()+timedelta(seconds=1)
+            if len(insert_times)>0:
+                df=df.append(pd.DataFrame(
+                    {
+                        'flow_rate':pd.Series([0]*len(insert_times),
+                                              index=insert_times.values)
+                    }
+                ))
 
             return df
 
         absorbent_flow=insert_gaps(absorbent_flow)
         menstrual_cup_flow=insert_gaps(menstrual_cup_flow)
+
+        flow_times=pd.concat([
+            absorbent_flow.index.to_series(),menstrual_cup_flow.index.to_series(),dates
+        ]).drop_duplicates().sort_values().reset_index(drop=True)
+
+        absorbent_flow=absorbent_flow.groupby(absorbent_flow.index).last().reindex(flow_times).fillna(method='ffill').fillna(0)
+        menstrual_cup_flow=menstrual_cup_flow.groupby(menstrual_cup_flow.index).last().reindex(flow_times).fillna(0)
+
+        absorbent_flow=insert_gaps(absorbent_flow)
+        menstrual_cup_flow=insert_gaps(menstrual_cup_flow)
+
+        if len(flow_times)>0:
+            # Get the total flow for each point in time
+            total_flow=pd.Series((absorbent_flow.flow_rate+menstrual_cup_flow.flow_rate),index=flow_times)
+
+            # Get total flow for each day
+            daily_flow=(total_flow.groupby(total_flow.index.date).sum())
+
+            # Find dates with nonzero flow
+            nonzero_flow=(daily_flow[dates]!=0).values
+
+            # Zero out subjective intensities on days with nonzero flow
+            # (cleans up chart visually)
+            intensities.loc[nonzero_flow]=1
 
         from .plotly_defaults import default_axis_style
 
@@ -345,11 +370,12 @@ class PeriodViews(object):
                     'type':'scatter',
                     'mode':'lines+markers',
                     'name':'Temperature',
+                    'showlegend':False,
                     'yaxis':'y2'
                 },
                 {
                     'x':dates,
-                    'y':periods.period_intensity-1,
+                    'y':intensities-1,
                     'type':'bar',
                     'marker':{'color':'red'},
                     'name':'Period intensity',
@@ -362,20 +388,22 @@ class PeriodViews(object):
                     'name':'Cervical fluid',
                 },
                 {
-                    'x':absorbent_flow.time,
+                    'x':absorbent_flow.index,
                     'y':absorbent_flow.flow_rate,
                     'stackgroup':'flow_rate',
-                    'marker':{'color':'brown'},
-                    'name':'Absorbent garment flow',
+                    'fillcolor':'brown',
+                    'name':'Abs. garment',
                     'line':{'shape':'hv'},
+                    'mode':'none'
                 },
                 {
-                    'x':menstrual_cup_flow.time,
+                    'x':menstrual_cup_flow.index,
                     'y':menstrual_cup_flow.flow_rate,
                     'stackgroup':'flow_rate',
-                    'marker':{'color':'red'},
-                    'name':'Menstrual cup flow',
+                    'fillcolor':'red',
+                    'name':'Menstrual cup',
                     'line':{'shape':'hv'},
+                    'mode':'none'
                 }],
                 'layout':{
                     'plot_bgcolor':'white',
