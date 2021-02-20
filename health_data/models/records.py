@@ -338,21 +338,21 @@ class MenstrualCupFill(TimestampedRecord,IndividualRecord,Record):
         last_entry=object_session(self).query(
             MenstrualCupFill
         ).filter(
-            MenstrualCupFill.insertion_time_<self.removal_time
+            MenstrualCupFill.removal_time<self.removal_time
         ).order_by(
             MenstrualCupFill.removal_time.desc()
         ).with_entities(
             MenstrualCupFill.removal_time
         ).limit(1).first()
 
-        if last_entry is not None:
+        if last_entry is not None and last_entry.removal_time>=self.removal_time-timedelta(seconds=12*3600):
             last_removal_time=last_entry.removal_time
         else:
             last_removal_time=datetime.combine(
                 self.removal_time.date(),time(8)
-            ) - timedelta(days=1)
+            )
 
-        return max(last_removal_time,datetime.combine(self.removal_time.date(),time(8)))
+        return last_removal_time
 
     @insertion_time.expression
     def insertion_time(cls):
@@ -369,16 +369,15 @@ class MenstrualCupFill(TimestampedRecord,IndividualRecord,Record):
 
         last_removal_time=case(
             [
-                (last_removal_time==None,func.subtime(day_start,time(16))),
-                (last_removal_time<func.subtime(day_start,time(23)),func.subtime(day_start,time(16)))
+                (last_removal_time==None,func.addtime(day_start,time(8))),
+                (last_removal_time<func.subtime(cls.removal_time,time(12)),func.addtime(day_start,time(8)))
             ],
             else_ = last_removal_time
         )
 
         insertion_time=case(
             [
-                (cls.insertion_time_==None,greatest(
-                    last_removal_time,func.addtime(day_start,time(8))))
+                (cls.insertion_time_==None,last_removal_time)
             ], else_ = cls.insertion_time_
         )
 
