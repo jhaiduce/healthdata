@@ -344,11 +344,19 @@ class PeriodViews(object):
         absorbent_flow=insert_gaps(absorbent_flow)
         menstrual_cup_flow=insert_gaps(menstrual_cup_flow)
 
-        total_flow=pd.Series((absorbent_flow.flow_rate+menstrual_cup_flow.flow_rate),index=flow_times)
+        if len(flow_times)>0:
+            # Get the total flow for each point in time
+            total_flow=pd.Series((absorbent_flow.flow_rate+menstrual_cup_flow.flow_rate),index=flow_times)
 
-        daily_flow=(total_flow.groupby(total_flow.index.date).sum())
-        nonzero_flow=(daily_flow[dates]!=0).values
-        intensities.loc[nonzero_flow]=1
+            # Get total flow for each day
+            daily_flow=(total_flow.groupby(total_flow.index.date).sum())
+
+            # Find dates with nonzero flow
+            nonzero_flow=(daily_flow[dates]!=0).values
+
+            # Zero out subjective intensities on days with nonzero flow
+            # (cleans up chart visually)
+            intensities.loc[nonzero_flow]=1
 
         from .plotly_defaults import default_axis_style
 
