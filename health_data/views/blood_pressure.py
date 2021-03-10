@@ -23,7 +23,7 @@ class BloodPressureCrudViews(IndividualRecordCRUDView,CRUDView):
              colander.Float(),
              name='heart_rate',
              title='Heart rate',
-             default=None
+             missing=None
           )
        ]
     )
