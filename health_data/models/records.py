@@ -223,6 +223,38 @@ class Temperature(TimestampedRecord,IndividualRecord,Record):
         'polymorphic_identity':'temperature'
     }
 
+class HeartRate(TimestampedRecord,IndividualRecord,Record):
+    __tablename__ = 'heart_rate'
+    __table_args__ = {'mysql_encrypted':'yes'}
+
+    id = Column(Integer, ForeignKey('record.id'), primary_key=True)
+    time = Column(DateTime)
+    utcoffset = Column(Integer)
+    rate = Column(Float)
+
+    __mapper_args__ = {
+        'polymorphic_identity':'heart_rate'
+    }
+
+class BloodPressure(TimestampedRecord,IndividualRecord,Record):
+    __tablename__ = 'blood_pressure'
+    __table_args__ = {'mysql_encrypted':'yes'}
+
+    id = Column(Integer, ForeignKey('record.id'), primary_key=True)
+    time = Column(DateTime)
+    utcoffset = Column(Integer)
+    systolic = Column(Float)
+    diastolic = Column(Float)
+    heart_rate_id = Column(Integer,ForeignKey('heart_rate.id'))
+    heart_rate = relationship(
+        HeartRate, foreign_keys=heart_rate_id,
+        cascade='all, delete-orphan',
+        single_parent=True)
+
+    __mapper_args__ = {
+        'polymorphic_identity':'blood_pressure'
+    }
+
 class Weight(TimestampedRecord,IndividualRecord,Record):
     __tablename__ = 'weight'
     __table_args__ = {'mysql_encrypted':'yes'}
