@@ -793,6 +793,92 @@ class FunctionalTests(unittest.TestCase):
         with self.assertRaises(NoResultFound):
             weight=session.query(Weight).filter(Weight.id==weight_id).one()
 
+    def test_blood_pressure_addedit(self):
+        self.login()
+        from .models import BloodPressure
+        add_url='http://localhost/blood_pressure/new'
+        edit_url='http://localhost/blood_pressure/{}/edit'
+        delete_confirm_url='http://localhost/blood_pressure/{}/delete_confirm'
+        session=self.get_session()
+
+        resp=self.testapp.post(
+            add_url,
+            params=[
+                ('__start__','time:mapping'),
+                ('date','2020-03-14'),
+                ('time','07:30'),
+                ('__end__','time:mapping'),
+                ('systolic','120'),
+                ('diastolic','80'),
+                ('heart_rate','64'),
+                ('save','save')
+            ]
+        )
+        self.assertEqual(resp.status_code,302)
+        blood_pressure_id=json.loads(resp.text)['id']
+        blood_pressure=session.query(BloodPressure).filter(BloodPressure.id==blood_pressure_id).one()
+        self.assertEqual(blood_pressure.time,datetime(2020,3,14,7,30))
+        self.assertEqual(blood_pressure.systolic,120)
+        self.assertEqual(blood_pressure.diastolic,80)
+        self.assertEqual(blood_pressure.heart_rate.rate,64)
+        self.assertEqual(blood_pressure.heart_rate.time,
+                         datetime(2020,3,14,7,30))
+
+        resp=self.testapp.post(
+            edit_url.format(blood_pressure_id),
+            params=[
+                ('__start__','time:mapping'),
+                ('date','2020-03-15'),
+                ('time','07:45'),
+                ('__end__','time:mapping'),
+                ('systolic','124'),
+                ('diastolic','82'),
+                ('heart_rate','72'),
+                ('save','save')
+            ]
+        )
+        self.assertEqual(resp.status_code,302)
+        session.flush()
+        transaction.commit()
+        blood_pressure=session.query(BloodPressure).filter(BloodPressure.id==blood_pressure_id).one()
+        self.assertEqual(blood_pressure.time,datetime(2020,3,15,7,45))
+        self.assertEqual(blood_pressure.systolic,124)
+        self.assertEqual(blood_pressure.diastolic,82)
+        self.assertEqual(blood_pressure.heart_rate.rate,72)
+        self.assertEqual(blood_pressure.heart_rate.time,
+                         datetime(2020,3,15,7,45))
+
+        resp=self.testapp.post(
+            edit_url.format(blood_pressure_id),
+            params=[
+                ('__start__','time:mapping'),
+                ('date','2020-03-15'),
+                ('time','07:45'),
+                ('__end__','time:mapping'),
+                ('systolic','124'),
+                ('diastolic','82'),
+                ('heart_rate','72'),
+                ('delete','delete')
+            ])
+
+        self.assertEqual(resp.status_code,302)
+
+        from urllib.parse import quote
+        delete_confirm_url=delete_confirm_url.format(blood_pressure_id)+'?referrer='+quote(edit_url.format(blood_pressure_id),'')
+        self.assertEqual(resp.location,delete_confirm_url)
+
+        resp=self.testapp.post(
+            delete_confirm_url.format(blood_pressure_id),
+            params=[
+                ('delete','delete')
+        ])
+
+        session.flush()
+        transaction.commit()
+
+        with self.assertRaises(NoResultFound):
+            blood_pressure=session.query(BloodPressure).filter(BloodPressure.id==blood_pressure_id).one()
+
     def test_symptom_addedit(self):
         self.login()
         from .models import Symptom
