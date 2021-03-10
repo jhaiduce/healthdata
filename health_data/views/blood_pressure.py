@@ -27,6 +27,8 @@ class BloodPressureCrudViews(IndividualRecordCRUDView,CRUDView):
           )
        ]
     )
+
+    title='blood pressure'
     url_path = '/blood_pressure'
     list_display=('time','systolic','diastolic',heart_rate)
 
