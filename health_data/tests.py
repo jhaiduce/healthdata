@@ -428,6 +428,25 @@ class AuthenticationTests(BaseTest):
         self.assertTrue(user.check_password('password'))
         self.assertFalse(user.check_password('pa$$word'))
 
+    def test_otp(self):
+
+        from .models import User
+        import pyotp
+
+        user=self.session.query(User).filter(User.name=='jhaiduce').one()
+
+        # Generate OTP from URI
+        otp = pyotp.parse_uri(user.otp_uri()).now()
+
+        # Check wrong OTP is rejected
+        self.assertFalse(user.check_otp(otp+'1'))
+
+        # Check correct OTP is accepted
+        self.assertTrue(user.check_otp(otp))
+
+        # Check that reused OTP is rejected
+        self.assertFalse(user.check_otp(otp))
+
 class TestMenstrualFlow(BaseTest):
 
     def setUp(self):

@@ -27,7 +27,8 @@ requires = [
     'pyramid_nacl_session',
     'six',
     'colanderalchemy',
-    'plotly'
+    'plotly',
+    'pyotp'
 ]
 
 tests_require = [
