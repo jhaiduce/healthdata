@@ -97,7 +97,7 @@ secrets:
     name: app_admin_password.2
     file: ./secrets/app_admin_pw
   pyramid_main_ini:
-    name: production.ini.1
+    name: production.ini.2
     file: ./secrets/production.ini
   mysql_ca:
     file: ./secrets/ca.pem
