@@ -25,7 +25,7 @@ $VENV/bin/pytest -q
 $VENV/bin/pytest -q health_data/migration_tests.py
 
 # Build images
-sudo docker-compose -f docker-compose.test_secrets.yml -f docker-compose.web.yml -f docker-compose.test.yml -f docker-compose.db.yml build
+sudo docker-compose -f docker-compose.test_secrets.yml -f docker-compose.web.yml -f docker-compose.test.yml -f docker-compose.db.yml -p healthdata_ci build
 
 # Run database migration
 ./migrate_db_ci.sh
