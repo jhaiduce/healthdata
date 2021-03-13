@@ -42,6 +42,15 @@ def login(request):
         login=login,
         )
 
+@view_config(route_name='otp_setup', renderer='../templates/otp_setup.jinja2')
+def otp_setup(request):
+    user=request.dbsession.query(User).filter(
+        User.id==request.session['userid']).first()
+
+    uri=user.otp_uri()
+
+    return dict(user=user,uri=uri)
+
 @view_config(route_name='logout')
 def logout(request):
     headers = forget(request)

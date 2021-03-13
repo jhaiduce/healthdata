@@ -1,6 +1,11 @@
 import os
 
 from setuptools import setup, find_packages
+from setuptools.command.install import install
+from setuptools.command.develop import develop
+from setuptools.command.egg_info import egg_info
+
+import subprocess
 
 here = os.path.abspath(os.path.dirname(__file__))
 with open(os.path.join(here, 'README.md')) as f:
@@ -39,6 +44,21 @@ tests_require = [
     'sqlalchemy-diff == 0.1.3'
 ]
 
+class NPMInstall(install):
+    def run(self):
+        subprocess.run(['npm','install'],cwd='health_data',check=True)
+        install.run(self)
+
+class NPMDevelop(develop):
+    def run(self):
+        subprocess.run(['npm','install'],cwd='health_data',check=True)
+        develop.run(self)
+
+class NPMEggInfo(egg_info):
+    def run(self):
+        subprocess.run(['npm','install'],cwd='health_data',check=True)
+        egg_info.run(self)
+
 setup(
     name='health_data',
     version='0.0',
@@ -50,6 +70,11 @@ setup(
         'Topic :: Internet :: WWW/HTTP',
         'Topic :: Internet :: WWW/HTTP :: WSGI :: Application',
     ],
+    cmdclass={
+        'install': NPMInstall,
+        'develop': NPMDevelop,
+        'egg_info': NPMEggInfo,
+    },
     author='',
     author_email='',
     url='',

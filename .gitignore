@@ -26,3 +26,4 @@ integration_test_secrets
 nginx/ssl
 nginx/ssl_production
 .\#*
+health_data/node_modules

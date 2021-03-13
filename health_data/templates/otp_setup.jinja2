@@ -1,0 +1,22 @@
+{% extends 'layout.jinja2' %}
+
+{% block title %}Login - {% endblock title %}
+
+{% block page_includes %}
+  <link href="{{request.static_url('health_data:static/signin.css')}}" rel="stylesheet">
+  <script src="{{request.static_url('health_data:node_modules/qrious/dist/qrious.js')}}"></script>
+  {% endblock page_includes %}
+
+{% block content %}
+  <div class="container">
+    <canvas id="qr"></canvas>
+  </div>
+  <script>
+    (function() {
+        var qr = new QRious({
+          element: document.getElementById('qr'),
+          value: '{{uri}}'
+        });
+      })();
+  </script>
+{% endblock content %}
