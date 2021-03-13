@@ -31,6 +31,7 @@ def login(request):
             request.session['person_id']=request.session.get(
                 'person_id',
                 first_person.id if first_person else None)
+            request.session['userid']=user.id
             return HTTPFound(location=next_url, headers=headers)
         message = 'Failed login'
 
