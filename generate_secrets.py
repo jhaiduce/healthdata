@@ -7,6 +7,7 @@ try:
 except ImportError:
     from urllib.parse import quote_plus
 import binascii
+import pyotp
 
 try:
     letters=string.letters
@@ -16,9 +17,12 @@ except AttributeError:
 def genPassword(length=24,charset=letters+string.digits+string.punctuation):
     return ''.join([random.choice(charset) for i in range(length)])
 
-def write_password(filename,overwrite=False,*args,**kwargs):
+def write_password(filename,overwrite=False,password=None,*args,**kwargs):
     if not os.path.exists(filename) or overwrite:
-        pw=genPassword(*args,**kwargs)
+        if password is None:
+            pw=genPassword(*args,**kwargs)
+        else:
+            pw=password
         open(filename,'w').write(pw)
     else:
         pw=open(filename).read()
@@ -67,6 +71,9 @@ def generate_secrets(secrets_dir='secrets',ini_template='production.ini.tpl',ini
               '-out',os.path.join(secrets_dir,'dhparams.pem'),
               '4096'])
 
+    app_admin_otp_secret = write_password(secrets_dir+'/admin_otp_secret',
+                                      password=pyotp.random_base32())
+
     mysql_pwd_chars=(letters+string.digits+string.punctuation)
     for c in ["'"]:
         mysql_pwd_chars=mysql_pwd_chars.replace(c,'')
@@ -83,6 +90,7 @@ def generate_secrets(secrets_dir='secrets',ini_template='production.ini.tpl',ini
         mysql_production_password=db_app_pw.replace('%','%%'),
         mysql_root_password_encoded=quote_plus(db_root_pw).replace('%','%%'),
         app_admin_password=app_admin_pw.replace('%','%%'),
+        app_admin_otp_secret=app_admin_otp_secret.replace('%','%%'),
         pyramid_auth_secret=pyramid_auth_secret.replace('%','%%'),
         session_secret=pyramid_session_secret.decode('ascii').replace('%','%%')
     )

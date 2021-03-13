@@ -65,6 +65,15 @@ def create_admin_user(dbsession,settings):
     except sqlalchemy.exc.IntegrityError:
         pass
 
+def configure_admin_otp(dbsession,settings):
+    user = dbsession.query(models.User).filter(
+        models.User.name=='admin').one()
+
+    if user.otp_secret_ is None:
+        user.otp_secret_=settings['admin_otp_secret']
+        dbsession.add(user)
+        dbsession.flush()
+
 def parse_args(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -132,6 +141,7 @@ def main(argv=sys.argv):
                 models.User.name=='admin').count()
             if not admin_exists:
                 create_admin_user(dbsession,settings)
+            configure_admin_otp(dbsession,settings)
 
     except OperationalError:
         raise

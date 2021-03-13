@@ -8,19 +8,25 @@ from bs4 import BeautifulSoup
 
 class BaseTest(unittest.TestCase):
 
-    def setUp(self):
-        self.session=requests.Session()
+    @classmethod
+    def setUpClass(cls):
 
-        self.config=configparser.ConfigParser()
-        self.config.read('/run/secrets/production.ini')
+        import pyotp
 
-        self.admin_password=self.config['app:main']['admin_password']
+        cls.session=requests.Session()
+
+        cls.config=configparser.ConfigParser()
+        cls.config.read('/run/secrets/production.ini')
+
+        cls.admin_password=cls.config['app:main']['admin_password']
+        cls.admin_otp_secret=cls.config['app:main']['admin_otp_secret']
 
         while True:
             try:
-                resp=self.session.post('http://healthdata_web/login',data={
+                resp=cls.session.post('http://healthdata_web/login',data={
                     'login':'admin',
-                    'password':self.admin_password,
+                    'password':cls.admin_password,
+                    'otp':pyotp.TOTP(cls.admin_otp_secret).now(),
                     'form.submitted':'Log+In'
                 })
                 break
@@ -29,17 +35,18 @@ class BaseTest(unittest.TestCase):
                 import time
                 time.sleep(2)
 
-        self.assertEqual(resp.history[0].status_code,302)
-        self.assertEqual(resp.history[0].headers['Location'],'http://healthdata_web/period')
+        assert resp.history[0].status_code==302
+        assert resp.history[0].headers['Location']=='http://healthdata_web/period'
 
-    def tearDown(self):
-        resp=self.session.post('http://healthdata_web/logout')
-        self.assertEqual(resp.history[0].status_code,302)
-        self.assertEqual(resp.history[0].headers['Location'],'http://healthdata_web/period')
+    @classmethod
+    def tearDownClass(cls):
+        resp=cls.session.post('http://healthdata_web/logout')
+        assert resp.history[0].status_code==302
+        assert resp.history[0].headers['Location']=='http://healthdata_web/period'
 
-        resp=self.session.get('http://healthdata_web/period')
-        self.assertEqual(resp.history[0].status_code,302)
-        self.assertEqual(resp.history[0].headers['Location'],'http://healthdata_web/login?next=http%3A%2F%2Fhealthdata_web%2Fperiod')
+        resp=cls.session.get('http://healthdata_web/period')
+        assert resp.history[0].status_code==302
+        assert resp.history[0].headers['Location']=='http://healthdata_web/login?next=http%3A%2F%2Fhealthdata_web%2Fperiod'
 
     def test_person_add(self):
         resp=self.session.post('http://healthdata_web/person/add',data={

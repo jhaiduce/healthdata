@@ -608,11 +608,14 @@ class FunctionalTests(unittest.TestCase):
             get_tm_session,
             )
 
+        import pyotp
+
         self.config={
             'admin_password':self.admin_login['password'],
             'sqlalchemy.url':'sqlite://',
             'auth.secret':'secret',
-            'session_secret':session_secret
+            'session_secret':session_secret,
+            'admin_otp_secret':pyotp.random_base32()
             }
 
         self.app = main({}, **self.config)
@@ -641,6 +644,7 @@ class FunctionalTests(unittest.TestCase):
         )
 
         user.set_password(self.config['admin_password'])
+        user.otp_secret_=self.config['admin_otp_secret']
         session.add(user)
 
         person=models.Person(name='Alice')
@@ -651,10 +655,22 @@ class FunctionalTests(unittest.TestCase):
         transaction.commit()
 
     def login(self):
-        res=self.testapp.post('http://localhost/login',{**self.admin_login,'form.submitted':'true'})
+        import pyotp
+        res=self.testapp.post('http://localhost/login',{
+            **self.admin_login,
+            'otp':pyotp.TOTP(self.config['admin_otp_secret']).now(),
+            'form.submitted':'true'})
+
+        # Verify that we got redirected to the default page
+        self.assertEqual(res.status_code,302)
+        self.assertEqual(res.location,'http://localhost/period')
 
     def test_successful_login(self):
-        res=self.testapp.post('http://localhost/login',{**self.admin_login,'form.submitted':'true'})
+        import pyotp
+        res=self.testapp.post('http://localhost/login',{
+            **self.admin_login,
+            'otp':pyotp.TOTP(self.config['admin_otp_secret']).now(),
+            'form.submitted':'true'})
 
         # Verify that we got redirected to the default page
         self.assertEqual(res.status_code,302)
@@ -666,8 +682,31 @@ class FunctionalTests(unittest.TestCase):
 
     def test_failed_login(self):
 
-        # Try to login with wrong password
-        res=self.testapp.post('http://localhost/login',{'login':'admin','password':'wrong_password','form.submitted':'true'})
+        import pyotp
+
+        # Try to login with wrong password (but correct OTP)
+        res=self.testapp.post('http://localhost/login',{
+            **self.admin_login,
+            'otp':pyotp.TOTP(self.config['admin_otp_secret']).now()+'1',
+            'form.submitted':'true'})
+
+        # Verify that we stay at the login page with a "Failsed login" message
+        self.assertEqual(res.status_code,200)
+        self.assertTrue(isinstance(re.search('Failed login',res.text),re.Match))
+
+        # Verify that attempts to access restricted content are
+        # redirected to the login page with the request URL passed
+        # in the GET data
+        res=self.testapp.get('http://localhost/period')
+        self.assertEqual(res.status_code,302)
+        self.assertEqual(res.location,'http://localhost/login?next=http%3A%2F%2Flocalhost%2Fperiod')
+
+        # Try to login with correct password but wrong OTP
+        res=self.testapp.post('http://localhost/login',{
+            'login':'admin',
+            'password':'password',
+            'otp':pyotp.TOTP(self.config['admin_otp_secret']).now(),
+            'form.submitted':'true'})
 
         # Verify that we stay at the login page with a "Failsed login" message
         self.assertEqual(res.status_code,200)

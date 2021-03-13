@@ -21,8 +21,9 @@ def login(request):
     if 'form.submitted' in request.params:
         login = request.params['login']
         password = request.params['password']
+        otp = request.params['otp']
         user = request.dbsession.query(User).filter_by(name=login).first()
-        if user is not None and user.check_password(password):
+        if user is not None and user.check_password(password) and user.check_otp(otp):
             headers = remember(request, user.id)
 
             first_person=request.dbsession.query(Person).order_by(

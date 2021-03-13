@@ -29,6 +29,7 @@ session_secret={session_secret}
 sqlalchemy_admin.url = mysql://root:{mysql_root_password_encoded}@healthdata_db:3306
 mysql_production_password={mysql_production_password}
 admin_password={app_admin_password}
+admin_otp_secret={app_admin_otp_secret}
 
 # By default, the toolbar only appears for clients from IP addresses
 # '127.0.0.1' and '::1'.
