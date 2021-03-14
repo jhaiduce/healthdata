@@ -54,7 +54,9 @@ class MenstrualCupFillCrudViews(IndividualRecordCRUDView,CRUDView):
     def get_list_query(self):
        query=super(MenstrualCupFillCrudViews,self).get_list_query()
 
-       return query.order_by(MenstrualCupFill.removal_time.desc())
+       return query.order_by(
+           MenstrualCupFill.removal_time.desc(),
+           MenstrualCupFill.insertion_time.desc())
 
     def dictify(self,obj):
         """
@@ -147,7 +149,9 @@ class AbsorbentWeightCrudViews(IndividualRecordCRUDView,CRUDView):
     def get_list_query(self):
        query=super(AbsorbentWeightCrudViews,self).get_list_query()
 
-       return query.order_by(AbsorbentWeights.time_after.desc())
+       return query.order_by(
+           AbsorbentWeights.time_after.desc(),
+           AbsorbentWeights.time_before.desc())
 
     def dictify(self,obj):
         """
