@@ -6,6 +6,7 @@ from colanderalchemy import SQLAlchemySchemaNode
 from .individual_record import IndividualRecordCRUDView
 import deform
 import colander
+from sqlalchemy import case
 
 # Notes is a foreign key reference to the symptomtype table. Since we
 # only want to expose one field of notes, we declare a custom SchemaNode
@@ -54,8 +55,16 @@ class MenstrualCupFillCrudViews(IndividualRecordCRUDView,CRUDView):
     def get_list_query(self):
        query=super(MenstrualCupFillCrudViews,self).get_list_query()
 
+       primary_sort = case(
+           [
+               (MenstrualCupFill.removal_time==None,
+                MenstrualCupFill.insertion_time)
+           ],
+           else_ = MenstrualCupFill.removal_time
+       )
+
        return query.order_by(
-           MenstrualCupFill.removal_time.desc(),
+           primary_sort.desc(),
            MenstrualCupFill.insertion_time.desc())
 
     def dictify(self,obj):
@@ -149,8 +158,16 @@ class AbsorbentWeightCrudViews(IndividualRecordCRUDView,CRUDView):
     def get_list_query(self):
        query=super(AbsorbentWeightCrudViews,self).get_list_query()
 
+       primary_sort = case(
+           [
+               (AbsorbentWeights.time_after==None,
+               AbsorbentWeights.time_before)
+           ],
+           else_ = AbsorbentWeights.time_after
+       )
+
        return query.order_by(
-           AbsorbentWeights.time_after.desc(),
+           primary_sort.desc(),
            AbsorbentWeights.time_before.desc())
 
     def dictify(self,obj):
