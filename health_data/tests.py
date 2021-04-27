@@ -453,7 +453,7 @@ class TestMenstrualFlow(BaseTest):
         super(TestMenstrualFlow,self).setUp()
         self.init_database()
 
-    def test_flow_rate(self):
+    def test_cup_flow(self):
         from .models import MenstrualCupFill, Period
 
         cup_with_insertion_date=MenstrualCupFill(
@@ -525,7 +525,7 @@ class TestMenstrualFlow(BaseTest):
         self.session.add(period)
         self.assertAlmostEqual(period.total_flow,20)
 
-    def test_difference(self):
+    def test_garment_flow(self):
 
         from .models import AbsorbentGarment, AbsorbentWeights, Period
 
