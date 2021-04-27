@@ -597,6 +597,23 @@ class TestMenstrualFlow(BaseTest):
         self.session.add(period)
         self.assertAlmostEqual(period.total_flow,4)
 
+        weights_with_blank_times=AbsorbentWeights(
+            garment=pad,
+            weight_before=13,
+            weight_after=15,
+        )
+        self.session.add(weights_with_blank_times)
+        self.session.flush()
+
+        self.assertIsNone(weights_with_blank_times.time_before_inferred)
+        self.assertIsNone(weights_with_blank_times.flow_rate)
+        self.assertIsNone(
+             self.session.query(
+                AbsorbentWeights.flow_rate
+            ).filter(
+                AbsorbentWeights.id==weights_with_blank_times.id
+            ).one().flow_rate)
+
 import webtest
 
 class FunctionalTests(unittest.TestCase):

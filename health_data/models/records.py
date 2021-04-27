@@ -568,6 +568,8 @@ class AbsorbentWeights(TimestampedRecord,IndividualRecord,Record):
 
     @hybrid_property
     def flow_rate(self):
+        if self.time_after is None or self.time_before_inferred is None:
+            return None
         hours = (self.time_after-self.time_before_inferred).total_seconds()/3600
         return self.difference/hours
 
