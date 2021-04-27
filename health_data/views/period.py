@@ -354,7 +354,7 @@ class PeriodViews(object):
         ]).drop_duplicates().sort_values().reset_index(drop=True)
 
         absorbent_flow=absorbent_flow.groupby(absorbent_flow.index).last().reindex(flow_times).fillna(method='ffill').fillna(0)
-        menstrual_cup_flow=menstrual_cup_flow.groupby(menstrual_cup_flow.index).last().reindex(flow_times).fillna(0)
+        menstrual_cup_flow=menstrual_cup_flow.groupby(menstrual_cup_flow.index).last().reindex(flow_times).fillna(method='ffill').fillna(0)
 
         if len(flow_times)>0:
             # Get the total flow for each point in time
