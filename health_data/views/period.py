@@ -32,13 +32,13 @@ def insert_gaps(df,gap_size=timedelta(days=1),offset=timedelta(seconds=1),fill_v
                                       index=insert_times.values)
             }
         ))
-        if append_at_end:
-            df=df.append(pd.DataFrame(
-                {
-                    fill_field:pd.Series([fill_value],
-                                         index=[times.values.max()+np.timedelta64(offset)])
-                }
-            ))
+    if len(times)>0 and append_at_end:
+        df=df.append(pd.DataFrame(
+            {
+                fill_field:pd.Series([fill_value],
+                                     index=[times.values.max()+np.timedelta64(offset)])
+            }
+        ))
 
     return df
 
