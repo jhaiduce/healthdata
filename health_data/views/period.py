@@ -346,8 +346,8 @@ class PeriodViews(object):
             [absorbent_donning,absorbent_doffing]
         ).set_index('time').sort_index()
 
-        absorbent_flow=insert_gaps(absorbent_flow)
-        menstrual_cup_flow=insert_gaps(menstrual_cup_flow)
+        absorbent_flow=insert_gaps(absorbent_flow).sort_index()
+        menstrual_cup_flow=insert_gaps(menstrual_cup_flow).sort_index()
 
         flow_times=pd.concat([
             absorbent_flow.index.to_series(),menstrual_cup_flow.index.to_series(),dates
