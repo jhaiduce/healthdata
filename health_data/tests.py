@@ -477,6 +477,11 @@ class TestMenstrualFlow(BaseTest):
         )
         self.session.add(cup_without_insertion_date_first_of_day)
 
+        cup_with_blank_times=MenstrualCupFill(
+            fill=5
+        )
+        self.session.add(cup_with_blank_times)
+
         self.session.flush()
 
         self.assertEqual(
@@ -508,6 +513,13 @@ class TestMenstrualFlow(BaseTest):
                 MenstrualCupFill.id==cup_without_insertion_date_first_of_day.id
             ).one().flow_rate,
             2.5)
+
+        self.assertIsNone(cup_with_blank_times.flow_rate)
+        self.assertIsNone(self.session.query(
+            MenstrualCupFill.flow_rate
+        ).filter(
+            MenstrualCupFill.id==cup_with_blank_times.id
+        ).one().flow_rate)
 
         period=Period(date=datetime(2020,1,15))
         self.session.add(period)

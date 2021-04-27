@@ -437,6 +437,7 @@ class MenstrualCupFill(TimestampedRecord,IndividualRecord,Record):
 
     @hybrid_property
     def flow_rate(self):
+        if self.removal_time is None or self.insertion_time is None: return None
         hours=(self.removal_time-self.insertion_time).total_seconds()/3600
         return self.fill/hours
 
