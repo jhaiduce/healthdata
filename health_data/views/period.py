@@ -356,9 +356,6 @@ class PeriodViews(object):
         absorbent_flow=absorbent_flow.groupby(absorbent_flow.index).last().reindex(flow_times).fillna(method='ffill').fillna(0)
         menstrual_cup_flow=menstrual_cup_flow.groupby(menstrual_cup_flow.index).last().reindex(flow_times).fillna(0)
 
-        absorbent_flow=insert_gaps(absorbent_flow)
-        menstrual_cup_flow=insert_gaps(menstrual_cup_flow)
-
         if len(flow_times)>0:
             # Get the total flow for each point in time
             total_flow=pd.Series((absorbent_flow.flow_rate+menstrual_cup_flow.flow_rate),index=flow_times)
