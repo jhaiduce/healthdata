@@ -166,7 +166,7 @@ class AbsorbentWeightCrudViews(IndividualRecordCRUDView,CRUDView):
     )
     title='absorbent weights'
     url_path = '/period/absorbent_weights'
-    list_display=(garment,'time_before','time_after','weight_before','weight_after','difference',format_field('flow_rate','{:0.2f}'),blood_observed,notes)
+    list_display=(garment,'time_before','time_after','weight_before','weight_after',format_field('difference','{:0.1f}'),format_field('flow_rate','{:0.2f}'),blood_observed,notes)
 
     def get_list_query(self):
        query=super(AbsorbentWeightCrudViews,self).get_list_query()
