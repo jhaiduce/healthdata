@@ -13,6 +13,35 @@ from ..models.people import Person
 
 from .header import view_with_header
 
+def insert_gaps(df,gap_size=timedelta(days=1),offset=timedelta(seconds=1),fill_value=0,append_at_end=True,fill_field='flow_rate'):
+    """
+    Insert values in a dataframe at the beginning of each interval longer than gap_size without data
+    """
+
+    import pandas as pd
+    import numpy as np
+
+    times=df.index.to_series()
+    is_gap=(times.diff(periods=-1)<-gap_size),
+    gap_times=times.loc[is_gap]
+    insert_times=gap_times.dropna()+offset
+    if len(insert_times)>0:
+        df=df.append(pd.DataFrame(
+            {
+                fill_field:pd.Series([fill_value]*len(insert_times),
+                                      index=insert_times.values)
+            }
+        ))
+        if append_at_end:
+            df=df.append(pd.DataFrame(
+                {
+                    fill_field:pd.Series([fill_value],
+                                         index=[times.values.max()+np.timedelta64(offset)])
+                }
+            ))
+
+    return df
+
 class PeriodForm(colander.MappingSchema):
     id=colander.SchemaNode(
         colander.Integer(),
@@ -316,22 +345,6 @@ class PeriodViews(object):
         absorbent_flow=pd.concat(
             [absorbent_donning,absorbent_doffing]
         ).set_index('time').sort_index()
-
-        def insert_gaps(df):
-
-            times=df.index.to_series()
-            is_gap=(times.diff(periods=-1)<timedelta(days=-1)),
-            gap_times=times.loc[is_gap]
-            insert_times=gap_times.dropna()+timedelta(seconds=1)
-            if len(insert_times)>0:
-                df=df.append(pd.DataFrame(
-                    {
-                        'flow_rate':pd.Series([0]*len(insert_times),
-                                              index=insert_times.values)
-                    }
-                ))
-
-            return df
 
         absorbent_flow=insert_gaps(absorbent_flow)
         menstrual_cup_flow=insert_gaps(menstrual_cup_flow)
