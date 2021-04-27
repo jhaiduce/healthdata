@@ -487,12 +487,13 @@ class AbsorbentWeights(TimestampedRecord,IndividualRecord,Record):
         last_entry=object_session(self).query(
             AbsorbentWeights
         ).filter(
-            AbsorbentWeights.time_before<self.time_after
+            AbsorbentWeights.time_before<self.time_after,
+            AbsorbentWeights.time_after is not None
         ).order_by(
             AbsorbentWeights.time_after
         ).limit(1).first()
 
-        if last_entry is not None:
+        if last_entry is not None and last_entry.time_after is not None:
             last_time_after=last_entry.time_after
         else:
             last_time_after=datetime.combine(
