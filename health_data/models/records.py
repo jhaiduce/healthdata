@@ -572,6 +572,7 @@ class AbsorbentWeights(TimestampedRecord,IndividualRecord,Record):
         if self.time_after is None or self.time_before_inferred is None:
             return None
         hours = (self.time_after-self.time_before_inferred).total_seconds()/3600
+        if hours==0: return None
         return self.difference/hours
 
     @flow_rate.expression
