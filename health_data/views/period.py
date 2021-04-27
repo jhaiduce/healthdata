@@ -13,6 +13,34 @@ from ..models.people import Person
 
 from .header import view_with_header
 
+def sum_hats(df,times_left='time_before',times_right='time_after',sum_field='flow_rate',offset=timedelta(seconds=1)):
+
+    import pandas as pd
+
+    times=pd.concat([df[times_left],df[times_right],df[times_right]+offset]).drop_duplicates().sort_values()
+
+    total=pd.DataFrame({
+        sum_field:pd.Series([0.0]*len(times),index=times.values)
+    })
+
+    for idx,row in df.iterrows():
+        hat_times=pd.Series([
+            times.min()-offset,
+            row[times_left],
+            row[times_right],
+            row[times_right]+offset,
+            times.max()])
+
+        hat=pd.DataFrame({
+            sum_field:pd.Series([0.0,row[sum_field],row[sum_field],0.0,0.0],
+                                 index=hat_times)
+        })
+        hat=hat.loc[~hat.index.duplicated(),:]
+        hat=hat.reindex(times).fillna(method='ffill').fillna(0)
+        total=total+hat
+
+    return total
+
 def insert_gaps(df,gap_size=timedelta(days=1),offset=timedelta(seconds=1),fill_value=0,append_at_end=True,fill_field='flow_rate'):
     """
     Insert values in a dataframe at the beginning of each interval longer than gap_size without data
@@ -330,21 +358,7 @@ class PeriodViews(object):
 
         absorbent_flow.time_before_inferred=pd.to_datetime(absorbent_flow.time_before_inferred)
 
-        # Separate dataframe for donning
-        absorbent_donning=absorbent_flow[['time_before_inferred','flow_rate']]
-        absorbent_donning=absorbent_donning.rename(
-            columns={'time_before_inferred':'time'})
-
-        # Separate dataframe for doffing
-        absorbent_doffing=absorbent_flow[['time_after','flow_rate']]
-        absorbent_doffing=absorbent_doffing.rename(
-            columns={'time_after':'time'})
-        absorbent_doffing.time-=timedelta(seconds=1)
-
-        # Interleave donning and doffing
-        absorbent_flow=pd.concat(
-            [absorbent_donning,absorbent_doffing]
-        ).set_index('time').sort_index()
+        absorbent_flow=sum_hats(absorbent_flow,times_left='time_before_inferred')
 
         absorbent_flow=insert_gaps(absorbent_flow).sort_index()
         menstrual_cup_flow=insert_gaps(menstrual_cup_flow).sort_index()
