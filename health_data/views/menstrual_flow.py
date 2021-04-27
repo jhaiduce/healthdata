@@ -37,6 +37,19 @@ def garment(obj):
 def blood_observed(obj):
    return yesno(obj.blood_observed)
 
+class format_field(object):
+
+    def __init__(self,field,fmt='{}',fill='-'):
+
+        self.field=field
+        self.fmt=fmt
+        self.fill=fill
+        self.__name__=field
+
+    def __call__(self,obj):
+        value=getattr(obj,self.field)
+        return self.fmt.format(value) if value is not None else self.fill
+
 class MenstrualCupFillCrudViews(IndividualRecordCRUDView,CRUDView):
     model=MenstrualCupFill
     schema=SQLAlchemySchemaNode(
@@ -50,7 +63,7 @@ class MenstrualCupFillCrudViews(IndividualRecordCRUDView,CRUDView):
     )
     title='menstrual cup fill'
     url_path = '/period/menstrual_cup_fill'
-    list_display=('insertion_time','removal_time','fill',notes)
+    list_display=('insertion_time','removal_time','fill',format_field('flow_rate','{:0.2f}'),notes)
 
     def get_list_query(self):
        query=super(MenstrualCupFillCrudViews,self).get_list_query()
@@ -153,7 +166,7 @@ class AbsorbentWeightCrudViews(IndividualRecordCRUDView,CRUDView):
     )
     title='absorbent weights'
     url_path = '/period/absorbent_weights'
-    list_display=(garment,'time_before','time_after','weight_before','weight_after','difference',blood_observed,notes)
+    list_display=(garment,'time_before','time_after','weight_before','weight_after','difference',format_field('flow_rate','{:0.2f}'),blood_observed,notes)
 
     def get_list_query(self):
        query=super(AbsorbentWeightCrudViews,self).get_list_query()
