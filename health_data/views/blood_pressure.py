@@ -9,6 +9,10 @@ from ..models.people import Person
 import colander
 
 def heart_rate(obj):
+
+   if obj.heart_rate is None or obj.heart_rate.rate is None:
+      return '-'
+
    return '{:0.1f}'.format(obj.heart_rate.rate)
 
 class BloodPressureCrudViews(IndividualRecordCRUDView,CRUDView):
