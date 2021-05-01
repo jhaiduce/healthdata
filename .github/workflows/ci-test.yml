@@ -6,13 +6,14 @@ jobs:
       matrix:
         python-version: 3.7.2
     steps:
-      - uses: actions/checkout@v2
-      - name: Setup python
+    - uses: actions/checkout@v2
+    - name: Setup python
+      uses: actions/setup-python@v2
       with:
           python-version: ${{ matrix.py }}
           architecture: ${{ matrix.architecture }}
-      - run: pip install '.[testing]'
-      - name: Unit tests
-      - run: pytest -q
-      - name: Database migration tests
-      - run: pytest -q health_data/migration_tests.py
+    - run: pip install '.[testing]'
+    - name: Unit tests
+      run: pytest -q
+    - name: Database migration tests
+      run: pytest -q health_data/migration_tests.py
