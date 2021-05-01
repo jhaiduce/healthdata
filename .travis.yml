@@ -1,6 +1,16 @@
 language: python
 python: 3.7.2
+
+services:
+ - docker
+
+before_install:
+ - docker-compose -f docker-compose.test_secrets.yml -f docker-compose.web.yml -f docker-compose.test.yml -f docker-compose.db.yml -p healthdata_ci build
+ - ./migrate_db_ci.sh
+
 script:
   - pip install '.[testing]'
   - pytest -q
   - pytest -q health_data/migration_tests.py
+  - docker-compose -f docker-compose.test_secrets.yml -f docker-compose.web.yml -f docker-compose.db.yml -f docker-compose.test.yml -p healthdata_ci up --remove-orphans -d
+  - docker logs -f healthdata_ci_sut_1
