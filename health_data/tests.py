@@ -911,6 +911,30 @@ class FunctionalTests(unittest.TestCase):
             add_url,
             params=[
                 ('__start__','time:mapping'),
+                ('date',''),
+                ('time',''),
+                ('__end__','time:mapping'),
+                ('systolic','120'),
+                ('diastolic','80'),
+                ('heart_rate','64'),
+                ('save','save')
+            ]
+        )
+        self.assertEqual(resp.status_code,302)
+        blood_pressure_id=json.loads(resp.text)['id']
+        self.assertEqual(resp.location,edit_url.format(blood_pressure_id))
+
+        blood_pressure=session.query(BloodPressure).filter(BloodPressure.id==blood_pressure_id).one()
+        self.assertIsNone(blood_pressure.time)
+        self.assertEqual(blood_pressure.systolic,120)
+        self.assertEqual(blood_pressure.diastolic,80)
+        self.assertEqual(blood_pressure.heart_rate.rate,64)
+        self.assertIsNone(blood_pressure.heart_rate.time)
+
+        resp=self.testapp.post(
+            add_url,
+            params=[
+                ('__start__','time:mapping'),
                 ('date','2020-03-14'),
                 ('time','07:30'),
                 ('__end__','time:mapping'),
@@ -984,6 +1008,33 @@ class FunctionalTests(unittest.TestCase):
         self.assertIsNone(blood_pressure.heart_rate.rate)
         self.assertEqual(blood_pressure.heart_rate.time,
                          datetime(2020,3,15,7,45))
+
+        resp=self.testapp.get(table_url)
+        self.assertEqual(resp.status_code,200)
+
+        resp=self.testapp.post(
+            edit_url.format(blood_pressure_id),
+            params=[
+                ('__start__','time:mapping'),
+                ('date',''),
+                ('time',''),
+                ('__end__','time:mapping'),
+                ('systolic',''),
+                ('diastolic',''),
+                ('heart_rate',''),
+                ('save','save')
+            ]
+        )
+        self.assertEqual(resp.status_code,302)
+        self.assertEqual(resp.location,edit_url.format(blood_pressure_id))
+        session.flush()
+        transaction.commit()
+        blood_pressure=session.query(BloodPressure).filter(BloodPressure.id==blood_pressure_id).one()
+        self.assertIsNone(blood_pressure.time)
+        self.assertIsNone(blood_pressure.systolic)
+        self.assertIsNone(blood_pressure.diastolic)
+        self.assertIsNone(blood_pressure.heart_rate.rate)
+        self.assertIsNone(blood_pressure.heart_rate.time)
 
         resp=self.testapp.get(table_url)
         self.assertEqual(resp.status_code,200)

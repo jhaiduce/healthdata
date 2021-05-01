@@ -63,7 +63,10 @@ def finalize_blood_pressure_fields(event):
           event.obj.heart_rate=HeartRate()
 
        event.obj.heart_rate.rate = event.appstruct['heart_rate']
-       event.obj.heart_rate.time = event.appstruct['time']
+       if event.appstruct['time']==colander.null:
+          event.obj.heart_rate.time = None
+       else:
+          event.obj.heart_rate.time = event.appstruct['time']
 
 class BloodPressureViews(object):
     def __init__(self,request):
