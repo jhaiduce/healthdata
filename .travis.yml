@@ -1,6 +1,0 @@
-language: python
-python: 3.7.2
-script:
-  - pip install '.[testing]'
-  - pytest -q
-  - pytest -q health_data/migration_tests.py
