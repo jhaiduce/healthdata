@@ -82,12 +82,16 @@ class BloodPressureViews(object):
         import pandas as pd
         import numpy as np
 
+        from sqlalchemy.orm import joinedload
+
         dbsession=self.request.dbsession
 
         session_person=dbsession.query(Person).filter(
             Person.id==self.request.session['person_id']).first()
         query=dbsession.query(BloodPressure).filter(
             BloodPressure.person==session_person
+        ).options(
+           joinedload(BloodPressure.heart_rate).load_only(HeartRate.rate)
         ).order_by(BloodPressure.time)
 
         blood_pressure=pd.read_sql(query.statement,dbsession.bind)
@@ -105,14 +109,23 @@ class BloodPressureViews(object):
                     'y':list(blood_pressure.systolic),
                     'type':'scatter',
                     'mode':'lines+markers',
-                    'name':'Systolic'
+                    'name':'Systolic',
+                    'yaxis':'y2'
                    },
                    {
                     'x':list(dates),
                     'y':list(blood_pressure.diastolic),
                     'type':'scatter',
                     'mode':'lines+markers',
-                    'name':'Diastolic'
+                      'name':'Diastolic',
+                    'yaxis':'y2'
+                   },
+                   {
+                    'x':list(dates),
+                    'y':list(blood_pressure.rate),
+                    'type':'scatter',
+                    'mode':'lines+markers',
+                    'name':'Pulse'
                    },
                 ],
                 'layout':{
@@ -130,11 +143,19 @@ class BloodPressureViews(object):
                         'y':1,
                         'xanchor':'right'
                     },
-                    'yaxis':{
+                    'yaxis2':{
                         **default_axis_style,
                         'title':{
                             'text':'Blood pressure (mm hg)'
-                        }
+                        },
+                       'domain':[0.3,1]
+                    },
+                    'yaxis':{
+                        **default_axis_style,
+                        'title':{
+                            'text':'Pulse (bpm)'
+                        },
+                       'domain':[0,0.24]
                     },
                     'xaxis':default_axis_style
                 },
