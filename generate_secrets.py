@@ -37,7 +37,8 @@ def generate_secrets(
     if not os.path.exists(secrets_dir):
         os.mkdir(secrets_dir)
 
-    if not (os.path.exists(secrets_dir+'/ca-key.pem') or os.path.exists(secrets_dir+'/ca.pem')):
+    if not (os.path.exists(secrets_dir+'/ca-key.pem') and os.path.exists(secrets_dir+'/ca.pem')):
+
         print('Generating root certificate')
 
         check_call(['openssl','genrsa','2048'],stdout=open(secrets_dir+'/ca-key.pem','w'))
@@ -52,7 +53,7 @@ def generate_secrets(
             '-key',secrets_dir+'/ca-key.pem','-out',secrets_dir+'/ca.pem'
         ]+config_args)
 
-    if not (os.path.exists(secrets_dir+'/server-key.pem') or os.path.exists(secrets_dir+'/server-req.pem')):
+    if not (os.path.exists(secrets_dir+'/server-key.pem') and os.path.exists(secrets_dir+'/server-req.pem')):
 
         print('Generating server key')
 
