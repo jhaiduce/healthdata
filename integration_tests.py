@@ -125,16 +125,17 @@ class BaseTest(unittest.TestCase):
 
         self.assertEqual(cervical_fluid_value,'1')
 
-    def test_weight_addedit(self):
+    def test_heightweight_addedit(self):
 
         resp=self.session.post(
-            'http://healthdata_web/weight/new',
+            'http://healthdata_web/height_weight/new',
             data=[
                 ('__start__','time:mapping'),
                 ('date','2020-03-14'),
                 ('time','07:30'),
                 ('__end__','time:mapping'),
                 ('weight','72.4'),
+                ('height','70'),
                 ('save','save')
             ]
         )
@@ -144,21 +145,23 @@ class BaseTest(unittest.TestCase):
 
         # Get the id of the new entry
         submission_metadata=json.loads(resp.history[0].text)
-        weight_id=submission_metadata['id']
+        heightweight_id=submission_metadata['id']
 
-        # Load the weight listing page
-        resp=self.session.get('http://healthdata_web/weight')
+        # Load the heightweight listing page
+        resp=self.session.get('http://healthdata_web/height_weight')
 
         # Check that the new entry is listed
-        self.assertGreater(resp.text.find('a href="http://healthdata_web/weight/{}/edit"'.format(weight_id)),0)
+        self.assertGreater(resp.text.find('a href="http://healthdata_web/height_weight/{}/edit"'.format(heightweight_id)),0)
 
         # Check that the edit page loads correctly
-        resp=self.session.get('http://healthdata_web/weight/{}/edit'.format(weight_id))
+        resp=self.session.get('http://healthdata_web/height_weight/{}/edit'.format(heightweight_id))
 
         # Check form content
         soup=BeautifulSoup(resp.text,'html.parser')
         self.assertTrue(soup.find('input',{'name':'weight',
                                            'value':'72.4'}))
+        self.assertTrue(soup.find('input',{'name':'height',
+                                           'value':'70.0'}))
         self.assertTrue(soup.find('input',{'name':'date',
                                            'value':'2020-03-14'}))
         self.assertTrue(soup.find('input',{'name':'time',
