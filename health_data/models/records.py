@@ -255,7 +255,7 @@ class BloodPressure(TimestampedRecord,IndividualRecord,Record):
         'polymorphic_identity':'blood_pressure'
     }
 
-class Weight(TimestampedRecord,IndividualRecord,Record):
+class HeightWeight(TimestampedRecord,IndividualRecord,Record):
     __tablename__ = 'weight'
     __table_args__ = {'mysql_encrypted':'yes'}
 
@@ -263,6 +263,7 @@ class Weight(TimestampedRecord,IndividualRecord,Record):
     time = Column(DateTime)
     utcoffset = Column(Integer)
     weight = Column(Float)
+    height = Column(Float)
 
     __mapper_args__ = {
         'polymorphic_identity':'weight'

@@ -1,26 +1,26 @@
 from pyramid.view import view_config
 from .crud import CRUDView
-from ..models import Weight
+from ..models import HeightWeight
 from colanderalchemy import SQLAlchemySchemaNode
 from .individual_record import IndividualRecordCRUDView
 from .header import view_with_header
 from ..models.people import Person
 
-class WeightCrudViews(IndividualRecordCRUDView,CRUDView):
-   model=Weight
+class HeightWeightCrudViews(IndividualRecordCRUDView,CRUDView):
+   model=HeightWeight
    schema=SQLAlchemySchemaNode(
-       Weight,
-       includes=['time','weight']
+       HeightWeight,
+       includes=['time','weight','height']
    )
-   url_path = '/weight'
-   list_display=('time','weight',)
+   url_path = '/height_weight'
+   list_display=('time','weight','height')
 
    def get_list_query(self):
-       query=super(WeightCrudViews,self).get_list_query()
+       query=super(HeightWeightCrudViews,self).get_list_query()
 
-       return query.order_by(Weight.time.desc())
+       return query.order_by(HeightWeight.time.desc())
 
-class WeightViews(object):
+class HeightWeightViews(object):
     def __init__(self,request):
         self.request=request
 
@@ -38,9 +38,9 @@ class WeightViews(object):
 
         session_person=dbsession.query(Person).filter(
             Person.id==self.request.session['person_id']).first()
-        query=dbsession.query(Weight).filter(
-            Weight.person==session_person
-        ).order_by(Weight.time)
+        query=dbsession.query(HeightWeight).filter(
+            HeightWeight.person==session_person
+        ).order_by(HeightWeight.time)
 
         weights=pd.read_sql(query.statement,dbsession.bind)
         weights=weights.dropna(subset=['time'])

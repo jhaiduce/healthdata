@@ -828,10 +828,10 @@ class FunctionalTests(unittest.TestCase):
 
     def test_weight_addedit(self):
         self.login()
-        from .models import Weight
-        add_url='http://localhost/weight/new'
-        edit_url='http://localhost/weight/{}/edit'
-        delete_confirm_url='http://localhost/weight/{}/delete_confirm'
+        from .models import HeightWeight
+        add_url='http://localhost/height_weight/new'
+        edit_url='http://localhost/height_weight/{}/edit'
+        delete_confirm_url='http://localhost/height_weight/{}/delete_confirm'
         session=self.get_session()
 
         resp=self.testapp.post(
@@ -842,52 +842,57 @@ class FunctionalTests(unittest.TestCase):
                 ('time','07:30'),
                 ('__end__','time:mapping'),
                 ('weight','72.4'),
+                ('height','70'),
                 ('save','save')
             ]
         )
         self.assertEqual(resp.status_code,302)
-        weight_id=json.loads(resp.text)['id']
-        weight=session.query(Weight).filter(Weight.id==weight_id).one()
-        self.assertEqual(weight.time,datetime(2020,3,14,7,30))
-        self.assertEqual(weight.weight,72.4)
+        heightweight_id=json.loads(resp.text)['id']
+        heightweight=session.query(HeightWeight).filter(HeightWeight.id==heightweight_id).one()
+        self.assertEqual(heightweight.time,datetime(2020,3,14,7,30))
+        self.assertEqual(heightweight.weight,72.4)
+        self.assertEqual(heightweight.height,70)
 
         resp=self.testapp.post(
-            edit_url.format(weight_id),
+            edit_url.format(heightweight_id),
             params=[
                 ('__start__','time:mapping'),
                 ('date','2020-03-15'),
                 ('time','07:45'),
                 ('__end__','time:mapping'),
                 ('weight','72.5'),
+                ('height','71'),
                 ('save','save')
             ]
         )
         self.assertEqual(resp.status_code,302)
         session.flush()
         transaction.commit()
-        weight=session.query(Weight).filter(Weight.id==weight_id).one()
-        self.assertEqual(weight.time,datetime(2020,3,15,7,45))
-        self.assertEqual(weight.weight,72.5)
+        heightweight=session.query(HeightWeight).filter(HeightWeight.id==heightweight_id).one()
+        self.assertEqual(heightweight.time,datetime(2020,3,15,7,45))
+        self.assertEqual(heightweight.weight,72.5)
+        self.assertEqual(heightweight.height,71)
 
         resp=self.testapp.post(
-            edit_url.format(weight_id),
+            edit_url.format(heightweight_id),
             params=[
                 ('__start__','time:mapping'),
                 ('date','2020-03-15'),
                 ('time','07:45'),
                 ('__end__','time:mapping'),
                 ('weight','72.5'),
+                ('height','70'),
                 ('delete','delete')
             ])
 
         self.assertEqual(resp.status_code,302)
 
         from urllib.parse import quote
-        delete_confirm_url=delete_confirm_url.format(weight_id)+'?referrer='+quote(edit_url.format(weight_id),'')
+        delete_confirm_url=delete_confirm_url.format(heightweight_id)+'?referrer='+quote(edit_url.format(heightweight_id),'')
         self.assertEqual(resp.location,delete_confirm_url)
 
         resp=self.testapp.post(
-            delete_confirm_url.format(weight_id),
+            delete_confirm_url.format(heightweight_id),
             params=[
                 ('delete','delete')
         ])
@@ -896,7 +901,7 @@ class FunctionalTests(unittest.TestCase):
         transaction.commit()
 
         with self.assertRaises(NoResultFound):
-            weight=session.query(Weight).filter(Weight.id==weight_id).one()
+            heightweight=session.query(HeightWeight).filter(HeightWeight.id==heightweight_id).one()
 
     def test_blood_pressure_addedit(self):
         self.login()
