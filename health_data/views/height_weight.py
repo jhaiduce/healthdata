@@ -6,6 +6,9 @@ from .individual_record import IndividualRecordCRUDView
 from .header import view_with_header
 from ..models.people import Person
 
+def bmi(obj):
+   return obj.bmi
+
 class HeightWeightCrudViews(IndividualRecordCRUDView,CRUDView):
    model=HeightWeight
    schema=SQLAlchemySchemaNode(
@@ -13,7 +16,7 @@ class HeightWeightCrudViews(IndividualRecordCRUDView,CRUDView):
        includes=['time','weight','height']
    )
    url_path = '/height_weight'
-   list_display=('time','weight','height')
+   list_display=('time','weight','height',bmi)
 
    def get_list_query(self):
        query=super(HeightWeightCrudViews,self).get_list_query()
