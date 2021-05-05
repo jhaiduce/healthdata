@@ -41,7 +41,9 @@ class HeightWeightViews(object):
 
         session_person=dbsession.query(Person).filter(
             Person.id==self.request.session['person_id']).first()
-        query=dbsession.query(HeightWeight).filter(
+        query=dbsession.query(HeightWeight).with_entities(
+           HeightWeight.time, HeightWeight.weight, HeightWeight.height, HeightWeight.bmi
+        ).filter(
             HeightWeight.person==session_person
         ).order_by(HeightWeight.time)
 
@@ -54,13 +56,31 @@ class HeightWeightViews(object):
 
         graphs=[
             {
-                'data':[{
-                    'x':list(dates),
-                    'y':list(weights.weight),
-                    'type':'scatter',
-                    'mode':'lines+markers',
-                    'name':'Weight'
-                }],
+                'data':[
+                   {
+                      'x':list(dates),
+                      'y':list(weights.weight),
+                      'type':'scatter',
+                      'mode':'lines+markers',
+                      'name':'Weight',
+                      'yaxis':'y3'
+                   },
+                   {
+                      'x':list(dates),
+                      'y':list(weights.height),
+                      'type':'scatter',
+                      'mode':'lines+markers',
+                      'name':'Height',
+                      'yaxis':'y2'
+                   },
+                   {
+                      'x':list(dates),
+                      'y':list(weights.bmi),
+                      'type':'scatter',
+                      'mode':'lines+markers',
+                     'name':'BMI'
+                   },
+                ],
                 'layout':{
                     'margin':{
                         'l':55,
@@ -70,11 +90,26 @@ class HeightWeightViews(object):
                         'pad':2,
                     },
                     'plot_bgcolor': '#E5ECF6',
-                    'yaxis':{
+                    'yaxis3':{
                         **default_axis_style,
                         'title':{
                             'text':'Weight (kg)'
-                        }
+                        },
+                       'domain':[0.6,1]
+                    },
+                    'yaxis2':{
+                        **default_axis_style,
+                        'title':{
+                            'text':'Height (in)'
+                        },
+                       'domain':[0.32,0.56]
+                    },
+                    'yaxis':{
+                        **default_axis_style,
+                        'title':{
+                            'text':'BMI (kg/m<sup>2</sup>)'
+                        },
+                       'domain':[0,0.28]
                     },
                     'xaxis':default_axis_style
                 },
