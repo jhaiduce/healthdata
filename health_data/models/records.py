@@ -165,6 +165,7 @@ def register_functions(conn, connection_record):
         conn.create_function("time", 1, get_time_from_datetime)
         conn.create_function("time_to_sec", 1, time_to_sec)
         conn.create_function("timediff", 2, timediff)
+        conn.create_function("power", 2, math.pow)
 
 class Record(Base):
 
@@ -268,6 +269,83 @@ class HeightWeight(TimestampedRecord,IndividualRecord,Record):
     __mapper_args__ = {
         'polymorphic_identity':'weight'
     }
+
+    @hybrid_property
+    def nearest_height(self):
+
+        if self.height is not None:
+            return self.height
+
+        other=aliased(HeightWeight)
+
+        time_delta=func.abs(func.timediff(other.time,self.time))
+
+        min_time_delta=object_session(self).query(
+            func.min(time_delta).label('min_time_delta')
+        ).filter(other.person_id==self.person_id)
+
+        nearest_height=object_session(self).query(
+            func.avg(HeightWeight.height).label('height'),
+        ).filter(
+            HeightWeight.height != None,
+            time_delta==min_time_delta
+        ).one().height
+
+        return nearest_height
+
+    @nearest_height.expression
+    def nearest_height(cls):
+
+        other=aliased(cls)
+
+        time_deltas=sa.select([
+            cls.id.label('this_id'),
+            other.height.label('other_height'),
+            func.abs(func.timediff(other.time,cls.time)).label('time_delta')
+        ]).where(
+            other.height!=None
+        ).where(
+            other.person_id==cls.person_id
+        )
+
+        min_time_delta=sa.select([
+            func.min(time_deltas.c.time_delta).label('min_time_delta'),
+            time_deltas.c.this_id.label('min_id')
+        ]).group_by(time_deltas.c.this_id)
+
+        avg_other_height=sa.select([
+            time_deltas.c.this_id.label('avg_id'),
+            func.avg(time_deltas.c.other_height).label('avg_height')
+        ]).where(
+            time_deltas.c.this_id==min_time_delta.c.min_id
+        ).where(
+            time_deltas.c.time_delta==min_time_delta.c.min_time_delta
+        ).group_by(time_deltas.c.this_id)
+
+        nearest_height=sa.select([
+            case(
+                [(cls.height!=None,cls.height)],
+                else_ = avg_other_height.c.avg_height
+            ).label('nearest_height'),
+        ]).where(
+            avg_other_height.c.avg_id==cls.id
+        ).as_scalar()
+
+        return nearest_height
+
+    @hybrid_property
+    def bmi(self):
+
+        nearest_height=self.nearest_height
+
+        if self.weight is None or nearest_height is None: return None
+
+        return self.weight/(nearest_height*0.0254)**2
+
+    @bmi.expression
+    def bmi(cls):
+
+        return cls.weight/func.power((cls.nearest_height*0.0254),2)
 
 class SymptomType(TimestampedRecord,Base):
     __tablename__ = 'symptomtype'
