@@ -7,7 +7,8 @@ from .header import view_with_header
 from ..models.people import Person
 
 def bmi(obj):
-   return obj.bmi
+   if obj.bmi is None: return '-'
+   return '{:0.2f}'.format(obj.bmi)
 
 class HeightWeightCrudViews(IndividualRecordCRUDView,CRUDView):
    model=HeightWeight
