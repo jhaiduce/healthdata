@@ -906,11 +906,6 @@ class FunctionalTests(unittest.TestCase):
             ).one().nearest_height,
             70)
         self.assertAlmostEqual(heightweight.bmi,72.4/(70*0.0254)**2)
-        nearest_height_query=session.query(
-                HeightWeight.nearest_height
-            ).filter(
-                HeightWeight.id==heightweight_id
-            )
         self.assertAlmostEqual(
             session.query(
                 HeightWeight.nearest_height
