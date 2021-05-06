@@ -153,6 +153,10 @@ class BaseTest(unittest.TestCase):
         # Check that the new entry is listed
         self.assertGreater(resp.text.find('a href="http://healthdata_web/height_weight/{}/edit"'.format(heightweight_id)),0)
 
+        # Load the heightweight plot page
+        resp=self.session.get('http://healthdata_web/height_weight/plot_weight')
+        self.assertEqual(resp.status_code,200)
+
         # Check that the edit page loads correctly
         resp=self.session.get('http://healthdata_web/height_weight/{}/edit'.format(heightweight_id))
 

@@ -830,6 +830,8 @@ class FunctionalTests(unittest.TestCase):
         self.login()
         from .models import HeightWeight
         add_url='http://localhost/height_weight/new'
+        list_url='http://localhost/height_weight'
+        plot_url='http://localhost/height_weight/plot_weight'
         edit_url='http://localhost/height_weight/{}/edit'
         delete_confirm_url='http://localhost/height_weight/{}/delete_confirm'
         session=self.get_session()
@@ -868,6 +870,14 @@ class FunctionalTests(unittest.TestCase):
                 HeightWeight.id==heightweight_id
             ).one().bmi,
             72.4/(70*0.0254)**2)
+
+        # Check listing page
+        resp=self.testapp.get(list_url)
+        self.assertEqual(resp.status_code,200)
+
+        # Check plot page
+        resp=self.testapp.get(plot_url)
+        self.assertEqual(resp.status_code,200)
 
         resp=self.testapp.post(
             add_url,
@@ -916,6 +926,14 @@ class FunctionalTests(unittest.TestCase):
             ).one().bmi,
             72.4/(70*0.0254)**2)
 
+        # Check listing page
+        resp=self.testapp.get(list_url)
+        self.assertEqual(resp.status_code,200)
+
+        # Check plot page
+        resp=self.testapp.get(plot_url)
+        self.assertEqual(resp.status_code,200)
+
         resp=self.testapp.post(
             edit_url.format(heightweight_id),
             params=[
@@ -951,6 +969,14 @@ class FunctionalTests(unittest.TestCase):
                 HeightWeight.id==heightweight_id
             ).one().bmi,
             72.5/(71*0.0254)**2)
+
+        # Check listing page
+        resp=self.testapp.get(list_url)
+        self.assertEqual(resp.status_code,200)
+
+        # Check plot page
+        resp=self.testapp.get(plot_url)
+        self.assertEqual(resp.status_code,200)
 
         resp=self.testapp.post(
             edit_url.format(heightweight_id),
