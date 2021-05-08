@@ -280,18 +280,21 @@ class HeightWeight(TimestampedRecord,IndividualRecord,Record):
 
         time_delta=func.abs(func.timediff(other.time,self.time))
 
-        min_time_delta=object_session(self).query(
+        min_time_delta_query=object_session(self).query(
             func.min(time_delta).label('min_time_delta')
-        ).filter(other.person_id==self.person_id)
+        ).filter(other.height!=None,other.person_id==self.person_id)
 
-        nearest_height=object_session(self).query(
-            func.avg(HeightWeight.height).label('height'),
+        min_time_delta=min_time_delta_query.one().min_time_delta
+
+        nearest_height_query=object_session(self).query(
+            func.avg(other.height).label('height'),
         ).filter(
-            HeightWeight.height != None,
-            time_delta==min_time_delta
-        ).one().height
+            other.height != None,
+            time_delta==min_time_delta,
+            other.person_id==self.person_id
+        )
 
-        return nearest_height
+        return nearest_height_query.one().height
 
     @nearest_height.expression
     def nearest_height(cls):
