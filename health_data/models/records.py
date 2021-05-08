@@ -306,12 +306,12 @@ class HeightWeight(TimestampedRecord,IndividualRecord,Record):
             other.height!=None
         ).where(
             other.person_id==cls.person_id
-        )
+        ).alias('time_deltas')
 
         min_time_delta=sa.select([
             func.min(time_deltas.c.time_delta).label('min_time_delta'),
             time_deltas.c.this_id.label('min_id')
-        ]).group_by(time_deltas.c.this_id)
+        ]).group_by(time_deltas.c.this_id).alias('min_time_deltas')
 
         avg_other_height=sa.select([
             time_deltas.c.this_id.label('avg_id'),
@@ -320,7 +320,7 @@ class HeightWeight(TimestampedRecord,IndividualRecord,Record):
             time_deltas.c.this_id==min_time_delta.c.min_id
         ).where(
             time_deltas.c.time_delta==min_time_delta.c.min_time_delta
-        ).group_by(time_deltas.c.this_id)
+        ).group_by(time_deltas.c.this_id).alias('avg_other_height')
 
         nearest_height=sa.select([
             case(
