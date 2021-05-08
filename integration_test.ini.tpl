@@ -14,7 +14,7 @@ pyramid.default_locale_name = en
 pyramid.includes =
     pyramid_debugtoolbar
 
-sqlalchemy.url = mysql://healthdata:{mysql_production_password_encoded}@healthdata_db:3306/healthdata
+sqlalchemy.url = mysql://healthdata:{mysql_production_password_encoded}@db:3306/healthdata
 sqlalchemy.pool_recycle=3600
 sqlalchemy.pool_pre_ping = true
 
@@ -26,7 +26,7 @@ auth.secret={pyramid_auth_secret}
 
 session_secret={session_secret}
 
-sqlalchemy_admin.url = mysql://root:{mysql_root_password_encoded}@healthdata_db:3306
+sqlalchemy_admin.url = mysql://root:{mysql_root_password_encoded}@db:3306
 mysql_production_password={mysql_production_password}
 admin_password={app_admin_password}
 admin_otp_secret={app_admin_otp_secret}
