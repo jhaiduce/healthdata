@@ -836,6 +836,16 @@ class FunctionalTests(unittest.TestCase):
         delete_confirm_url='http://localhost/height_weight/{}/delete_confirm'
         session=self.get_session()
 
+        # Additional HeightWeight entry with a different person_id, to verify
+        # that nearest_height lookups are not polluted with data from other
+        # people
+        heightweight=HeightWeight(
+            height=50,
+            weight=65,
+            person_id=3
+        )
+        session.add(heightweight)
+
         resp=self.testapp.post(
             add_url,
             params=[
