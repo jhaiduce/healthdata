@@ -21,6 +21,10 @@ class HeightWeightCrudViews(IndividualRecordCRUDView,CRUDView):
 
    def get_list_query(self):
        query=super(HeightWeightCrudViews,self).get_list_query()
+       query=query.with_entities(
+          HeightWeight.id,
+          HeightWeight.time,HeightWeight.weight,
+          HeightWeight.height,HeightWeight.bmi)
 
        return query.order_by(HeightWeight.time.desc())
 
