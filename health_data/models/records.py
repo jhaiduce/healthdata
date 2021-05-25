@@ -521,6 +521,7 @@ class MenstrualCupFill(TimestampedRecord,IndividualRecord,Record):
     def flow_rate(self):
         if self.removal_time is None or self.insertion_time is None: return None
         hours=(self.removal_time-self.insertion_time).total_seconds()/3600
+        if self.fill is None: return None
         return self.fill/hours
 
     @flow_rate.expression
@@ -654,6 +655,7 @@ class AbsorbentWeights(TimestampedRecord,IndividualRecord,Record):
         if self.time_after is None or self.time_before_inferred is None:
             return None
         hours = (self.time_after-self.time_before_inferred).total_seconds()/3600
+        if self.difference is None: return None
         if hours==0: return None
         return self.difference/hours
 

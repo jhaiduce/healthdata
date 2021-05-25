@@ -482,6 +482,11 @@ class TestMenstrualFlow(BaseTest):
         )
         self.session.add(cup_with_blank_times)
 
+        cup_with_missing_fill=MenstrualCupFill(
+            removal_time=datetime(2020,1,16,16,0)
+        )
+        self.session.add(cup_with_missing_fill)
+
         self.session.flush()
 
         self.assertEqual(
@@ -521,6 +526,13 @@ class TestMenstrualFlow(BaseTest):
             MenstrualCupFill.id==cup_with_blank_times.id
         ).one().flow_rate)
 
+        self.assertIsNone(cup_with_missing_fill.flow_rate)
+        self.assertIsNone(self.session.query(
+            MenstrualCupFill.flow_rate
+        ).filter(
+            MenstrualCupFill.id==cup_with_missing_fill.id
+        ).one().flow_rate)
+
         period=Period(date=datetime(2020,1,15))
         self.session.add(period)
         self.assertAlmostEqual(period.total_flow,20)
@@ -532,6 +544,15 @@ class TestMenstrualFlow(BaseTest):
         pad=AbsorbentGarment(name='pad')
         self.session.add(pad)
         self.session.flush()
+
+        weights_empty_with_times=AbsorbentWeights(
+            garment=pad,
+            time_before=datetime(2020,1,1),
+            time_after=datetime(2020,1,1,8)
+        )
+
+        self.session.add(weights_empty_with_times)
+        self.assertIsNone(weights_empty_with_times.flow_rate)
 
         weights_without_before=AbsorbentWeights(
             garment=pad,
