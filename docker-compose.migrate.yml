@@ -15,4 +15,4 @@ services:
       driver: journald
     links:
       - db
-    command: ['/usr/bin/initialize_health_data_db','/run/secrets/production.ini']
+    command: ['/usr/local/bin/initialize_health_data_db','/run/secrets/production.ini']

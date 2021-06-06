@@ -1,14 +1,14 @@
-FROM python:3.7.2-alpine
-FROM node:8-alpine
+FROM python:3.8.6-slim-buster
 
 WORKDIR /app
 
-RUN apk add --update python3 py3-pip python3-dev build-base zlib-dev libjpeg-turbo-dev libpng-dev freetype-dev
-RUN pip3 install --trusted-host pypi.python.org Pillow==6.2.2 numpy==1.17.2
+RUN apt -y update
+RUN apt -y install python3 python3-pip
 RUN pip3 install --upgrade pip
-RUN pip3 install --trusted-host pypi.python.org pandas==1.0.1
-RUN apk add libffi-dev mariadb-dev
-RUN apk add git
+RUN apt -y install libmariadb-dev libmariadb-dev-compat libffi-dev
+RUN apt -y install npm
+RUN apt -y install git
+RUN apt -y install curl
 
 COPY requirements.txt /app
 RUN pip3 install -r /app/requirements.txt
@@ -20,20 +20,17 @@ COPY CHANGES.txt /app
 COPY README.md /app
 RUN pip3 install --trusted-host pypi.python.org -e .
 
-RUN apk add build-base curl
-
 COPY pyramid_start.sh /app
 
 EXPOSE 80
 
 ENV NAME World
 
-RUN addgroup --system appuser && \
-    adduser --system -s /bin/sh --no-create-home appuser appuser
+RUN adduser --system --shell /bin/sh --no-create-home --group appuser
 
-RUN apk add libcap
+RUN apt -y install libcap2-bin
 
-RUN setcap CAP_NET_BIND_SERVICE=+eip /usr/bin/python3.8
+RUN setcap CAP_NET_BIND_SERVICE=+eip /usr/local/bin/python3.8
 
 USER appuser
 
