@@ -343,7 +343,7 @@ class PeriodViews(object):
         # Interleave insertion and removal
         menstrual_cup_flow=pd.concat(
             [menstrual_cup_insertion,menstrual_cup_removal]
-        ).set_index('time').sort_index()
+        ).dropna(subset=['time']).set_index('time').sort_index()
 
         absorbent_query=dbsession.query(AbsorbentWeights).with_entities(
             AbsorbentWeights.time_before_inferred,
@@ -357,6 +357,8 @@ class PeriodViews(object):
             absorbent_query.statement,dbsession.bind)
 
         absorbent_flow.time_before_inferred=pd.to_datetime(absorbent_flow.time_before_inferred)
+
+        absorbent_flow=absorbent_flow.dropna(subset=['time_before_inferred'])
 
         absorbent_flow=sum_hats(absorbent_flow,times_left='time_before_inferred')
 
