@@ -384,6 +384,7 @@ class Period(TimestampedRecord,IndividualRecord,Record):
     date = Column(Date)
     temperature_id=Column(Integer,ForeignKey('temperature.id'))
     notes_id=Column(Integer,ForeignKey('note.id'))
+    lh_surge=Column(Integer)
 
     temperature=relationship(
         Temperature,foreign_keys=temperature_id,
@@ -683,4 +684,10 @@ cervical_fluid_choices={
     2:'Sticky (light)',
     3:'Creamy (medium)',
     4:'Eggwhite (heavy)'
+}
+
+lh_surge_choices={
+    1:'Not measured',
+    2:'Negative test',
+    3:'Positive test',
 }
