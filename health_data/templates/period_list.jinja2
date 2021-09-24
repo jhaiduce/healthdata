@@ -24,6 +24,7 @@
 <th>Period intensity</th>
 <th>Period flow</th>
 <th>Cervical fluid</th>
+<th>LH surge</th>
 <th>Remarks</th>
 </tr>
 {% for period in page.items %}
@@ -34,6 +35,7 @@
 <td>{{period_intensity_choices[period.period_intensity]}}</td>
 <td>{{period.total_flow}}</td>
 <td>{{cervical_fluid_choices[period.cervical_fluid_character]}}</td>
+<td>{{lh_surge_choices.get(period.lh_surge,'')}}</td>
 <td>{{period.notes.text if period.notes else ''}}</td>
 </tr>
 {% endfor %}

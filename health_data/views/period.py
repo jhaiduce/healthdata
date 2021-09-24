@@ -8,7 +8,7 @@ import json
 
 from .showtable import SqlalchemyOrmPage
 
-from ..models.records import Period, period_intensity_choices, cervical_fluid_choices, Temperature, Note, MenstrualCupFill, AbsorbentWeights
+from ..models.records import Period, period_intensity_choices, cervical_fluid_choices, lh_surge_choices, Temperature, Note, MenstrualCupFill, AbsorbentWeights
 from ..models.people import Person
 
 from .header import view_with_header
@@ -91,6 +91,11 @@ class PeriodForm(colander.MappingSchema):
         widget=deform.widget.SelectWidget(
             values=[(key,value) for (key,value) in cervical_fluid_choices.items()]),
         missing=None)
+    lh_surge=colander.SchemaNode(
+        colander.Integer(),
+        widget=deform.widget.SelectWidget(
+            values=[(key,value) for (key,value) in lh_surge_choices.items()]),
+        missing=None)
 
     notes=colander.SchemaNode(
         colander.String(),
@@ -114,6 +119,7 @@ def appstruct_to_period(dbsession,appstruct,existing_record=None):
     period.period_intensity=appstruct['period_intensity']
     period.date=appstruct['date']
     period.cervical_fluid_character=appstruct['cervical_fluid']
+    period.lh_surge=appstruct['lh_surge']
     period.temperature.temperature=appstruct['temperature']
     if appstruct['temperature_time'] is not None:
         period.temperature.time=datetime.combine(period.date,appstruct['temperature_time'])
@@ -234,6 +240,7 @@ class PeriodViews(object):
             temperature=period.temperature.temperature,
             period_intensity=period.period_intensity,
             cervical_fluid=period.cervical_fluid_character,
+            lh_surge=period.lh_surge,
             notes=period.notes.text if period.notes else ''
         ))
 
@@ -282,7 +289,8 @@ class PeriodViews(object):
         return dict(
             entries=entries,page=page,
             period_intensity_choices={**period_intensity_choices,1:''},
-            cervical_fluid_choices={**cervical_fluid_choices,1:''}
+            cervical_fluid_choices={**cervical_fluid_choices,1:''},
+            lh_surge_choices={1:'',2:'Negative',3:'Positive'}
         )
 
     @view_with_header

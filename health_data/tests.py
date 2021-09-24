@@ -119,6 +119,7 @@ class TestPeriod(BaseTest):
 
         period = Period(period_intensity=3,date=date(2019,10,31),
                         cervical_fluid_character=1,
+                        lh_surge=1,
                         temperature=Temperature(
                             temperature=97.5,
                             time=datetime(2019,10,31,7,13)))
@@ -141,6 +142,7 @@ class TestPeriod(BaseTest):
             ('submit','submit'),
             ('period_intensity','5'),
             ('cervical_fluid','1'),
+            ('lh_surge','1'),
             ('__start__','date:mapping'),
             ('date','2019-10-29'),
             ('__end__','date:mapping'),
@@ -165,6 +167,7 @@ class TestPeriod(BaseTest):
             ('submit','submit'),
             ('period_intensity','5'),
             ('cervical_fluid','1'),
+            ('lh_surge','1'),
             ('__start__','date:mapping'),
             ('date','2019-10-29'),
             ('__end__','date:mapping'),
@@ -187,6 +190,7 @@ class TestPeriod(BaseTest):
             ('submit','submit'),
             ('period_intensity','5'),
             ('cervical_fluid','1'),
+            ('lh_surge','1'),
             ('__start__','date:mapping'),
             ('date','2019-10-29'),
             ('__end__','date:mapping'),
@@ -210,6 +214,7 @@ class TestPeriod(BaseTest):
             ('submit','submit'),
             ('period_intensity','5'),
             ('cervical_fluid','1'),
+            ('lh_surge','1'),
             ('__start__','date:mapping'),
             ('date','2019-10-29'),
             ('__end__','date:mapping'),
@@ -233,6 +238,7 @@ class TestPeriod(BaseTest):
             ('delete_entry','delete_entry'),
             ('period_intensity','5'),
             ('cervical_fluid','1'),
+            ('lh_surge','1'),
             ('__start__','date:mapping'),
             ('date','2019-10-29'),
             ('__end__','date:mapping'),
@@ -806,6 +812,7 @@ class FunctionalTests(unittest.TestCase):
                 ('temperature','97.9'),
                 ('period_intensity','1'),
                 ('cervical_fluid','1'),
+                ('lh_surge','1'),
                 ('submit','submit')
             ]
         )
@@ -814,6 +821,7 @@ class FunctionalTests(unittest.TestCase):
         period=session.query(Period).filter(Period.id==period_id).one()
         self.assertEqual(period.period_intensity,1)
         self.assertEqual(period.cervical_fluid_character,1)
+        self.assertEqual(period.lh_surge,1)
         self.assertEqual(period.date,date(2020,3,14))
         self.assertEqual(period.temperature.time,datetime(2020,3,14,7,30))
         self.assertEqual(period.temperature.temperature,97.9)
@@ -831,6 +839,7 @@ class FunctionalTests(unittest.TestCase):
                 ('temperature','98.1'),
                 ('period_intensity','2'),
                 ('cervical_fluid','1'),
+                ('lh_surge','1'),
                 ('notes','A brief note'),
                 ('submit','submit')
             ]
@@ -841,6 +850,7 @@ class FunctionalTests(unittest.TestCase):
         period=session.query(Period).filter(Period.id==period_id).one()
         self.assertEqual(period.period_intensity,2)
         self.assertEqual(period.cervical_fluid_character,1)
+        self.assertEqual(period.lh_surge,1)
         self.assertEqual(period.date,date(2020,3,14))
         self.assertEqual(period.temperature.time,datetime(2020,3,14,7,30))
         self.assertEqual(period.temperature.temperature,98.1)
