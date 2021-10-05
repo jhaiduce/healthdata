@@ -321,8 +321,12 @@ class PeriodViews(object):
         dates=pd.to_datetime(periods['date'])
         
         intensities=pd.Series(periods.period_intensity)
-        start_inds=(intensities>1)&(intensities.shift(1)==1)
+        start_inds=(intensities>1)&(intensities.shift(1)==1)&(intensities.shift(2)==1)&(intensities.shift(-1)>1)
         start_dates=dates[start_inds]
+
+        cervical_fluid=pd.Series(periods.cervical_fluid_character)
+        ovulation_inds=(cervical_fluid>1)&(cervical_fluid.shift(-1)==1)&(cervical_fluid.shift(1)>1)
+        ovulation_dates=dates[ovulation_inds]
 
         menstrual_cup_query=dbsession.query(MenstrualCupFill).with_entities(
             MenstrualCupFill.insertion_time,
@@ -408,6 +412,24 @@ class PeriodViews(object):
                     'yaxis':'y2'
                 },
                 {
+                    'x':start_dates,
+                    'y':[0]*len(start_dates),
+                    'type':'scatter',
+                    'mode':'markers',
+                    'name':'Period start',
+                    'showlegend':False,
+                    'yaxis':'y1'
+                },
+                {
+                    'x':ovulation_dates,
+                    'y':[0]*len(ovulation_dates),
+                    'type':'scatter',
+                    'mode':'markers',
+                    'name':'Ovulation',
+                    'showlegend':False,
+                    'yaxis':'y1'
+                },
+                {
                     'x':dates,
                     'y':intensities-1,
                     'type':'bar',
@@ -466,6 +488,10 @@ class PeriodViews(object):
                         ],
                         'domain':[0.36,1],
                         **default_axis_style
+                    },
+                    'yaxis3':{
+                        'range':[0,1],
+                        'domain':[0.36,1]
                     },
                     'barmode':'overlay',
                     'legend':{
