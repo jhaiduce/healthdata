@@ -13,6 +13,31 @@ from ..models.people import Person
 
 from .header import view_with_header
 
+def get_period_data(dbsession,session_person):
+    from sqlalchemy.orm import joinedload
+    import pandas as pd
+
+    query=dbsession.query(Period).filter(
+        Period.person==session_person
+    ).options(
+        joinedload(Period.temperature).load_only(Temperature.temperature)
+    ).order_by(Period.date)
+
+    periods=pd.read_sql(query.statement,dbsession.bind)
+    periods.period_intensity=periods.period_intensity.fillna(1)
+
+    return periods
+
+def get_period_starts(periods):
+
+    import pandas as pd
+
+    intensities=pd.Series(periods.period_intensity)
+    start_inds=(intensities>1)&(intensities.shift(1)==1)&(intensities.shift(2)==1)&(intensities.shift(-1)>1)&(intensities.shift(-2)>1)&((intensities>2)|(intensities.shift(-1)>2)|(intensities.shift(-2)>2))
+    start_dates=periods.dates[start_inds]
+
+    return start_inds, start_dates
+
 def sum_hats(df,times_left='time_before',times_right='time_after',sum_field='flow_rate',offset=timedelta(seconds=1)):
 
     import pandas as pd
@@ -303,26 +328,19 @@ class PeriodViews(object):
 
         import pandas as pd
 
-        from sqlalchemy.orm import joinedload
-
         dbsession=self.request.dbsession
 
         session_person=dbsession.query(Person).filter(
             Person.id==self.request.session['person_id']).first()
-        query=dbsession.query(Period).filter(
-            Period.person==session_person
-        ).options(
-            joinedload(Period.temperature).load_only(Temperature.temperature)
-        ).order_by(Period.date)
 
-        periods=pd.read_sql(query.statement,dbsession.bind)
-        periods.period_intensity=periods.period_intensity.fillna(1)
+        periods=get_period_data(dbsession,session_person)
+
+        intensities=periods.period_intensity
 
         dates=pd.to_datetime(periods['date'])
-        
-        intensities=pd.Series(periods.period_intensity)
-        start_inds=(intensities>1)&(intensities.shift(1)==1)&(intensities.shift(2)==1)&(intensities.shift(-1)>1)&(intensities.shift(-2)>1)&((intensities>2)|(intensities.shift(-1)>2)|(intensities.shift(-2)>2))
-        start_dates=dates[start_inds]
+        periods['dates']=dates
+
+        start_inds, start_dates=get_period_starts(periods)
 
         cervical_fluid=pd.Series(periods.cervical_fluid_character)
         ovulation_inds=(cervical_fluid>1)&(cervical_fluid.shift(-1)==1)&(cervical_fluid.shift(1)>1)
