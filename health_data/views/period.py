@@ -321,7 +321,7 @@ class PeriodViews(object):
         dates=pd.to_datetime(periods['date'])
         
         intensities=pd.Series(periods.period_intensity)
-        start_inds=(intensities>1)&(intensities.shift(1)==1)&(intensities.shift(2)==1)&(intensities.shift(-1)>1)
+        start_inds=(intensities>1)&(intensities.shift(1)==1)&(intensities.shift(2)==1)&(intensities.shift(-1)>1)&(intensities.shift(-2)>1)
         start_dates=dates[start_inds]
 
         cervical_fluid=pd.Series(periods.cervical_fluid_character)
