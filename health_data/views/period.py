@@ -558,6 +558,8 @@ class PeriodViews(object):
 
         import pandas as pd
 
+        from .plotly_defaults import default_axis_style
+
         dbsession=self.request.dbsession
 
         session_person=dbsession.query(Person).filter(
@@ -592,7 +594,7 @@ class PeriodViews(object):
 
         period_intensity=sea_var_data(periods.period_intensity,epoch_inds,window)
 
-        def sea_plot(var_data):
+        def sea_plot(var_data,**kwargs):
             qul=np.percentile(var_data,(25,75),axis=0)
 
             return [
@@ -600,7 +602,8 @@ class PeriodViews(object):
                     'x':np.arange(-window,window),
                     'y':np.median(var_data,axis=0),
                     'type':'scatter',
-                    'mode':'lines+markers'
+                    'mode':'lines+markers',
+                    **kwargs
                 },
                 {
                     'x':np.concatenate([np.arange(-window,window),
@@ -610,7 +613,8 @@ class PeriodViews(object):
                     'fill':'tozerox',
                     'fillcolor':'rgba(231,107,243,0.2)',
                     'line':{'color':'transparent'},
-                    'mode':'lines+markers'
+                    'mode':'lines+markers',
+                    **kwargs
                 },
             ]
 
@@ -620,10 +624,60 @@ class PeriodViews(object):
                     {
                         'x':np.arange(-window,window),
                         'y':np.mean(period_start,axis=0),
-                        'type':'bar'
+                        'type':'bar',
+                        'yaxis':'y3'
                     },
-                    *sea_plot(temp)
+                    *sea_plot(temp,yaxis='y2'),
+                    *sea_plot(period_intensity,yaxis='y1'),
+                    *sea_plot(cervical_fluid,yaxis='y1')
                 ],
+                'layout':{
+                    'plot_bgcolor':'white',
+                    'margin':{
+                        'l':55,
+                        'r':25,
+                        'b':50,
+                        't':45,
+                        'pad':2,
+                    },
+                    'yaxis':{
+                        **default_axis_style,
+                        'title':{
+                            'text':'Flow rate (mL/h)'
+                        },
+                        'domain':[0.15,0.3],
+                        **default_axis_style
+                    },
+                    'yaxis2':{
+                        'title':{
+                            'text':'Temperature (F)'
+                        },
+                        'range':[
+                            min(periods.temperature.min(),97) if not np.isnan(periods.temperature.min()) else 97,
+                            max(periods.temperature.max(),99) if not np.isnan(periods.temperature.max()) else 99
+                        ],
+                        'domain':[0.36,1],
+                        **default_axis_style
+                    },
+                    'yaxis3':{
+                        'range':[0,1],
+                        'domain':[0,0.1],
+                        'title':{
+                            'text':'Probability'
+                        },
+                        **default_axis_style
+                    },
+                    'barmode':'overlay',
+                    'legend':{
+                        'traceorder':'normal',
+                        'x':1,
+                        'y':1,
+                        'xanchor':'right'
+                    },
+                    'plot_bgcolor': '#E5ECF6',
+                    "xaxis": default_axis_style,
+                },
+                'config':{'responsive':True}
             }
         ]
 
