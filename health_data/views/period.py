@@ -595,12 +595,12 @@ class PeriodViews(object):
         period_intensity=sea_var_data(periods.period_intensity,epoch_inds,window)
 
         def sea_plot(var_data,**kwargs):
-            qul=np.percentile(var_data,(25,75),axis=0)
+            qul=np.nanpercentile(var_data,(25,50,75),axis=0)
 
             return [
                 {
                     'x':np.arange(-window,window),
-                    'y':np.median(var_data,axis=0),
+                    'y':qul[1],
                     'type':'scatter',
                     'mode':'lines+markers',
                     **kwargs
@@ -608,7 +608,7 @@ class PeriodViews(object):
                 {
                     'x':np.concatenate([np.arange(-window,window),
                                         np.arange(window-1,-window-1,-1)]),
-                    'y':np.concatenate([qul[0],qul[1][::-1]]),
+                    'y':np.concatenate([qul[0],qul[2][::-1]]),
                     'type':'scatter',
                     'fill':'tozerox',
                     'fillcolor':'rgba(231,107,243,0.2)',
