@@ -594,8 +594,13 @@ class PeriodViews(object):
 
         period_intensity=sea_var_data(periods.period_intensity-1,epoch_inds,window)
 
-        def sea_plot(var_data,**kwargs):
+        def sea_plot(var_data,color=None,**kwargs):
             qul=np.nanpercentile(var_data,(25,50,75),axis=0)
+
+            if color:
+                style={'line':{'color':color}}
+            else:
+                style={}
 
             return [
                 {
@@ -603,6 +608,7 @@ class PeriodViews(object):
                     'y':qul[1],
                     'type':'scatter',
                     'mode':'lines+markers',
+                    **style,
                     **kwargs
                 },
                 {
@@ -614,6 +620,7 @@ class PeriodViews(object):
                     'fillcolor':'rgba(231,107,243,0.2)',
                     'line':{'color':'transparent'},
                     'mode':'lines+markers',
+                    'showlegend':False,
                     **kwargs
                 },
             ]
@@ -621,15 +628,17 @@ class PeriodViews(object):
         graphs=[
             {
                 'data':[
+                    *sea_plot(temp,yaxis='y2',name='Temperature'),
                     {
                         'x':np.arange(-window,window),
                         'y':np.mean(period_start,axis=0),
                         'type':'bar',
-                        'yaxis':'y3'
+                        'yaxis':'y3',
+                        'name':'Period',
+                        'showlegend':False
                     },
-                    *sea_plot(temp,yaxis='y2'),
-                    *sea_plot(period_intensity,yaxis='y1'),
-                    *sea_plot(cervical_fluid,yaxis='y1')
+                    *sea_plot(period_intensity,yaxis='y1',color='red',name='Period'),
+                    *sea_plot(cervical_fluid,yaxis='y1',color='blue',name='Cervical fluid')
                 ],
                 'layout':{
                     'plot_bgcolor':'white',
@@ -643,7 +652,7 @@ class PeriodViews(object):
                     'yaxis':{
                         **default_axis_style,
                         'title':{
-                            'text':'Flow rate (mL/h)'
+                            'text':'Intensity'
                         },
                         'domain':[0.15,0.3],
                         **default_axis_style
