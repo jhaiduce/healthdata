@@ -355,7 +355,7 @@ class PeriodViews(object):
         start_inds, start_dates=get_period_starts(periods)
 
         cervical_fluid=pd.Series(periods.cervical_fluid_character)
-        ovulation_inds=(cervical_fluid>1)&(cervical_fluid.shift(-1)==1)&(cervical_fluid.shift(1)>1)
+        ovulation_inds=(cervical_fluid>1)&(cervical_fluid.shift(-1)==1)&(cervical_fluid.shift(1)>1)&(periods.temperature>97.5)&((periods.temperature-periods.temperature.shift(2))>0.2)
         ovulation_dates=dates[ovulation_inds]
 
         menstrual_cup_query=dbsession.query(MenstrualCupFill).with_entities(
