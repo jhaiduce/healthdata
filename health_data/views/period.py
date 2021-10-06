@@ -590,9 +590,9 @@ class PeriodViews(object):
 
         temp=sea_var_data(periods.temperature,epoch_inds,window)
 
-        cervical_fluid=sea_var_data(periods.cervical_fluid_character,epoch_inds,window)
+        cervical_fluid=-sea_var_data(periods.cervical_fluid_character-1,epoch_inds,window)
 
-        period_intensity=sea_var_data(periods.period_intensity,epoch_inds,window)
+        period_intensity=sea_var_data(periods.period_intensity-1,epoch_inds,window)
 
         def sea_plot(var_data,**kwargs):
             qul=np.nanpercentile(var_data,(25,50,75),axis=0)
