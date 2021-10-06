@@ -38,6 +38,18 @@ def get_period_starts(periods):
 
     return start_inds, start_dates
 
+def sea_var_data(var,epoch_inds,window=45):
+
+    import numpy as np
+
+    sea_data=np.empty([len(epoch_inds),window*2])
+
+    for i,epoch_ind in enumerate(epoch_inds):
+
+        sea_data[i,:]=var[epoch_ind-window:epoch_ind+window]
+
+    return sea_data
+
 def sum_hats(df,times_left='time_before',times_right='time_after',sum_field='flow_rate',offset=timedelta(seconds=1)):
 
     import pandas as pd
@@ -522,6 +534,96 @@ class PeriodViews(object):
                     "xaxis": default_axis_style,
                 },
                 'config':{'responsive':True}
+            }
+        ]
+
+        # Add "ids" to each of the graphs to pass up to the client
+        # for templating
+        ids = ['graph-{}'.format(i) for i, _ in enumerate(graphs)]
+
+        # Convert the figures to JSON
+        # PlotlyJSONEncoder appropriately converts pandas, datetime, etc
+        # objects to their JSON equivalents
+        graphJSON = json.dumps(graphs, cls=plotly.utils.PlotlyJSONEncoder)
+
+        return {'graphJSON':graphJSON, 'ids':ids}
+
+    @view_with_header
+    @view_config(route_name='period_sea',renderer='../templates/period_plot.jinja2')
+    def period_sea(self):
+
+        import plotly
+
+        import numpy as np
+
+        import pandas as pd
+
+        dbsession=self.request.dbsession
+
+        session_person=dbsession.query(Person).filter(
+            Person.id==self.request.session['person_id']).first()
+
+        periods=get_period_data(dbsession,session_person)
+
+        intensities=periods.period_intensity
+
+        dates=pd.to_datetime(periods['date'])
+        periods['dates']=dates
+
+        all_dates=pd.date_range(dates[0],dates[len(dates)-1])
+        periods=periods.set_index(periods.dates)
+        periods=periods[~periods.index.duplicated()]
+        periods=periods.reindex(all_dates)
+        periods=periods.reset_index()
+        periods.period_intensity=periods.period_intensity.fillna(value=1)
+
+        start_inds, start_dates=get_period_starts(periods)
+
+        window=45
+
+        usable_epochs=start_inds&(start_inds.index>window)&(start_inds.index<len(periods)-window)
+        epoch_inds=start_inds.index[usable_epochs]
+
+        period_start=sea_var_data(start_inds,epoch_inds,window)
+
+        temp=sea_var_data(periods.temperature,epoch_inds,window)
+
+        cervical_fluid=sea_var_data(periods.cervical_fluid_character,epoch_inds,window)
+
+        period_intensity=sea_var_data(periods.period_intensity,epoch_inds,window)
+
+        def sea_plot(var_data):
+            qul=np.percentile(var_data,(25,75),axis=0)
+
+            return [
+                {
+                    'x':np.arange(-window,window),
+                    'y':np.median(var_data,axis=0),
+                    'type':'scatter',
+                    'mode':'lines+markers'
+                },
+                {
+                    'x':np.concatenate([np.arange(-window,window),
+                                        np.arange(window-1,-window-1,-1)]),
+                    'y':np.concatenate([qul[0],qul[1][::-1]]),
+                    'type':'scatter',
+                    'fill':'tozerox',
+                    'fillcolor':'rgba(231,107,243,0.2)',
+                    'line':{'color':'transparent'},
+                    'mode':'lines+markers'
+                },
+            ]
+
+        graphs=[
+            {
+                'data':[
+                    {
+                        'x':np.arange(-window,window),
+                        'y':np.mean(period_start,axis=0),
+                        'type':'bar'
+                    },
+                    *sea_plot(temp)
+                ],
             }
         ]
 
