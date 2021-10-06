@@ -610,7 +610,7 @@ class PeriodViews(object):
                                         np.arange(window-1,-window-1,-1)]),
                     'y':np.concatenate([qul[0],qul[2][::-1]]),
                     'type':'scatter',
-                    'fill':'tozerox',
+                    'fill':'toself',
                     'fillcolor':'rgba(231,107,243,0.2)',
                     'line':{'color':'transparent'},
                     'mode':'lines+markers',
