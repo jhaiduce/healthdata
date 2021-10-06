@@ -82,6 +82,9 @@ done
 # Deploy the stack
 docker-machine ssh $host_prefix-master docker stack deploy -c docker-compose.yml ${stack_name}
 
+# Delete the migration service (in case it still exists from a previous execution)
+if docker-machine ssh $host_prefix-master docker service rm ${stack_name}_migration; then :; fi
+
 # Update the database
 docker-machine ssh $host_prefix-master docker stack deploy -c docker-compose.yml -c docker-compose.migrate.yml ${stack_name}
 
