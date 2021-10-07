@@ -56,6 +56,13 @@ def get_ovulations(periods):
 
     return ovulation_inds, ovulation_dates
 
+def get_ovulations_with_temperature_rise(periods,ovulation_inds,temperature_rise_inds):
+
+    ovulation_inds=ovulation_inds&(temperature_rise_inds|temperature_rise_inds.shift(-1)|temperature_rise_inds.shift(-2))
+    ovulation_dates=periods.dates[ovulation_inds]
+
+    return ovulation_inds, ovulation_dates,
+
 def sea_var_data(var,epoch_inds,window=45):
 
     import numpy as np
@@ -376,6 +383,7 @@ class PeriodViews(object):
 
         ovulation_inds, ovulation_dates = get_ovulations(periods)
         temperature_rise_inds, temperature_rise_dates=get_temperature_rise(periods)
+        ovulation_with_temp_inds, ovulation_with_temp_dates = get_ovulations_with_temperature_rise(periods,ovulation_inds,temperature_rise_inds)
 
         menstrual_cup_query=dbsession.query(MenstrualCupFill).with_entities(
             MenstrualCupFill.insertion_time,
@@ -470,8 +478,8 @@ class PeriodViews(object):
                     'yaxis':'y1'
                 },
                 {
-                    'x':ovulation_dates,
-                    'y':[0]*len(ovulation_dates),
+                    'x':ovulation_with_temp_dates,
+                    'y':[0]*len(ovulation_with_temp_dates),
                     'type':'scatter',
                     'mode':'markers',
                     'name':'Ovulation',
@@ -612,6 +620,7 @@ class PeriodViews(object):
         ovulation_inds, ovulation_dates=get_ovulations(periods)
 
         temperature_rise_inds, temperature_rise_dates=get_temperature_rise(periods)
+        ovulation_with_temp_inds, ovulation_with_temp_dates = get_ovulations_with_temperature_rise(periods,ovulation_inds,temperature_rise_inds)
 
         window=int(self.request.params.get('window','45'))
 
@@ -625,6 +634,8 @@ class PeriodViews(object):
             epoch_inds=ovulation_inds
         elif epoch_type=='temperature_rise':
             epoch_inds=temperature_rise_inds
+        elif epoch_type=='cervical_fluid_with_temp':
+            epoch_inds=ovulation_with_temp_inds
         else:
             raise ValueError('Invalid epoch type {}'.format(epoch_type))
 
