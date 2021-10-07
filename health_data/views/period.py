@@ -478,11 +478,20 @@ class PeriodViews(object):
                     'yaxis':'y1'
                 },
                 {
+                    'x':ovulation_dates,
+                    'y':[1]*len(ovulation_dates),
+                    'type':'scatter',
+                    'mode':'markers',
+                    'name':'Ovulation (cervical fluid)',
+                    'showlegend':False,
+                    'yaxis':'y1'
+                },
+                {
                     'x':ovulation_with_temp_dates,
                     'y':[0]*len(ovulation_with_temp_dates),
                     'type':'scatter',
                     'mode':'markers',
-                    'name':'Ovulation',
+                    'name':'Ovulation (combined)',
                     'showlegend':False,
                     'yaxis':'y1'
                 },
@@ -491,7 +500,7 @@ class PeriodViews(object):
                     'y':[0.5]*len(temperature_rise_dates),
                     'type':'scatter',
                     'mode':'markers',
-                    'name':'Ovulation',
+                    'name':'Temperature rise',
                     'showlegend':False,
                     'yaxis':'y1'
                 },
