@@ -679,14 +679,6 @@ class PeriodViews(object):
 
             return [
                 {
-                    'x':np.arange(-window,window),
-                    'y':qul[1],
-                    'type':'scatter',
-                    'mode':'lines+markers',
-                    **style,
-                    **kwargs
-                },
-                {
                     'x':np.concatenate([np.arange(-window,window),
                                         np.arange(window-1,-window-1,-1)]),
                     'y':np.concatenate([qul[0],qul[2][::-1]]),
@@ -696,6 +688,14 @@ class PeriodViews(object):
                     'line':{'color':'transparent'},
                     'mode':'lines+markers',
                     'showlegend':False,
+                    **kwargs
+                },
+                {
+                    'x':np.arange(-window,window),
+                    'y':qul[1],
+                    'type':'scatter',
+                    'mode':'lines+markers',
+                    **style,
                     **kwargs
                 },
             ]
