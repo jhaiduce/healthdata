@@ -375,6 +375,7 @@ class PeriodViews(object):
         cervical_fluid=pd.Series(periods.cervical_fluid_character)
 
         ovulation_inds, ovulation_dates = get_ovulations(periods)
+        temperature_rise_inds, temperature_rise_dates=get_temperature_rise(periods)
 
         menstrual_cup_query=dbsession.query(MenstrualCupFill).with_entities(
             MenstrualCupFill.insertion_time,
@@ -471,6 +472,15 @@ class PeriodViews(object):
                 {
                     'x':ovulation_dates,
                     'y':[0]*len(ovulation_dates),
+                    'type':'scatter',
+                    'mode':'markers',
+                    'name':'Ovulation',
+                    'showlegend':False,
+                    'yaxis':'y1'
+                },
+                {
+                    'x':temperature_rise_dates,
+                    'y':[0.5]*len(temperature_rise_dates),
                     'type':'scatter',
                     'mode':'markers',
                     'name':'Ovulation',
