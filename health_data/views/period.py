@@ -39,8 +39,8 @@ def get_period_starts(periods):
     return start_inds, start_dates
 
 def get_temperature_rise(periods):
-    smoothtemp=periods.temperature.rolling(7).median()
-    hightemp=periods.temperature.rolling(7).quantile(0.75)
+    smoothtemp=periods.temperature.rolling(10).median()
+    hightemp=periods.temperature.rolling(10).quantile(0.75)
     temperature_rise_inds=(periods.temperature-hightemp >= 0.2) & (periods.temperature - periods.temperature.shift(1) > 0)
     temperature_rise_dates = periods.dates[temperature_rise_inds]
 
