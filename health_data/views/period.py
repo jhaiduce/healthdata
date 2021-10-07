@@ -599,12 +599,20 @@ class PeriodViews(object):
 
         start_inds, start_dates=get_period_starts(periods)
 
+        ovulation_inds, ovulation_dates=get_ovulations(periods)
+
+        temperature_rise_inds, temperature_rise_dates=get_temperature_rise(periods)
+
         window=45
 
         usable_epochs=start_inds&(start_inds.index>window)&(start_inds.index<len(periods)-window)
         epoch_inds=start_inds.index[usable_epochs]
 
         period_start=sea_var_data(start_inds,epoch_inds,window)
+
+        cervical_fluid_end=sea_var_data(ovulation_inds,epoch_inds,window)
+
+        temperature_rise=sea_var_data(temperature_rise_inds,epoch_inds,window)
 
         temp=sea_var_data(periods.temperature,epoch_inds,window)
 
@@ -643,18 +651,28 @@ class PeriodViews(object):
                 },
             ]
 
+        def sea_probability(var_data,color=None,**kwargs):
+
+            if color:
+                style={'marker':{'color':color}}
+            else:
+                style={}
+
+            return [{
+                'x':np.arange(-window,window),
+                'y':np.mean(var_data,axis=0),
+                'type':'bar',
+                **style,
+                **kwargs
+            }]
+
         graphs=[
             {
                 'data':[
                     *sea_plot(temp,yaxis='y2',name='Temperature'),
-                    {
-                        'x':np.arange(-window,window),
-                        'y':np.mean(period_start,axis=0),
-                        'type':'bar',
-                        'yaxis':'y3',
-                        'name':'Period',
-                        'showlegend':False
-                    },
+                    *sea_probability(period_start,name='Period start',yaxis='y3'),
+                    *sea_probability(cervical_fluid_end,name='Ovulation (cervical fluid)',yaxis='y3'),
+                    *sea_probability(temperature_rise,name='Ovulation (temperature rise)',yaxis='y3'),
                     *sea_plot(period_intensity,yaxis='y1',color='red',name='Period'),
                     *sea_plot(cervical_fluid,yaxis='y1',color='blue',name='Cervical fluid')
                 ],
