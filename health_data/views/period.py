@@ -613,10 +613,23 @@ class PeriodViews(object):
 
         temperature_rise_inds, temperature_rise_dates=get_temperature_rise(periods)
 
-        window=45
+        window=int(self.request.params.get('window','45'))
 
-        usable_epochs=start_inds&(start_inds.index>window)&(start_inds.index<len(periods)-window)
-        epoch_inds=start_inds.index[usable_epochs]
+        assert window>0
+
+        epoch_type=self.request.params.get('epochs','period_start')
+
+        if epoch_type=='period_start':
+            epoch_inds=start_inds
+        elif epoch_type=='cervical_fluid':
+            epoch_inds=ovulation_inds
+        elif epoch_type=='temperature_rise':
+            epoch_inds=temperature_rise_inds
+        else:
+            raise ValueError('Invalid epoch type {}'.format(epoch_type))
+
+        usable_epochs=epoch_inds&(epoch_inds.index>window)&(epoch_inds.index<len(periods)-window)
+        epoch_inds=epoch_inds.index[usable_epochs]
 
         period_start=sea_var_data(start_inds,epoch_inds,window)
 
