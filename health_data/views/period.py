@@ -51,7 +51,7 @@ def get_ovulations(periods):
     import pandas as pd
 
     cervical_fluid=pd.Series(periods.cervical_fluid_character)
-    ovulation_inds=(cervical_fluid>1)&(cervical_fluid.shift(-1)==1)&(cervical_fluid.shift(1)>1)
+    ovulation_inds=(cervical_fluid>1)&(cervical_fluid.shift(-1)==1)
     ovulation_dates=periods.dates[ovulation_inds]
 
     return ovulation_inds, ovulation_dates
