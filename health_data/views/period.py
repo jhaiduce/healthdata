@@ -692,7 +692,7 @@ class PeriodViews(object):
                     'y':np.concatenate([qul[0],qul[2][::-1]]),
                     'type':'scatter',
                     'fill':'toself',
-                    'fillcolor':'rgba(231,107,243,0.2)',
+                    'fillcolor':'rgba(231,107,243,0.4)',
                     'line':{'color':'transparent'},
                     'mode':'lines+markers',
                     'showlegend':False,
@@ -711,6 +711,7 @@ class PeriodViews(object):
                 'x':np.arange(-window,window),
                 'y':np.mean(var_data,axis=0),
                 'type':'bar',
+                'opacity':0.6,
                 **style,
                 **kwargs
             }]
