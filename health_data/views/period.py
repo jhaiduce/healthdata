@@ -647,6 +647,8 @@ class PeriodViews(object):
             epoch_inds=start_inds
         elif epoch_type=='cervical_fluid':
             epoch_inds=ovulation_inds
+        elif epoch_type=='cervical_fluid_with_temp':
+            epoch_inds=ovulation_with_temp_inds
         elif epoch_type=='cervical_fluid_without_temp':
             epoch_inds=ovulation_without_temp_inds
         elif epoch_type=='temperature_rise':
