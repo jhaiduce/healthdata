@@ -38,6 +38,24 @@ def get_period_starts(periods):
 
     return start_inds, start_dates
 
+def get_temperature_rise(periods):
+    smoothtemp=periods.temperature.rolling(7).median()
+    hightemp=periods.temperature.rolling(7).quantile(0.75)
+    temperature_rise_inds=(periods.temperature-hightemp >= 0.2) & (periods.temperature - periods.temperature.shift(1) > 0)
+    temperature_rise_dates = periods.dates[temperature_rise_inds]
+
+    return temperature_rise_inds, temperature_rise_dates
+
+def get_ovulations(periods):
+
+    import pandas as pd
+
+    cervical_fluid=pd.Series(periods.cervical_fluid_character)
+    ovulation_inds=(cervical_fluid>1)&(cervical_fluid.shift(-1)==1)&(cervical_fluid.shift(1)>1)
+    ovulation_dates=periods.dates[ovulation_inds]
+
+    return ovulation_inds, ovulation_dates
+
 def sea_var_data(var,epoch_inds,window=45):
 
     import numpy as np
@@ -355,12 +373,8 @@ class PeriodViews(object):
         start_inds, start_dates=get_period_starts(periods)
 
         cervical_fluid=pd.Series(periods.cervical_fluid_character)
-        ovulation_inds=(cervical_fluid>1)&(cervical_fluid.shift(-1)==1)&(cervical_fluid.shift(1)>1)&(
-            (
-                (periods.temperature>97.5)&((periods.temperature-(periods.temperature.shift(1)+periods.temperature.shift(2))*0.5)>0.2))
-            |((periods.temperature.shift(-2)>97.5)&((periods.temperature.shift(-2)-periods.temperature)>0.2)&(cervical_fluid.shift(-2)==1))
-        )
-        ovulation_dates=dates[ovulation_inds]
+
+        ovulation_inds, ovulation_dates = get_ovulations(periods)
 
         menstrual_cup_query=dbsession.query(MenstrualCupFill).with_entities(
             MenstrualCupFill.insertion_time,
