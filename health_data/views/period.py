@@ -33,7 +33,7 @@ def get_period_starts(periods):
     import pandas as pd
 
     intensities=pd.Series(periods.period_intensity)
-    start_inds=(intensities>1)&(intensities.shift(1)==1)&(intensities.shift(2)==1)&(intensities.shift(-1)>1)&(intensities.shift(-2)>1)&((intensities>2)|(intensities.shift(-1)>2)|(intensities.shift(-2)>2))
+    start_inds=(intensities>1)&(intensities.shift(1)==1)&(intensities.shift(2)==1)&(intensities.shift(-1)>1)&(intensities.shift(-2)>1)&((intensities>2)|(intensities.shift(-1)>2))
     start_dates=periods.dates[start_inds]
 
     return start_inds, start_dates
