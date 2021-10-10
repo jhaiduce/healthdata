@@ -7,6 +7,7 @@ def includeme(config):
     config.add_route('period_delete','/period/{period_id}/delete')
     config.add_route('period_plot','/period')
     config.add_route('period_sea','/period/sea')
+    config.add_route('period_interval_plot','/period/interval_plot')
     config.add_route('period_list','/period/list')
     config.add_route('person_add','/person/add')
     config.add_route('person_edit','/person/{person_id}/edit')

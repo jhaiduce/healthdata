@@ -788,3 +788,125 @@ class PeriodViews(object):
         graphJSON = json.dumps(graphs, cls=plotly.utils.PlotlyJSONEncoder)
 
         return {'graphJSON':graphJSON, 'ids':ids}
+
+    @view_with_header
+    @view_config(route_name='period_interval_plot',renderer='../templates/period_plot.jinja2')
+    def interval_plot(self):
+
+        import plotly
+
+        import numpy as np
+
+        import pandas as pd
+
+        from .plotly_defaults import default_axis_style
+
+        dbsession=self.request.dbsession
+
+        session_person=dbsession.query(Person).filter(
+            Person.id==self.request.session['person_id']).first()
+
+        periods=get_period_data(dbsession,session_person)
+
+        intensities=periods.period_intensity
+
+        dates=pd.to_datetime(periods['date'])
+        periods['dates']=dates
+
+        all_dates=pd.date_range(dates[0],dates[len(dates)-1])
+        periods=periods.set_index(periods.dates)
+        periods=periods[~periods.index.duplicated()]
+        periods=periods.reindex(all_dates)
+        periods=periods.reset_index()
+        periods.period_intensity=periods.period_intensity.fillna(value=1)
+
+        start_mask, start_dates=get_period_starts(periods)
+
+        ovulation_inds, ovulation_dates=get_ovulations(periods)
+
+        temperature_rise_inds, temperature_rise_dates=get_temperature_rise(periods)
+        ovulation_with_temp_inds, ovulation_with_temp_dates = get_ovulations_with_temperature_rise(periods,ovulation_inds,temperature_rise_inds)
+
+        ovulation_without_temp_inds, ovulation_without_temp_dates = get_ovulations_with_temperature_rise(periods,ovulation_inds,temperature_rise_inds,inverse=True)
+
+        interval_type=self.request.params.get('interval_type','cycle_length')
+
+        if interval_type=='cycle_length':
+            dates=start_dates
+            intervals=(dates-dates.shift(1)).dt.total_seconds()/86400
+        elif interval_type=='luteal_phase':
+            ovulation_inds=pd.Series(np.zeros([len(periods)]))
+            start_inds=start_mask[start_mask].index.values
+            for i in range(len(start_inds)-1):
+                ind=start_inds[i]
+                ind_next=start_inds[i+1]
+
+                # Get ovulations in this cycle
+                cycle_ovulations=ovulation_with_temp_inds[ind:ind_next]
+
+                if cycle_ovulations.sum()>0:
+
+                    # Find the last ovulation of the cycle
+                    ovulation_inds[
+                        cycle_ovulations[cycle_ovulations].index[-1]]=True
+
+            intervals=periods.dates[start_inds]-periods.dates[ovulation_inds]
+
+        else:
+            raise ValueError('Invalid interval type {}'.format(epoch_type))
+
+
+        graphs=[
+            {
+                'data':[
+                    {
+                        'x':dates,
+                        'y':intervals,
+                        'xaxis':'x1',
+                        'yaxis':'y1'
+                    },
+                    {
+                        'x':intervals,
+                        'type':'histogram',
+                        'yaxis':'y2',
+                        'xaxis':'x2'
+                    }
+                ],
+                'layout':{
+                    'showlegend':False,
+                    'yaxis':{
+                        **default_axis_style,
+                        'title':'Interval (days)',
+                        'domain':[0.4,1]
+                    },
+                    'yaxis2':{
+                        **default_axis_style,
+                        'title':'Probability',
+                        'domain':[0,0.3]
+                    },
+                    'grid':{
+                        'rows':2,
+                        'columns':1,
+                        'pattern':'independent',
+                        'roworder':'top to bottom'
+                    },
+                    'xaxis2':{**default_axis_style},
+                    'xaxis2':{
+                        **default_axis_style,
+                        'title':'Interval (days)'
+                    }
+                },
+                'config':{'responsive':True}
+            }
+        ]
+
+        # Add "ids" to each of the graphs to pass up to the client
+        # for templating
+        ids = ['graph-{}'.format(i) for i, _ in enumerate(graphs)]
+
+        # Convert the figures to JSON
+        # PlotlyJSONEncoder appropriately converts pandas, datetime, etc
+        # objects to their JSON equivalents
+        graphJSON = json.dumps(graphs, cls=plotly.utils.PlotlyJSONEncoder)
+
+        return {'graphJSON':graphJSON, 'ids':ids}
