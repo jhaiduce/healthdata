@@ -869,7 +869,8 @@ class PeriodViews(object):
                         'x':intervals,
                         'type':'histogram',
                         'yaxis':'y2',
-                        'xaxis':'x2'
+                        'xaxis':'x2',
+                        'xbins':{'size':1}
                     }
                 ],
                 'layout':{
