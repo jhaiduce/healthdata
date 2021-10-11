@@ -28,6 +28,23 @@ def get_period_data(dbsession,session_person):
 
     return periods
 
+def periods_postprocess(periods):
+
+    import pandas as pd
+
+    dates=pd.to_datetime(periods['date'])
+    periods['dates']=dates
+
+    all_dates=pd.date_range(dates[0],dates[len(dates)-1])
+    periods=periods.set_index(periods.dates)
+    periods=periods[~periods.index.duplicated()]
+    periods=periods.reindex(all_dates)
+    periods=periods.reset_index()
+    periods=periods.dropna(subset=['dates'])
+    periods.period_intensity=periods.period_intensity.fillna(value=1)
+
+    return periods
+
 def get_period_starts(periods):
 
     import pandas as pd
@@ -376,6 +393,7 @@ class PeriodViews(object):
             Person.id==self.request.session['person_id']).first()
 
         periods=get_period_data(dbsession,session_person)
+        periods=periods_postprocess(periods)
 
         intensities=periods.period_intensity
 
@@ -617,17 +635,9 @@ class PeriodViews(object):
 
         periods=get_period_data(dbsession,session_person)
 
+        periods=periods_postprocess(periods)
+
         intensities=periods.period_intensity
-
-        dates=pd.to_datetime(periods['date'])
-        periods['dates']=dates
-
-        all_dates=pd.date_range(dates[0],dates[len(dates)-1])
-        periods=periods.set_index(periods.dates)
-        periods=periods[~periods.index.duplicated()]
-        periods=periods.reindex(all_dates)
-        periods=periods.reset_index()
-        periods.period_intensity=periods.period_intensity.fillna(value=1)
 
         start_inds, start_dates=get_period_starts(periods)
 
@@ -809,17 +819,9 @@ class PeriodViews(object):
 
         periods=get_period_data(dbsession,session_person)
 
+        periods=periods_postprocess(periods)
+
         intensities=periods.period_intensity
-
-        dates=pd.to_datetime(periods['date'])
-        periods['dates']=dates
-
-        all_dates=pd.date_range(dates[0],dates[len(dates)-1])
-        periods=periods.set_index(periods.dates)
-        periods=periods[~periods.index.duplicated()]
-        periods=periods.reindex(all_dates)
-        periods=periods.reset_index()
-        periods.period_intensity=periods.period_intensity.fillna(value=1)
 
         start_mask, start_dates=get_period_starts(periods)
 
