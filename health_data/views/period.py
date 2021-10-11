@@ -837,7 +837,7 @@ class PeriodViews(object):
 
         if interval_type=='cycle_length':
             dates=start_dates
-            intervals=(dates-dates.shift(1)).dt.total_seconds()/86400
+            intervals=(dates-dates.shift(1)).dt.total_seconds()/86400+1
         elif interval_type=='luteal_phase':
             ovulation_inds=pd.Series(np.zeros([len(periods)],dtype=bool))
             start_inds=start_mask[start_mask].index.values
@@ -859,7 +859,7 @@ class PeriodViews(object):
                 else:
                     start_mask[ind_next]=False
 
-            intervals=(periods.dates[start_mask][1:].reset_index()-periods.dates[ovulation_inds[ovulation_inds].index].reset_index()).dates.dt.total_seconds()/86400
+            intervals=(periods.dates[start_mask][1:].reset_index()-periods.dates[ovulation_inds[ovulation_inds].index].reset_index()).dates.dt.total_seconds()/86400+1
 
         else:
             raise ValueError('Invalid interval type {}'.format(epoch_type))
