@@ -864,7 +864,7 @@ class PeriodViews(object):
             {
                 'data':[
                     {
-                        'x':dates,
+                        'x':periods.dates,
                         'y':intervals,
                         'xaxis':'x1',
                         'yaxis':'y1'
