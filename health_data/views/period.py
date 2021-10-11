@@ -52,7 +52,7 @@ def get_period_starts(periods):
 
     previous_periods=periods.period_intensity.rolling(3)
     intensities=pd.Series(periods.period_intensity)
-    start_inds=(intensities>1)&(intensities.shift(1)==1)&(intensities.shift(-1)>1)&(intensities.shift(-2)>1)&((intensities>2)|(intensities.shift(-1)>2))&previous_periods.median()==1
+    start_inds=(intensities>1)&(intensities.shift(1)==1)&(intensities.shift(-1)>1)&(intensities.shift(-2)>1)&((intensities>2)|(intensities.shift(-1)>2)|(intensities.shift(-2)>2))&previous_periods.median()==1
     start_dates=periods.dates[start_inds]
 
     return start_inds, start_dates
