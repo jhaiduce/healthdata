@@ -35,12 +35,13 @@ def periods_postprocess(periods):
     dates=pd.to_datetime(periods['date'])
     periods['dates']=dates
 
-    all_dates=pd.date_range(dates[0],dates[len(dates)-1])
-    periods=periods.set_index(periods.dates)
-    periods=periods[~periods.index.duplicated()]
-    periods=periods.reindex(all_dates)
-    periods=periods.reset_index()
-    periods=periods.dropna(subset=['dates'])
+    if len(dates)>0:
+        all_dates=pd.date_range(dates[0],dates[len(dates)-1])
+        periods=periods.set_index(periods.dates)
+        periods=periods[~periods.index.duplicated()]
+        periods=periods.reindex(all_dates)
+        periods=periods.reset_index()
+        periods=periods.dropna(subset=['dates'])
     periods.period_intensity=periods.period_intensity.fillna(value=1)
 
     return periods
