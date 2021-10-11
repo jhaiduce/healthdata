@@ -856,8 +856,10 @@ class PeriodViews(object):
                     # Find the last ovulation of the cycle
                     ovulation_inds[
                         cycle_ovulations[cycle_ovulations].index[-1]]=True
+                else:
+                    start_mask[ind_next]=False
 
-            intervals=(periods.dates[start_inds][1:].reset_index()-periods.dates[ovulation_inds[ovulation_inds].index].reset_index()).dates.dt.total_seconds()/86400
+            intervals=(periods.dates[start_mask][1:].reset_index()-periods.dates[ovulation_inds[ovulation_inds].index].reset_index()).dates.dt.total_seconds()/86400
 
         else:
             raise ValueError('Invalid interval type {}'.format(epoch_type))
