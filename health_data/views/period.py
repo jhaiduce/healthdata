@@ -815,7 +815,7 @@ class PeriodViews(object):
         return {'graphJSON':graphJSON, 'ids':ids}
 
     @view_with_header
-    @view_config(route_name='period_interval_plot',renderer='../templates/period_plot.jinja2')
+    @view_config(route_name='period_interval_plot',renderer='../templates/period_histogram.jinja2')
     def interval_plot(self):
 
         import plotly
