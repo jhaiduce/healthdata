@@ -882,7 +882,7 @@ class PeriodViews(object):
             {
                 'data':[
                     {
-                        'x':periods.dates,
+                        'x':periods.dates[start_mask],
                         'y':intervals,
                         'xaxis':'x1',
                         'yaxis':'y1'
