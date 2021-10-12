@@ -37,9 +37,11 @@ def periods_postprocess(periods):
 
     if len(dates)>0:
         all_dates=pd.date_range(dates[0],dates[len(dates)-1])
+        periods=periods.dropna(subset=['dates'])
         periods=periods.set_index(periods.dates)
         periods=periods[~periods.index.duplicated()]
         periods=periods.reindex(all_dates)
+        periods.dates=periods.index
         periods=periods.reset_index()
         periods=periods.dropna(subset=['dates'])
     periods.period_intensity=periods.period_intensity.fillna(value=1)
@@ -396,10 +398,9 @@ class PeriodViews(object):
         periods=get_period_data(dbsession,session_person)
         periods=periods_postprocess(periods)
 
-        intensities=periods.period_intensity
+        dates=periods.dates
 
-        dates=pd.to_datetime(periods['date'])
-        periods['dates']=dates
+        intensities=periods.period_intensity
 
         start_inds, start_dates=get_period_starts(periods)
 
