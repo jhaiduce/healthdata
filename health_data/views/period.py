@@ -839,12 +839,12 @@ class PeriodViews(object):
 
         start_mask, start_dates=get_period_starts(periods)
 
-        ovulation_inds, ovulation_dates=get_ovulations(periods)
+        cervical_fluid_end_inds, cervical_fluid_end_dates=get_ovulations(periods)
 
         temperature_rise_inds, temperature_rise_dates=get_temperature_rise(periods)
-        ovulation_with_temp_inds, ovulation_with_temp_dates = get_ovulations_with_temperature_rise(periods,ovulation_inds,temperature_rise_inds)
+        ovulation_with_temp_inds, ovulation_with_temp_dates = get_ovulations_with_temperature_rise(periods,cervical_fluid_end_inds,temperature_rise_inds)
 
-        ovulation_without_temp_inds, ovulation_without_temp_dates = get_ovulations_with_temperature_rise(periods,ovulation_inds,temperature_rise_inds,inverse=True)
+        ovulation_without_temp_inds, ovulation_without_temp_dates = get_ovulations_with_temperature_rise(periods,cervical_fluid_end_inds,temperature_rise_inds,inverse=True)
 
         interval_type=self.request.params.get('interval_type','cycle_length')
 
@@ -863,6 +863,14 @@ class PeriodViews(object):
                     (ovulation_with_temp_inds.index>ind)
                     & (ovulation_with_temp_inds.index<ind_next)
                 ]
+
+                if cycle_ovulations.sum()==0:
+                    # No ovulations with corresponding temperature rise,
+                    # use ovulations based on cervical fluid alone
+                    cycle_ovulations=cervical_fluid_end_inds[
+                        (cervical_fluid_end_inds.index>ind)
+                        & (cervical_fluid_end_inds.index<ind_next)
+                    ]
 
                 if cycle_ovulations.sum()>0:
 
