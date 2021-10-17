@@ -21,12 +21,14 @@
 <th></th>
 <th>Date</th>
 <th>Temperature</th>
+<th>Notes</th>
 </tr>
 {% for temperature in page.items %}
 <tr>
 <td><a href="/temperature/{{temperature.id}}/edit">edit</a></td>
 <td>{{temperature.time}}</td>
 <td>{{temperature.temperature if temperature.temperature else ''}}</td>
+<td>{{temperature.notes.text if temperature.notes else ''}}</td>
 </tr>
 {% endfor %}
 </table>
