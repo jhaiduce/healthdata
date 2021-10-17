@@ -1,32 +1,86 @@
+from pyramid.events import subscriber
 from pyramid.view import view_config
-from .crud import CRUDView
-from ..models import HeightWeight
+from .crud import CRUDView, ViewDbInsertEvent,ViewDbUpdateEvent
+from ..models import HeightWeight, Note
 from colanderalchemy import SQLAlchemySchemaNode
 from .individual_record import IndividualRecordCRUDView
 from .header import view_with_header
 from ..models.people import Person
+from colanderalchemy import SQLAlchemySchemaNode
+import colander
+import deform
 
 def bmi(obj):
    if obj.bmi is None: return '-'
    return '{:0.2f}'.format(obj.bmi)
 
+notes_schema = colander.SchemaNode(colander.String(),
+                                   name='notes',
+                                   widget=deform.widget.TextAreaWidget(),
+                                   missing=None)
+
+def notes(obj):
+    """
+    Return the text of a notes object (for display in the
+    HeightWeightViews table)
+    """
+
+    return obj.text
+
+@subscriber(ViewDbInsertEvent,ViewDbUpdateEvent)
+def finalize_heightweight_fields(event):
+    """
+    Post-process an automatically deserialized HeightWeight object
+    """
+
+    if isinstance(event.obj,HeightWeight):
+
+        # Store the notes field
+        if event.appstruct['notes'] is not None:
+
+            if event.obj.notes is None:
+                # Create a new notes object
+                event.obj.notes=Note()
+
+            # Set/update the notes properties
+            event.obj.notes.date=event.obj.time
+            event.obj.notes.text=event.appstruct['notes']
+
+        else:
+
+            event.obj.notes=None
+
 class HeightWeightCrudViews(IndividualRecordCRUDView,CRUDView):
    model=HeightWeight
    schema=SQLAlchemySchemaNode(
        HeightWeight,
-       includes=['time','weight','height']
+       includes=['time','weight','height',notes_schema]
    )
    url_path = '/height_weight'
-   list_display=('time','weight','height',bmi)
+   list_display=('time','weight','height',bmi,notes)
 
    def get_list_query(self):
        query=super(HeightWeightCrudViews,self).get_list_query()
+       query=query.outerjoin(HeightWeight.notes)
        query=query.with_entities(
           HeightWeight.id,
           HeightWeight.time,HeightWeight.weight,
-          HeightWeight.height,HeightWeight.bmi)
+          HeightWeight.height,HeightWeight.bmi,Note.text)
 
        return query.order_by(HeightWeight.time.desc())
+
+   def dictify(self,obj):
+        """
+        Serialize a HeightWeightCrudViews object to a dict
+        """
+
+        # Default serialization for built-in fields
+        appstruct=super(HeightWeightCrudViews,self).dictify(obj)
+
+        if obj.notes is not None:
+            appstruct['notes']=obj.notes.text
+
+        return appstruct
 
 class HeightWeightViews(object):
     def __init__(self,request):
