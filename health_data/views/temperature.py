@@ -23,6 +23,11 @@ class TemperatureForm(colander.MappingSchema):
     temperature=colander.SchemaNode(
         colander.Float(),missing=None)
 
+    notes=colander.SchemaNode(
+        colander.String(),
+        widget=deform.widget.TextAreaWidget(),
+        missing=None)
+
 class DeleteForm(colander.MappingSchema):
     id=colander.SchemaNode(
         colander.Integer(),
@@ -36,6 +41,15 @@ def appstruct_to_temperature(dbsession,appstruct,existing_record=None):
 
     temperature.temperature=appstruct['temperature']
     temperature.time=datetime.combine(appstruct['date'],appstruct['time'])
+
+    if appstruct['notes'] is not None:
+        if temperature.notes is None:
+            temperature.notes=Note()
+
+        temperature.notes.date=temperature.time
+        temperature.notes.text=appstruct['notes']
+    else:
+        temperature.notes=None
 
     return temperature
 
