@@ -219,6 +219,9 @@ class Temperature(TimestampedRecord,IndividualRecord,Record):
     time = Column(DateTime)
     utcoffset = Column(Integer)
     temperature = Column(Float)
+    notes_id=Column(Integer,ForeignKey('note.id'))
+
+    notes=relationship(Note,foreign_keys=notes_id)
 
     __mapper_args__ = {
         'polymorphic_identity':'temperature'
@@ -265,6 +268,9 @@ class HeightWeight(TimestampedRecord,IndividualRecord,Record):
     utcoffset = Column(Integer)
     weight = Column(Float)
     height = Column(Float)
+    notes_id=Column(Integer,ForeignKey('note.id'))
+
+    notes=relationship(Note,foreign_keys=notes_id)
 
     __mapper_args__ = {
         'polymorphic_identity':'weight'
