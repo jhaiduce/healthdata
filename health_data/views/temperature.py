@@ -147,7 +147,8 @@ class TemperatureViews(object):
             id=temperature.id,
             date=temperature.time.date(),
             time=temperature.time.time(),
-            temperature=temperature.temperature
+            temperature=temperature.temperature,
+            notes=temperature.notes.text
         ))
 
         modified_date=temperature.modified_date
