@@ -897,7 +897,7 @@ class FunctionalTests(unittest.TestCase):
         self.assertEqual(heightweight.height,70)
         self.assertAlmostEqual(
             session.query(
-                HeightWeight.nearest_height
+                HeightWeight
             ).filter(
                 HeightWeight.id==heightweight_id
             ).one().nearest_height,
@@ -941,7 +941,7 @@ class FunctionalTests(unittest.TestCase):
         self.assertAlmostEqual(heightweight.nearest_height,70)
         self.assertAlmostEqual(
             session.query(
-                HeightWeight.nearest_height
+                HeightWeight
             ).filter(
                 HeightWeight.id==heightweight_id
             ).one().nearest_height,
@@ -949,7 +949,7 @@ class FunctionalTests(unittest.TestCase):
         self.assertAlmostEqual(heightweight.bmi,72.4/(70*0.0254)**2)
         self.assertAlmostEqual(
             session.query(
-                HeightWeight.nearest_height
+                HeightWeight
             ).filter(
                 HeightWeight.id==heightweight_id
             ).one().nearest_height,
@@ -993,7 +993,7 @@ class FunctionalTests(unittest.TestCase):
         self.assertAlmostEqual(heightweight.bmi,72.5/(71*0.0254)**2)
         self.assertAlmostEqual(
             session.query(
-                HeightWeight.nearest_height
+                HeightWeight
             ).filter(
                 HeightWeight.id==heightweight_id
             ).one().nearest_height,
