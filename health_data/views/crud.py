@@ -326,7 +326,7 @@ class CRUDCreator(type):
                     "missing and need to be defined for a complete "
                     "configuration : %s" % ", ".join(missing))
             if cls.view_configurator_class is not None:
-                info = venusian.attach(cls, cb)
+                info = venusian.attach(cls, cb, category='pyramid')
 
             # Initialize mutable defaults
             cls.actions = []
