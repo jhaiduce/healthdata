@@ -730,36 +730,36 @@ class FunctionalTests(unittest.TestCase):
 
     def login(self):
         import pyotp
-        res=self.testapp.post('http://localhost/login',{
+        res=self.testapp.post('http://localhost.localdomain/login',{
             **self.admin_login,
             'otp':pyotp.TOTP(self.config['admin_otp_secret']).now(),
             'form.submitted':'true'})
 
         # Verify that we got redirected to the default page
         self.assertEqual(res.status_code,302)
-        self.assertEqual(res.location,'http://localhost/period')
+        self.assertEqual(res.location,'http://localhost.localdomain/period')
 
     def test_successful_login(self):
         import pyotp
-        res=self.testapp.post('http://localhost/login',{
+        res=self.testapp.post('http://localhost.localdomain/login',{
             **self.admin_login,
             'otp':pyotp.TOTP(self.config['admin_otp_secret']).now(),
             'form.submitted':'true'})
 
         # Verify that we got redirected to the default page
         self.assertEqual(res.status_code,302)
-        self.assertEqual(res.location,'http://localhost/period')
+        self.assertEqual(res.location,'http://localhost.localdomain/period')
 
         # Verify that we can load a page
-        res=self.testapp.get('http://localhost/period')
+        res=self.testapp.get('http://localhost.localdomain/period')
         self.assertEqual(res.status_code,200)
 
     def test_failed_login(self):
 
         import pyotp
 
-        # Try to login with wrong password (but correct OTP)
-        res=self.testapp.post('http://localhost/login',{
+        # Try to login with correct password but wrong OTP
+        res=self.testapp.post('http://localhost.localdomain/login',{
             **self.admin_login,
             'otp':pyotp.TOTP(self.config['admin_otp_secret']).now()+'1',
             'form.submitted':'true'})
@@ -771,33 +771,33 @@ class FunctionalTests(unittest.TestCase):
         # Verify that attempts to access restricted content are
         # redirected to the login page with the request URL passed
         # in the GET data
-        res=self.testapp.get('http://localhost/period')
+        res=self.testapp.get('http://localhost.localdomain/period')
         self.assertEqual(res.status_code,302)
-        self.assertEqual(res.location,'http://localhost/login?next=http%3A%2F%2Flocalhost%2Fperiod')
+        self.assertEqual(res.location,'http://localhost.localdomain/login?next=http%3A%2F%2Flocalhost.localdomain%2Fperiod')
 
-        # Try to login with correct password but wrong OTP
-        res=self.testapp.post('http://localhost/login',{
+        # Try to login with wrong password (but correct OTP)
+        res=self.testapp.post('http://localhost.localdomain/login',{
             'login':'admin',
             'password':'password',
             'otp':pyotp.TOTP(self.config['admin_otp_secret']).now(),
             'form.submitted':'true'})
 
-        # Verify that we stay at the login page with a "Failsed login" message
+        # Verify that we stay at the login page with a "Failed login" message
         self.assertEqual(res.status_code,200)
         self.assertTrue(isinstance(re.search('Failed login',res.text),re.Match))
 
         # Verify that attempts to access restricted content are
         # redirected to the login page with the request URL passed
         # in the GET data
-        res=self.testapp.get('http://localhost/period')
+        res=self.testapp.get('http://localhost.localdomain/period')
         self.assertEqual(res.status_code,302)
-        self.assertEqual(res.location,'http://localhost/login?next=http%3A%2F%2Flocalhost%2Fperiod')
+        self.assertEqual(res.location,'http://localhost.localdomain/login?next=http%3A%2F%2Flocalhost.localdomain%2Fperiod')
 
     def test_period_addedit(self):
         self.login()
         from .models import Period
-        add_url='http://localhost/period/add'
-        edit_url='http://localhost/period/{}/edit'
+        add_url='http://localhost.localdomain/period/add'
+        edit_url='http://localhost.localdomain/period/{}/edit'
         session=self.get_session()
 
         resp=self.testapp.post(
@@ -860,11 +860,11 @@ class FunctionalTests(unittest.TestCase):
     def test_weight_addedit(self):
         self.login()
         from .models import HeightWeight
-        add_url='http://localhost/height_weight/new'
-        list_url='http://localhost/height_weight'
-        plot_url='http://localhost/height_weight/plot_weight'
-        edit_url='http://localhost/height_weight/{}/edit'
-        delete_confirm_url='http://localhost/height_weight/{}/delete_confirm'
+        add_url='http://localhost.localdomain/height_weight/new'
+        list_url='http://localhost.localdomain/height_weight'
+        plot_url='http://localhost.localdomain/height_weight/plot_weight'
+        edit_url='http://localhost.localdomain/height_weight/{}/edit'
+        delete_confirm_url='http://localhost.localdomain/height_weight/{}/delete_confirm'
         session=self.get_session()
 
         # Additional HeightWeight entry with a different person_id, to verify
@@ -1047,10 +1047,10 @@ class FunctionalTests(unittest.TestCase):
     def test_blood_pressure_addedit(self):
         self.login()
         from .models import BloodPressure
-        add_url='http://localhost/blood_pressure/new'
-        edit_url='http://localhost/blood_pressure/{}/edit'
-        delete_confirm_url='http://localhost/blood_pressure/{}/delete_confirm'
-        table_url='http://localhost/blood_pressure'
+        add_url='http://localhost.localdomain/blood_pressure/new'
+        edit_url='http://localhost.localdomain/blood_pressure/{}/edit'
+        delete_confirm_url='http://localhost.localdomain/blood_pressure/{}/delete_confirm'
+        table_url='http://localhost.localdomain/blood_pressure'
         session=self.get_session()
 
         resp=self.testapp.post(
@@ -1219,9 +1219,9 @@ class FunctionalTests(unittest.TestCase):
     def test_symptom_addedit(self):
         self.login()
         from .models import Symptom
-        add_url='http://localhost/symptom/new'
-        edit_url='http://localhost/symptom/{}/edit'
-        delete_confirm_url='http://localhost/symptom/{}/delete_confirm'
+        add_url='http://localhost.localdomain/symptom/new'
+        edit_url='http://localhost.localdomain/symptom/{}/edit'
+        delete_confirm_url='http://localhost.localdomain/symptom/{}/delete_confirm'
         session=self.get_session()
 
         resp=self.testapp.post(
@@ -1298,9 +1298,9 @@ class FunctionalTests(unittest.TestCase):
     def test_menstrual_cup_addedit(self):
         self.login()
         from .models import MenstrualCupFill
-        add_url='http://localhost/period/menstrual_cup_fill/new'
-        edit_url='http://localhost/period/menstrual_cup_fill/{}/edit'
-        delete_confirm_url='http://localhost/period/menstrual_cup_fill/{}/delete_confirm'
+        add_url='http://localhost.localdomain/period/menstrual_cup_fill/new'
+        edit_url='http://localhost.localdomain/period/menstrual_cup_fill/{}/edit'
+        delete_confirm_url='http://localhost.localdomain/period/menstrual_cup_fill/{}/delete_confirm'
         session=self.get_session()
 
         resp=self.testapp.post(
@@ -1380,12 +1380,12 @@ class FunctionalTests(unittest.TestCase):
     def test_absorbent_weight_addedit(self):
         self.login()
         from .models import AbsorbentGarment, AbsorbentWeights
-        add_garments_url='http://localhost/period/absorbent_garments/new'
-        edit_garments_url='http://localhost/period/absorbent_garments/{}/edit'
-        delete_garments_confirm_url='http://localhost/period/absorbent_garments/{}/delete_confirm'
-        add_weights_url='http://localhost/period/absorbent_weights/new'
-        edit_weights_url='http://localhost/period/absorbent_weights/{}/edit'
-        delete_weights_confirm_url='http://localhost/period/absorbent_weights/{}/delete_confirm'
+        add_garments_url='http://localhost.localdomain/period/absorbent_garments/new'
+        edit_garments_url='http://localhost.localdomain/period/absorbent_garments/{}/edit'
+        delete_garments_confirm_url='http://localhost.localdomain/period/absorbent_garments/{}/delete_confirm'
+        add_weights_url='http://localhost.localdomain/period/absorbent_weights/new'
+        edit_weights_url='http://localhost.localdomain/period/absorbent_weights/{}/edit'
+        delete_weights_confirm_url='http://localhost.localdomain/period/absorbent_weights/{}/delete_confirm'
         session=self.get_session()
 
         resp=self.testapp.post(
