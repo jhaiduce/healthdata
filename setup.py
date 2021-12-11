@@ -41,7 +41,7 @@ tests_require = [
     'pytest >= 3.7.4',
     'pytest-cov',
     'alembic-verify',
-    'sqlalchemy-diff == 0.1.3'
+    'sqlalchemy-diff == 0.1.5'
 ]
 
 class NPMInstall(install):
