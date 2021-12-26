@@ -4,7 +4,7 @@ This is a Pyramid web application that provides interfaces to enter and view hea
 
 It consists of a database and web interface for tracking the following information:
 
-- Period/menstrual cycle, including
+- [Period/menstrual cycle](doc/period_tracker.md), including
   - Temperature
   - Period intensity
   - Menstrual flow rate
