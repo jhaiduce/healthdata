@@ -670,6 +670,7 @@ class PeriodViews(object):
         else:
             raise ValueError('Invalid epoch type {}'.format(epoch_type))
 
+        # Reject epochs without data to fill the window
         usable_epochs=epoch_inds&(epoch_inds.index>window)&(epoch_inds.index<len(periods)-window)
         epoch_inds=epoch_inds.index[usable_epochs]
 
