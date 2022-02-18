@@ -672,6 +672,13 @@ class PeriodViews(object):
 
         # Reject epochs without data to fill the window
         usable_epochs=epoch_inds&(epoch_inds.index>window)&(epoch_inds.index<len(periods)-window)
+
+        # Get intervals between epochs
+        intervals=epoch_inds.index[epoch_inds].to_numpy()[1:]-epoch_inds.index[epoch_inds].to_numpy()[:-1]
+
+        # Reject epochs for which the interval exceeds 64 days
+        usable_epochs=usable_epochs&(epoch_inds[epoch_inds].iloc[:-1].iloc[intervals<64])
+
         epoch_inds=epoch_inds.index[usable_epochs]
 
         period_start=sea_var_data(start_inds,epoch_inds,window)
