@@ -676,8 +676,11 @@ class PeriodViews(object):
         # Get intervals between epochs
         intervals=epoch_inds.index[epoch_inds].to_numpy()[1:]-epoch_inds.index[epoch_inds].to_numpy()[:-1]
 
-        # Reject epochs for which the interval exceeds 64 days
+        # Reject epochs for which the following interval exceeds 64 days
         usable_epochs=usable_epochs&(epoch_inds[epoch_inds].iloc[:-1].iloc[intervals<64])
+
+        # Reject epochs for which the preceding interval exceeds 64 days
+        usable_epochs[1:]=usable_epochs[1:]&(epoch_inds[epoch_inds].iloc[:-2].iloc[intervals[:-1]<64])
 
         epoch_inds=epoch_inds.index[usable_epochs]
 
