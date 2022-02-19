@@ -679,6 +679,11 @@ class PeriodViews(object):
         # Reject epochs for which the following interval exceeds 64 days
         usable_epochs=usable_epochs&(epoch_inds[epoch_inds].iloc[:-1].iloc[intervals<64])
 
+        # Reject the first and last epochs from the SEA (they can't meet the
+        # interval criteria regardless of what interval is set)
+        usable_epochs[epoch_inds.index[epoch_inds][0]]=False
+        usable_epochs[epoch_inds.index[epoch_inds][-1]]=False
+
         # Reject epochs for which the preceding interval exceeds 64 days
         usable_epochs[1:]=usable_epochs[1:]&(epoch_inds[epoch_inds].iloc[:-2].iloc[intervals[:-1]<64])
 
