@@ -1044,6 +1044,134 @@ class FunctionalTests(unittest.TestCase):
         with self.assertRaises(NoResultFound):
             heightweight=session.query(HeightWeight).filter(HeightWeight.id==heightweight_id).one()
 
+    def test_bodymeasurements_addedit(self):
+        self.login()
+        from .models import BodyMeasurements
+        add_url='http://localhost.localdomain/body_measurements/new'
+        list_url='http://localhost.localdomain/body_measurements'
+        edit_url='http://localhost.localdomain/body_measurements/{}/edit'
+        delete_confirm_url='http://localhost.localdomain/body_measurements/{}/delete_confirm'
+        session=self.get_session()
+
+        resp=self.testapp.post(
+            add_url,
+            params=[
+                ('__start__','time:mapping'),
+                ('date','2020-03-14'),
+                ('time','07:30'),
+                ('__end__','time:mapping'),
+                ('bust','45.5'),
+                ('under_ribcage','33.5'),
+                ('fullest_belly','35.5'),
+                ('waist','32.5'),
+                ('hips','37.5'),
+                ('save','save')
+            ]
+        )
+        self.assertEqual(resp.status_code,302)
+        bodymeasurements_id=json.loads(resp.text)['id']
+        bodymeasurements=session.query(BodyMeasurements).filter(BodyMeasurements.id==bodymeasurements_id).one()
+        self.assertEqual(bodymeasurements.time,datetime(2020,3,14,7,30))
+        self.assertEqual(bodymeasurements.bust,45.5)
+        self.assertEqual(bodymeasurements.under_ribcage,33.5)
+        self.assertEqual(bodymeasurements.waist,32.5)
+        self.assertEqual(bodymeasurements.hips,37.5)
+
+        # Check listing page
+        resp=self.testapp.get(list_url)
+        self.assertEqual(resp.status_code,200)
+
+        resp=self.testapp.post(
+            add_url,
+            params=[
+                ('__start__','time:mapping'),
+                ('date','2020-03-14'),
+                ('time','07:35'),
+                ('__end__','time:mapping'),
+                ('bust','45.5'),
+                ('under_ribcage','33.5'),
+                ('fullest_belly','35.5'),
+                ('waist','32.5'),
+                ('hips','38.5'),
+                ('save','save')
+            ]
+        )
+        self.assertEqual(resp.status_code,302)
+        bodymeasurements_id=json.loads(resp.text)['id']
+        bodymeasurements=session.query(BodyMeasurements).filter(BodyMeasurements.id==bodymeasurements_id).one()
+        self.assertEqual(bodymeasurements.time,datetime(2020,3,14,7,35))
+        self.assertEqual(bodymeasurements.bust,45.5)
+        self.assertEqual(bodymeasurements.under_ribcage,33.5)
+        self.assertEqual(bodymeasurements.waist,32.5)
+        self.assertEqual(bodymeasurements.hips,38.5)
+
+        # Check listing page
+        resp=self.testapp.get(list_url)
+        self.assertEqual(resp.status_code,200)
+
+        resp=self.testapp.post(
+            edit_url.format(bodymeasurements_id),
+            params=[
+                ('__start__','time:mapping'),
+                ('date','2020-03-15'),
+                ('time','07:45'),
+                ('__end__','time:mapping'),
+                ('bust','43.5'),
+                ('under_ribcage','32.5'),
+                ('fullest_belly','36.5'),
+                ('waist','34.5'),
+                ('hips','35.5'),
+                ('save','save')
+            ]
+        )
+        self.assertEqual(resp.status_code,302)
+        session.flush()
+        transaction.commit()
+        bodymeasurements=session.query(BodyMeasurements).filter(BodyMeasurements.id==bodymeasurements_id).one()
+        self.assertEqual(bodymeasurements.time,datetime(2020,3,15,7,45))
+        self.assertEqual(bodymeasurements.bust,43.5)
+        self.assertEqual(bodymeasurements.under_ribcage,32.5)
+        self.assertEqual(bodymeasurements.fullest_belly,36.5)
+        self.assertEqual(bodymeasurements.waist,34.5)
+        self.assertEqual(bodymeasurements.hips,35.5)
+
+        # Check listing page
+        resp=self.testapp.get(list_url)
+        self.assertEqual(resp.status_code,200)
+
+        resp=self.testapp.post(
+            edit_url.format(bodymeasurements_id),
+            params=[
+                ('__start__','time:mapping'),
+                ('date','2020-03-15'),
+                ('time','07:45'),
+                ('__end__','time:mapping'),
+                ('bust','43.5'),
+                ('under_ribcage','32.5'),
+                ('fullest_belly','36.5'),
+                ('waist','34.5'),
+                ('hips','35.5'),
+                ('delete','delete')
+            ])
+
+        self.assertEqual(resp.status_code,302)
+
+        from urllib.parse import quote
+        delete_confirm_url=delete_confirm_url.format(bodymeasurements_id)+'?referrer='+quote(edit_url.format(bodymeasurements_id),'')
+        self.assertEqual(resp.location,delete_confirm_url)
+
+        resp=self.testapp.post(
+            delete_confirm_url.format(bodymeasurements_id),
+            params=[
+                ('delete','delete')
+        ])
+
+        session.flush()
+        transaction.commit()
+
+        with self.assertRaises(NoResultFound):
+            bodymeasurements=session.query(BodyMeasurements).filter(BodyMeasurements.id==bodymeasurements_id).one()
+
     def test_blood_pressure_addedit(self):
         self.login()
         from .models import BloodPressure
