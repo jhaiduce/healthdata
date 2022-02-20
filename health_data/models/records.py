@@ -356,6 +356,27 @@ class HeightWeight(TimestampedRecord,IndividualRecord,Record):
 
         return cls.weight/func.power((cls.nearest_height*0.0254),2)
 
+class BodyMeasurements(TimestampedRecord,IndividualRecord,Record):
+
+    __tablename__ = 'body_measurements'
+    __table_args__ = {'mysql_encrypted':'yes'}
+
+    id = Column(Integer, ForeignKey('record.id'), primary_key=True)
+    time = Column(DateTime)
+    utcoffset = Column(Integer)
+    bust = Column(Float)
+    under_ribcage = Column(Float)
+    fullest_belly = Column(Float)
+    waist = Column(Float)
+    hips = Column(Float)
+    notes_id=Column(Integer,ForeignKey('note.id'))
+
+    notes=relationship(Note,foreign_keys=notes_id)
+
+    __mapper_args__ = {
+        'polymorphic_identity':'body_measurements'
+    }
+
 class SymptomType(TimestampedRecord,Base):
     __tablename__ = 'symptomtype'
     __table_args__ = {'mysql_encrypted':'yes'}
