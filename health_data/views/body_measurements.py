@@ -54,6 +54,7 @@ class BodyMeasurementsCrudViews(IndividualRecordCRUDView,CRUDView):
    )
    url_path = '/body_measurements'
    list_display=['time','bust','under_ribcage','fullest_belly','waist','hips',notes]
+   title='body measurements'
 
    def get_list_query(self):
        query=super(BodyMeasurementsCrudViews,self).get_list_query()
