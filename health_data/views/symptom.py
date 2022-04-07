@@ -76,8 +76,11 @@ def symptomtype_autocomplete(request):
     # Subquery to get the most recent instance of each symptom type
     last_id = request.dbsession.query(Symptom.id).filter(
         Symptom.symptomtype_id==SymptomType.id
-    ).order_by(Symptom.end_time.desc()).limit(1
-    ).correlate(SymptomType)
+    ).order_by(
+        Symptom.end_time.desc(),
+        Symptom.start_time.desc(),
+        Symptom.modified_date.desc()
+    ).limit(1).correlate(SymptomType)
 
     # Query symptom types matching the term variable,
     # most recently used first
