@@ -78,10 +78,10 @@ def symptomtype_autocomplete(request):
     last_id = request.dbsession.query(Symptom.id).filter(
         Symptom.symptomtype_id==SymptomType.id
     ).order_by(func.coalesce(
-        Symptom.end_time.desc(),
-        Symptom.start_time.desc(),
-        Symptom.modified_date.desc()
-    )).limit(1).correlate(SymptomType)
+        Symptom.end_time,
+        Symptom.start_time,
+        Symptom.modified_date
+    ).desc()).limit(1).correlate(SymptomType)
 
     # Query symptom types matching the term variable,
     # most recently used first
@@ -89,10 +89,10 @@ def symptomtype_autocomplete(request):
             SymptomType.name.startswith(term)
         ).outerjoin(Symptom, Symptom.id == last_id
         ).order_by(func.coalesce(
-            Symptom.end_time.desc(),
-            Symptom.start_time.desc(),
-            Symptom.modified_date.desc()
-        )).order_by(SymptomType.id.desc()).limit(8)
+            Symptom.end_time,
+            Symptom.start_time,
+            Symptom.modified_date
+        ).desc()).order_by(SymptomType.id.desc()).limit(8)
 
     return [symptomtype.name for symptomtype in symptomtypes]
 
@@ -182,7 +182,7 @@ class SymptomViews(IndividualRecordCRUDView,CRUDView):
         query=super(SymptomViews,self).get_list_query()
 
         return query.order_by(func.coalesce(
-            Symptom.end_time.desc(),
-            Symptom.start_time.desc(),
-            Symptom.modified_date.desc()
-        ))
+            Symptom.end_time,
+            Symptom.start_time,
+            Symptom.modified_date
+        ).desc())
