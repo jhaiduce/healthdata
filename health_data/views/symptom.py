@@ -87,7 +87,10 @@ def symptomtype_autocomplete(request):
     symptomtypes=request.dbsession.query(SymptomType).filter(
             SymptomType.name.startswith(term)
         ).outerjoin(Symptom, Symptom.id == last_id
-        ).order_by(Symptom.end_time.desc()
+        ).order_by(
+            Symptom.end_time.desc(),
+            Symptom.start_time.desc(),
+            Symptom.modified_date.desc()
         ).order_by(SymptomType.id.desc()).limit(8)
 
     return [symptomtype.name for symptomtype in symptomtypes]
@@ -177,4 +180,8 @@ class SymptomViews(IndividualRecordCRUDView,CRUDView):
     def get_list_query(self):
         query=super(SymptomViews,self).get_list_query()
 
-        return query.order_by(Symptom.end_time.desc())
+        return query.order_by(
+            Symptom.end_time.desc(),
+            Symptom.start_time.desc(),
+            Symptom.modified_date.desc()
+        )
