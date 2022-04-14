@@ -6,6 +6,7 @@ from colanderalchemy import SQLAlchemySchemaNode
 from .individual_record import IndividualRecordCRUDView
 import colander
 import deform
+from sqlalchemy.sql import func
 
 def get_symptomtype_by_name(dbsession,name):
     """
@@ -76,22 +77,22 @@ def symptomtype_autocomplete(request):
     # Subquery to get the most recent instance of each symptom type
     last_id = request.dbsession.query(Symptom.id).filter(
         Symptom.symptomtype_id==SymptomType.id
-    ).order_by(
+    ).order_by(func.coalesce(
         Symptom.end_time.desc(),
         Symptom.start_time.desc(),
         Symptom.modified_date.desc()
-    ).limit(1).correlate(SymptomType)
+    )).limit(1).correlate(SymptomType)
 
     # Query symptom types matching the term variable,
     # most recently used first
     symptomtypes=request.dbsession.query(SymptomType).filter(
             SymptomType.name.startswith(term)
         ).outerjoin(Symptom, Symptom.id == last_id
-        ).order_by(
+        ).order_by(func.coalesce(
             Symptom.end_time.desc(),
             Symptom.start_time.desc(),
             Symptom.modified_date.desc()
-        ).order_by(SymptomType.id.desc()).limit(8)
+        )).order_by(SymptomType.id.desc()).limit(8)
 
     return [symptomtype.name for symptomtype in symptomtypes]
 
@@ -180,8 +181,8 @@ class SymptomViews(IndividualRecordCRUDView,CRUDView):
     def get_list_query(self):
         query=super(SymptomViews,self).get_list_query()
 
-        return query.order_by(
+        return query.order_by(func.coalesce(
             Symptom.end_time.desc(),
             Symptom.start_time.desc(),
             Symptom.modified_date.desc()
-        )
+        ))
