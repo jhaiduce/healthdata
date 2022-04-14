@@ -1347,6 +1347,7 @@ class FunctionalTests(unittest.TestCase):
     def test_symptom_addedit(self):
         self.login()
         from .models import Symptom
+        list_url='http://localhost.localdomain/symptom'
         add_url='http://localhost.localdomain/symptom/new'
         edit_url='http://localhost.localdomain/symptom/{}/edit'
         delete_confirm_url='http://localhost.localdomain/symptom/{}/delete_confirm'
@@ -1374,6 +1375,10 @@ class FunctionalTests(unittest.TestCase):
         self.assertEqual(symptom.start_time,datetime(2020,3,14,7,30))
         self.assertEqual(symptom.notes.text,'Note')
         self.assertEqual(symptom.symptomtype.name,'Fever')
+
+        resp=self.testapp.get(list_url)
+
+        self.assertEqual(resp.status_code,200)
 
         resp=self.testapp.post(
             edit_url.format(symptom_id),
