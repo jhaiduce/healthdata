@@ -36,13 +36,12 @@ class ContractionsViews(object):
             Symptom.symptomtype==contraction_symptomtype
         ).order_by(Symptom.start_time)
         symptoms=pd.read_sql(query.statement,dbsession.bind)
-        symptoms.end_time=symptoms.end_time.fillna(value=symptoms.start_time)
         start_times=symptoms.start_time
         start_times=pd.to_datetime(start_times, format='%Y-%m-%d %H:%M:%S')
         end_times=symptoms.end_time
         end_times=pd.to_datetime(end_times, format='%Y-%m-%d %H:%M:%S')
 
-        time_between=(start_times-end_times.shift()).dt.total_seconds()/60
+        time_between=(start_times-end_times.fillna(start_times).shift()).dt.total_seconds()/60
 
         duration=(end_times - start_times).dt.total_seconds()/60
 
