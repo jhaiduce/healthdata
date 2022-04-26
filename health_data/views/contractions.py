@@ -44,6 +44,8 @@ class ContractionsViews(object):
 
         time_between=(start_times-end_times.shift()).dt.total_seconds()/60
 
+        duration=(end_times - start_times).dt.total_seconds()/60
+
         from .plotly_defaults import default_axis_style
 
         graphs=[
@@ -54,6 +56,12 @@ class ContractionsViews(object):
                     'type':'scatter',
                     'mode':'lines+markers',
                     'name':'Time between'
+                },{
+                    'x':start_times,
+                    'y':duration,
+                    'type':'scatter',
+                    'mode':'lines+markers',
+                    'name':'Duration'
                 }],
                 'layout':{
                     'margin':{
