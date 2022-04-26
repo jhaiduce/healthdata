@@ -42,7 +42,7 @@ class ContractionsViews(object):
         end_times=symptoms.end_time
         end_times=pd.to_datetime(end_times, format='%Y-%m-%d %H:%M:%S')
 
-        time_between=start_times-end_times.shift()
+        time_between=(start_times-end_times.shift()).dt.total_seconds()/60
 
         from .plotly_defaults import default_axis_style
 
