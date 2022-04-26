@@ -73,7 +73,7 @@ class ContractionsViews(object):
                     'yaxis':{
                         **default_axis_style,
                         'title':{
-                            'text':'Temperature (F)'
+                            'text':'Time (minutes)'
                         }
                     },
                     'plot_bgcolor': '#E5ECF6',
