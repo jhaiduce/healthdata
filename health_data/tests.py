@@ -288,6 +288,40 @@ class TestPeriod(BaseTest):
             self.session.query(Temperature).filter(Temperature.id==temperature_id).count(),
             0)
 
+class TestContractions(BaseTest):
+
+    def setUp(self):
+        super(TestContractions, self).setUp()
+        from .models import Symptom, SymptomType
+        self.init_database()
+
+        contraction_symptom=SymptomType(name='Contraction')
+        self.session.add(contraction_symptom)
+
+        self.session.add(Symptom(
+            symptomtype=contraction_symptom,
+            start_time=datetime(2022,5,31,19,0),
+            end_time=datetime(2022,5,31,19,5),
+        ))
+
+        self.session.add(Symptom(
+            symptomtype=contraction_symptom,
+            start_time=datetime(2022,4,2,10,0),
+            end_time=datetime(2022,4,2,10,2),
+        ))
+
+        self.session.add(Symptom(
+            symptomtype=contraction_symptom,
+            start_time=datetime(2022,4,2,10,0),
+        ))
+
+    def test_contractions_plot(self):
+        from .views.contractions import ContractionsViews
+        request=dummy_request(self.session)
+        request.session['person_id']=self.person_id
+        views = ContractionsViews(request)
+        info=views.contractions_plot()
+
 class TestTemperature(BaseTest):
 
     def setUp(self):

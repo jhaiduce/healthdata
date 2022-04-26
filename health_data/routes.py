@@ -24,6 +24,7 @@ def includeme(config):
     config.add_route('blood_pressure_plot','/blood_pressure/plot')
 
     config.add_route('symptomtype_autocomplete','/symptomtype/autocomplete')
+    config.add_route('contractions_plot','/contractions/plot')
 
     config.add_route('home', '/')
     config.add_route('login', '/login')
