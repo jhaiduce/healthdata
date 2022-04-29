@@ -126,6 +126,13 @@ class BodyMeasurementsViews(object):
                    },
                    {
                       'x':list(dates),
+                      'y':list(measurements.bust),
+                      'type':'scatter',
+                      'mode':'lines+markers',
+                      'name':'Bust',
+                   },
+                   {
+                      'x':list(dates),
                       'y':list(measurements.under_ribcage),
                       'type':'scatter',
                       'mode':'lines+markers',
