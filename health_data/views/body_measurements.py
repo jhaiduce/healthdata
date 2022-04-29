@@ -80,3 +80,100 @@ class BodyMeasurementsCrudViews(IndividualRecordCRUDView,CRUDView):
             appstruct['notes']=obj.notes.text
 
         return appstruct
+
+class BodyMeasurementsViews(object):
+    def __init__(self,request):
+        self.request=request
+
+    @view_with_header
+    @view_config(route_name='bodymeasurements_plot',renderer='../templates/generic_plot.jinja2')
+    def plot(self):
+
+        import json
+        import plotly
+
+        import pandas as pd
+        import numpy as np
+
+        dbsession=self.request.dbsession
+
+        session_person=dbsession.query(Person).filter(
+            Person.id==self.request.session['person_id']).first()
+        query=dbsession.query(BodyMeasurements).with_entities(
+            BodyMeasurements.time, BodyMeasurements.bust,
+            BodyMeasurements.under_ribcage, BodyMeasurements.waist,
+            BodyMeasurements.fullest_belly, BodyMeasurements.hips
+        ).filter(
+            BodyMeasurements.person==session_person
+        ).order_by(BodyMeasurements.time.desc())
+
+        measurements=pd.read_sql(query.statement,dbsession.bind)
+        measurements=measurements.dropna(subset=['time'])
+        dates=measurements['time']
+        dates=dates.apply(lambda x: x.strftime('%Y-%m-%d %H:%M:%S'))
+
+        from .plotly_defaults import default_axis_style
+
+        graphs=[
+            {
+                'data':[
+                   {
+                      'x':list(dates),
+                      'y':list(measurements.fullest_belly),
+                      'type':'scatter',
+                      'mode':'lines+markers',
+                      'name':'Fullest belly',
+                   },
+                   {
+                      'x':list(dates),
+                      'y':list(measurements.under_ribcage),
+                      'type':'scatter',
+                      'mode':'lines+markers',
+                      'name':'Under ribcage',
+                   },
+                   {
+                      'x':list(dates),
+                      'y':list(measurements.waist),
+                      'type':'scatter',
+                      'mode':'lines+markers',
+                      'name':'Waist',
+                   },
+                   {
+                      'x':list(dates),
+                      'y':list(measurements.hips),
+                      'type':'scatter',
+                      'mode':'lines+markers',
+                      'name':'Hips',
+                   },
+                ],
+                'layout':{
+                    'margin':{
+                        'l':55,
+                        'r':25,
+                        'b':50,
+                        't':45,
+                        'pad':2,
+                    },
+                    'plot_bgcolor': '#E5ECF6',
+                    'yaxis':{
+                        **default_axis_style,
+                        'title':{
+                            'text':'Length (in)'
+                        }
+                    },
+                    'xaxis':default_axis_style
+                },
+                'config':{'responsive':True}
+            }
+        ]
+
+        # Add "ids" to each of the graphs to pass up to the client
+        # for templating
+        ids = ['graph-{}'.format(i) for i, _ in enumerate(graphs)]
+
+        # Convert the figures to JSON
+        # PlotlyJSONEncoder appropriately converts pandas, datetime, etc
+        # objects to their JSON equivalents
+        graphJSON = json.dumps(graphs, cls=plotly.utils.PlotlyJSONEncoder)
+
+        return {'graphJSON':graphJSON, 'ids':ids}
