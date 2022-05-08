@@ -23,6 +23,8 @@ from .header import view_with_header
 
 from pyramid.events import subscriber,BeforeRender
 
+from .showtable import SqlalchemyOrmPage
+
 class ViewDbEvent(object):
 
     def __init__(self,request,appstruct,schema,obj):
@@ -896,8 +898,10 @@ class CRUDView(object,metaclass=CRUDCreator):
         :return: A dict with a single key ``items`` that is a query which when
             iterating over yields all items to be listed.
         """
+        current_page = int(self.request.params.get("page",1))
         items = self.get_list_query()
-        retparams = {'items': items}
+        page=SqlalchemyOrmPage(items,page=current_page,items_per_page=30)
+        retparams = {'items': items, 'page':page}
 
         return retparams
 

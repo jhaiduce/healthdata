@@ -6,6 +6,17 @@
 <a href="{{request.route_url(view.routes['new'])}}" class="btn btn-primary pull-right">New</a>
     <div class="form-group">
     </div>
+
+    <div class="row">
+      <div class="col">
+	{{items.count()}} entries
+      </div>
+    </div>
+
+    <div class="row">
+      {{page.pager(url=request.route_url(view.routes['list'])+"?page=$page")|safe}}
+    </div>
+
     <table class="data_table">
         <thead>
             <tr>
@@ -19,7 +30,7 @@
         </thead>
         <tbody>
 
-                {% for item in items%}
+                {% for item in page.items%}
                     <tr>
 			<td><a href="{{view._edit_route(item)}}">edit</a></td>
                         {% for title, col in view.iter_list_cols(item) %}
@@ -42,5 +53,9 @@
         </tbody>
     </table>
 </form>
+
+<div class="row">
+{{page.pager(url=request.route_url(view.routes['list'])+"?page=$page")|safe}}
+</div>
 
 {% endblock content %}
