@@ -163,7 +163,7 @@ class PeriodForm(colander.MappingSchema):
         colander.Integer(),
         widget=deform.widget.HiddenWidget(),missing=None)
 
-    date=colander.SchemaNode(colander.Date(),missing=date.today())
+    date=colander.SchemaNode(colander.Date())
     temperature_time=colander.SchemaNode(colander.Time(),missing=None)
     temperature=colander.SchemaNode(
         colander.Float(),missing=None)
