@@ -26,7 +26,7 @@ def get_period_data(dbsession,session_person):
     ).order_by(func.coalesce(
         Period.date,
         Period.modified_date
-    ).desc())
+    ))
 
     periods=pd.read_sql(query.statement,dbsession.bind)
     periods.period_intensity=periods.period_intensity.fillna(1)
