@@ -13,6 +13,8 @@ from ..models.people import Person
 
 from .header import view_with_header
 
+from sqlalchemy.sql import func
+
 def get_period_data(dbsession,session_person):
     from sqlalchemy.orm import joinedload
     import pandas as pd
@@ -21,7 +23,10 @@ def get_period_data(dbsession,session_person):
         Period.person==session_person
     ).options(
         joinedload(Period.temperature).load_only(Temperature.temperature)
-    ).order_by(Period.date)
+    ).order_by(func.coalesce(
+        Period.date,
+        Period.modified_date
+    ).desc())
 
     periods=pd.read_sql(query.statement,dbsession.bind)
     periods.period_intensity=periods.period_intensity.fillna(1)
@@ -372,7 +377,9 @@ class PeriodViews(object):
             Person.id==self.request.session['person_id']).one()
         entries=self.request.dbsession.query(Period).filter(
             Period.person==session_person
-        ).order_by(Period.date.desc())
+        ).order_by(
+            func.coalesce(Period.date,Period.modified_date).desc()
+        )
         page=SqlalchemyOrmPage(entries,page=current_page,items_per_page=30)
         return dict(
             entries=entries,page=page,
