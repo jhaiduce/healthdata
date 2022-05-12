@@ -488,7 +488,7 @@ class PeriodViews(object):
             # (cleans up chart visually)
             intensities.loc[nonzero_flow]=1
 
-        from .plotly_defaults import default_axis_style
+        from .plotly_defaults import default_axis_style, get_axis_range
 
         graphs=[
             {
@@ -609,7 +609,10 @@ class PeriodViews(object):
                         'xanchor':'right'
                     },
                     'plot_bgcolor': '#E5ECF6',
-                    "xaxis": default_axis_style,
+                    "xaxis": {
+                        'range': get_axis_range(dates,start_idx=-120),
+                        **default_axis_style
+                    },
                 },
                 'config':{'responsive':True}
             }

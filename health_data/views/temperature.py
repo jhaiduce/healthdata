@@ -213,7 +213,7 @@ class TemperatureViews(object):
         dates=temperatures['time']
         dates=dates.apply(lambda x: x.strftime('%Y-%m-%d %H:%M:%S'))
 
-        from .plotly_defaults import default_axis_style
+        from .plotly_defaults import default_axis_style, get_axis_range
 
         graphs=[
             {
@@ -239,7 +239,11 @@ class TemperatureViews(object):
                         }
                     },
                     'plot_bgcolor': '#E5ECF6',
-                    'xaxis': default_axis_style,
+                    "xaxis": {
+                        'range': get_axis_range(temperatures['time'],
+                                                start_idx=-120),
+                        **default_axis_style
+                    },
                 },
                 'config':{'responsive':True}
             }
