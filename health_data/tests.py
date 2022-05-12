@@ -288,6 +288,27 @@ class TestPeriod(BaseTest):
             self.session.query(Temperature).filter(Temperature.id==temperature_id).count(),
             0)
 
+        # Test attempt to add a period with empty date
+        request=testing.DummyRequest(MultiDict([
+            ('form.submitted',True),
+            ('submit','submit'),
+            ('period_intensity','5'),
+            ('cervical_fluid','1'),
+            ('lh_surge','1'),
+            ('__start__','date:mapping'),
+            ('date',''),
+            ('__end__','date:mapping'),
+            ('temperature','97.7'),
+            ('__start__','temperature_time:mapping'),
+            ('time','07:13'),
+            ('__end__','temperature_time:mapping'),
+            ('notes','Note')
+        ]),dbsession=self.session)
+        request.session['person_id']=self.person_id
+        views = PeriodViews(request)
+        info=views.period_add()
+        self.assertIsInstance(info,dict)
+
 class TestContractions(BaseTest):
 
     def setUp(self):
