@@ -83,7 +83,7 @@ class TemperatureViews(object):
             try:
                 appstruct=self.temperature_form().validate(controls)
             except deform.ValidationFailure as e:
-                return dict(form=e.render())
+                return dict(form=e.render(),temperature=None,modified_date=None)
 
             temperature=appstruct_to_temperature(dbsession,appstruct)
 
