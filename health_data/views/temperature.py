@@ -18,8 +18,8 @@ class TemperatureForm(colander.MappingSchema):
         colander.Integer(),
         widget=deform.widget.HiddenWidget(),missing=None)
 
-    date=colander.SchemaNode(colander.Date(),missing=date.today())
-    time=colander.SchemaNode(colander.Time(),missing=datetime.now().time())
+    date=colander.SchemaNode(colander.Date())
+    time=colander.SchemaNode(colander.Time())
     temperature=colander.SchemaNode(
         colander.Float(),missing=None)
 
