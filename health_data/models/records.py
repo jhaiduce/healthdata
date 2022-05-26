@@ -422,6 +422,9 @@ class Period(TimestampedRecord,IndividualRecord,Record):
 
     @property
     def total_flow(self):
+
+        if not self.date: return None
+
         menstrual_cup_flow=object_session(self).query(
             func.sum(MenstrualCupFill.fill).label('fill')
         ).filter(
