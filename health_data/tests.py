@@ -865,7 +865,7 @@ class FunctionalTests(unittest.TestCase):
 
     def test_period_addedit(self):
         self.login()
-        from .models import Period
+        from .models import Period, Temperature
         add_url='http://localhost.localdomain/period/add'
         list_url='http://localhost.localdomain/period/list'
         edit_url='http://localhost.localdomain/period/{}/edit'
@@ -942,6 +942,18 @@ class FunctionalTests(unittest.TestCase):
         resp=self.testapp.get(list_url)
         entries=int(re.search(r'(\d+) entries',resp.text).group(1))
         self.assertEqual(entries,1)
+
+        period=Period(person_id=self.person_id,
+                      temperature=Temperature(temperature=98.3))
+        session.add(period)
+        session.flush()
+        period_id=period.id
+        transaction.commit()
+
+        period=session.query(Period).filter(Period.id==period_id).one()
+        resp=self.testapp.get(list_url)
+        entries=int(re.search(r'(\d+) entries',resp.text).group(1))
+        self.assertEqual(entries,2)
 
     def test_weight_addedit(self):
         self.login()
