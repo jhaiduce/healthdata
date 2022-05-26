@@ -929,6 +929,7 @@ class FunctionalTests(unittest.TestCase):
         session.flush()
         transaction.commit()
         period=session.query(Period).filter(Period.id==period_id).one()
+        self.assertEqual(period.person_id,self.person_id)
         self.assertEqual(period.period_intensity,2)
         self.assertEqual(period.cervical_fluid_character,1)
         self.assertEqual(period.lh_surge,1)
