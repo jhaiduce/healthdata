@@ -466,6 +466,20 @@ class TestTemperature(BaseTest):
                 Record.id==temperature_id).count(),
             0)
 
+        request=testing.DummyRequest({
+            'form.submitted':True,
+            'id':'',
+            'date':{'date':''},
+            'time':{'time':''},
+            'temperature':'97.7',
+            'submit':'submit',
+            '_charset_':'UTF-8',
+        },dbsession=self.session)
+        request.session['person_id']=self.person_id
+        views = TemperatureViews(request)
+        info=views.temperature_add()
+        self.assertIsInstance(info,dict)
+
 class AuthenticationTests(BaseTest):
 
     def setUp(self):
