@@ -792,6 +792,7 @@ class FunctionalTests(unittest.TestCase):
 
         person=models.Person(name='Alice')
         session.add(person)
+        session.flush()
 
         self.person_id=person.id
 
