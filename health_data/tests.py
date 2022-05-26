@@ -369,6 +369,22 @@ class TestTemperature(BaseTest):
         from .views.temperature import TemperatureViews
         from .models.records import Temperature,Record
         from datetime import date, datetime
+
+        # Test that a validation error occurs when date and time are left blank
+        request=testing.DummyRequest({
+            'form.submitted':True,
+            'id':'',
+            'date':{'date':''},
+            'time':{'time':''},
+            'temperature':'97.7',
+            'submit':'submit',
+            '_charset_':'UTF-8',
+        },dbsession=self.session)
+        request.session['person_id']=self.person_id
+        views = TemperatureViews(request)
+        info=views.temperature_add()
+        self.assertIsInstance(info,dict)
+
         request=testing.DummyRequest({
             'form.submitted':True,
             'id':'',
