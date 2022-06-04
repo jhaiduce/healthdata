@@ -62,7 +62,7 @@ waitress==2.1.2
 wcwidth==0.1.7
 WebOb==1.8.5
 whichcraft==0.6.1
-zipp==0.6.0
+zipp==3.8.0
 zope.deprecation==4.4.0
 zope.interface==4.7.2
 zope.sqlalchemy==1.1
