@@ -79,14 +79,33 @@ for i in $(seq 1 $numworkers); do
     fi
 done
 
+export SSL_CHECKSUM=$(openssl x509 -in nginx/ssl_production/fullchain.pem -outform DER \
+			  | sha1sum | head -c 40)
+
+if docker-machine ssh $host_prefix-master docker secret inspect ssl_certificate.${SSL_CHECKSUM}
+then :
+else
+    docker-machine ssh $host_prefix-master docker secret create ssl_certificate.${SSL_CHECKSUM} \
+		   nginx/ssl/fullchain.pem
+fi
+
+if docker-machine ssh $host_prefix-master \
+		  docker secret inspect ssl_certificate_key.${SSL_CHECKSUM}
+then :
+else
+    docker-machine ssh $host_prefix-master \
+		   docker secret create ssl_certificate_key.${SSL_CHECKSUM} \
+		   nginx/ssl/privkey.pem
+fi
+
 # Deploy the stack
-docker-machine ssh $host_prefix-master docker stack deploy -c docker-compose.yml ${stack_name}
+docker-machine ssh $host_prefix-master SSL_CHECKSUM=${SSL_CHECKSUM} docker stack deploy -c docker-compose.yml ${stack_name}
 
 # Delete the migration service (in case it still exists from a previous execution)
 if docker-machine ssh $host_prefix-master docker service rm ${stack_name}_migration; then :; fi
 
 # Update the database
-docker-machine ssh $host_prefix-master docker stack deploy -c docker-compose.yml -c docker-compose.migrate.yml ${stack_name}
+docker-machine ssh $host_prefix-master SSL_CHECKSUM=${SSL_CHECKSUM} docker stack deploy -c docker-compose.yml -c docker-compose.migrate.yml ${stack_name}
 
 function wait_for_migration {
 
