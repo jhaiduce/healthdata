@@ -56,6 +56,8 @@ class HeightWeightCrudViews(IndividualRecordCRUDView,CRUDView):
        HeightWeight,
        includes=['time','weight','height',notes_schema]
    )
+   title='Height and weight'
+   csv_filename='height_weight.csv'
    url_path = '/height_weight'
    list_display=('time','weight','height',bmi,notes)
 

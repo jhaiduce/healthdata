@@ -256,6 +256,12 @@ TypeError: formdata should be a multidict-type wrapper that supports the 'getlis
                              renderer=self.view_class.get_template_for('list'))
         return self._configure_route('list', '')
 
+    def configure_csv_view(self):
+
+        self._configure_view('csv',
+                             renderer=self.view_class.get_template_for('csv'))
+        return self._configure_route('csv', '/csv')
+
     def configure_edit_view(self):
         """
         This method behaves exactly like
@@ -308,12 +314,14 @@ class CRUDCreator(type):
             config = context.config.with_package(info.module)
             configurator = cls.view_configurator_class(config, cls)
             list_route = configurator.configure_list_view()
+            csv_route = configurator.configure_csv_view()
             edit_route = configurator.configure_edit_view()
             new_route = configurator.configure_new_view()
             delete_confirm_route = configurator.configure_delete_confirm_view()
 
             cls.routes = {
                 'list': list_route,
+                'csv': csv_route,
                 'edit': edit_route,
                 'new': new_route,
                 'delete_confirm': delete_confirm_route,
@@ -904,6 +912,34 @@ class CRUDView(object,metaclass=CRUDCreator):
         retparams = {'items': items, 'page':page}
 
         return retparams
+
+    def csv(self):
+        """
+        Dump all items for Model in CSV format
+        """
+
+        import csv
+        import io
+
+        output=io.StringIO()
+        writer=csv.writer(output)
+
+        writer.writerow([col_info["label"] for col_info in self.iter_head_cols()])
+
+        items=self.get_list_query()
+
+        for item in items:
+            writer.writerow([col for title, col in self.iter_list_cols(item)])
+
+        filename=getattr(self,'csv_filename',
+                         getattr(self,'title','data'))
+        if not filename.endswith('.csv'): filename=filename+'.csv'
+
+        return Response(
+            output.getvalue(),
+            content_type='text/csv',
+            content_disposition='attachment; filename="{filename}"'.format(
+                            filename=filename))
 
     def edit(self):
         """
