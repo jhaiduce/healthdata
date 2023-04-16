@@ -47,7 +47,7 @@ class User(Base):
 
         if(
                 # Check OTP is correct
-                otp==pyotp.TOTP(self.otp_secret).now()
+                pyotp.TOTP(self.otp_secret).verify(otp, valid_window=1)
 
                 # Protect against OTP reuse
                 and (self.last_otp_hash is None or
