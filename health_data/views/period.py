@@ -53,16 +53,18 @@ def temperature(obj):
     return obj.temperature.temperature if obj.temperature else ''
 
 def period_intensity(obj):
+    if obj.period_intensity==1: return ''
     return period_intensity_choices.get(obj.period_intensity,'')
 
 def cervical_fluid(obj):
+    if obj.cervical_fluid_character==1: return ''
     return cervical_fluid_choices.get(obj.cervical_fluid_character,'')
 
 def period_flow(obj):
     return obj.total_flow
 
 def lh_surge(obj):
-    return lh_surge_choices.get(obj.lh_surge,'')
+    return {2:'Negative',3:'Positive'}.get(obj.lh_surge,'')
 
 def get_period_data(dbsession,session_person):
     from sqlalchemy.orm import joinedload
