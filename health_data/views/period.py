@@ -298,6 +298,11 @@ class PeriodCrudViews(IndividualRecordCRUDView,CRUDView):
 
         return appstruct
 
+    def get_list_query(self):
+       query=super(PeriodCrudViews,self).get_list_query()
+
+       return query.order_by(Period.date.desc())
+
 class PeriodViews(object):
     def __init__(self,request):
         self.request=request
