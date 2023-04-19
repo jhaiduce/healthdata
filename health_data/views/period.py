@@ -50,7 +50,7 @@ def temperature(obj):
     Return the text of a notes object (for display in the SymptomViews table)
     """
 
-    return obj.temperature.temperature if obj.temperature else ''
+    return obj.temperature.temperature if obj.temperature and obj.temperature.temperature else ''
 
 def period_intensity(obj):
     if obj.period_intensity==1: return ''
