@@ -275,6 +275,13 @@ class PeriodCrudViews(IndividualRecordCRUDView,CRUDView):
                         for (key,value) in cervical_fluid_choices.items()
                     ])
             },
+            'lh_surge':{
+                'widget':deform.widget.SelectWidget(
+                    values=[
+                        (key,value)
+                        for (key,value) in lh_surge_choices.items()
+                    ])
+            },
             'notes':{
                 'widget':deform.widget.TextAreaWidget()
             },
