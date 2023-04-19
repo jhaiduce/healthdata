@@ -1174,6 +1174,7 @@ class FunctionalTests(unittest.TestCase):
                 ('time',''),
                 ('__end__','time:mapping'),
                 ('temperature','97.7'),
+                ('notes','test note'),
                 ('save','save')
             ]
         )
@@ -1183,6 +1184,7 @@ class FunctionalTests(unittest.TestCase):
         temperature=session.query(Temperature).filter(Temperature.id==temperature_id).one()
         self.assertEqual(temperature.temperature,97.7)
         self.assertIsNone(temperature.time)
+        self.assertEqual(temperature.notes.text,'test note')
 
         resp=self.testapp.post(
             add_url,

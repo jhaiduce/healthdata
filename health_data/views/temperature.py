@@ -1,7 +1,8 @@
 from pyramid.view import view_config
+from pyramid.events import subscriber
 import colander
 import deform.widget
-from .crud import CRUDView
+from .crud import CRUDView, ViewDbInsertEvent,ViewDbUpdateEvent
 from colanderalchemy import SQLAlchemySchemaNode
 from .individual_record import IndividualRecordCRUDView
 import json
@@ -25,6 +26,29 @@ def notes(obj):
     """
 
     return obj.notes.text if obj.notes else '-'
+
+@subscriber(ViewDbInsertEvent,ViewDbUpdateEvent)
+def finalize_temperature_fields(event):
+    """
+    Post-process an automatically deserialized Temperature object
+    """
+
+    if isinstance(event.obj,Temperature):
+
+        # Store the notes field
+        if event.appstruct['notes'] is not None:
+
+            if event.obj.notes is None:
+                # Create a new notes object
+                event.obj.notes=Note()
+
+            # Set/update the notes properties
+            event.obj.notes.date=event.obj.time
+            event.obj.notes.text=event.appstruct['notes']
+
+        else:
+
+            event.obj.notes=None
 
 class TemperatureCrudViews(IndividualRecordCRUDView,CRUDView):
 
