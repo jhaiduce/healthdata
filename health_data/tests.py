@@ -18,7 +18,6 @@ session_secret='3e774c33267869272a585d5540402349252460606b42633964462a3440563365
 def dummy_request(dbsession):
     return testing.DummyRequest(dbsession=dbsession)
 
-
 class BaseTest(unittest.TestCase):
     def setUp(self):
         self.config = testing.setUp(settings={
@@ -131,183 +130,6 @@ class TestPeriod(BaseTest):
         request.session['person_id']=self.person_id
         views = PeriodViews(request)
         info=views.period_plot()
-
-    def test_period_edit(self):
-        from .views.period import PeriodViews
-        from .models.records import Period, Record, Temperature
-        from datetime import date, datetime
-        from webob.multidict import MultiDict
-        request=testing.DummyRequest(MultiDict([
-            ('form.submitted',True),
-            ('submit','submit'),
-            ('period_intensity','5'),
-            ('cervical_fluid','1'),
-            ('lh_surge','1'),
-            ('__start__','date:mapping'),
-            ('date','2019-10-29'),
-            ('__end__','date:mapping'),
-            ('temperature','97.7'),
-            ('__start__','temperature_time:mapping'),
-            ('time','07:13'),
-            ('__end__','temperature_time:mapping'),
-            ('notes','Note')
-        ]),dbsession=self.session)
-        request.session['person_id']=self.person_id
-        views = PeriodViews(request)
-        info=views.period_add()
-        records=self.session.query(Period).filter(
-            Period.date==date(2019,10,29))
-        record_id=records.first().id
-        temperature_id=records.first().temperature_id
-        record_count=records.count()
-        self.assertGreater(record_count,0)
-
-        request=testing.DummyRequest(MultiDict([
-            ('form.submitted',True),
-            ('submit','submit'),
-            ('period_intensity','5'),
-            ('cervical_fluid','1'),
-            ('lh_surge','1'),
-            ('__start__','date:mapping'),
-            ('date','2019-10-29'),
-            ('__end__','date:mapping'),
-            ('temperature','97.2'),
-            ('__start__','temperature_time:mapping'),
-            ('time','07:13'),
-            ('__end__','temperature_time:mapping'),
-            ('notes','Updated note')
-        ]),dbsession=self.session)
-        request.session['person_id']=self.person_id
-        request.matchdict['period_id']=record_id
-        views = PeriodViews(request)
-        info=views.period_edit()
-        record=self.session.query(Period).filter(Period.id==record_id).one()
-        self.assertEqual(record.temperature.temperature,97.2)
-        self.assertEqual(record.notes.text,'Updated note')
-
-        request=testing.DummyRequest(MultiDict([
-            ('form.submitted',True),
-            ('submit','submit'),
-            ('period_intensity','5'),
-            ('cervical_fluid','1'),
-            ('lh_surge','1'),
-            ('__start__','date:mapping'),
-            ('date','2019-10-29'),
-            ('__end__','date:mapping'),
-            ('temperature','97.2'),
-            ('__start__','temperature_time:mapping'),
-            ('time',''),
-            ('__end__','temperature_time:mapping'),
-            ('notes','Updated note')
-        ]),dbsession=self.session)
-        request.session['person_id']=self.person_id
-        request.matchdict['period_id']=record_id
-        views = PeriodViews(request)
-        info=views.period_edit()
-        record=self.session.query(Period).filter(Period.id==record_id).one()
-        self.assertEqual(record.temperature.temperature,97.2)
-        self.assertEqual(record.temperature.time,datetime(2019,10,29))
-        self.assertEqual(record.notes.text,'Updated note')
-
-        request=testing.DummyRequest(MultiDict([
-            ('form.submitted',True),
-            ('submit','submit'),
-            ('period_intensity','5'),
-            ('cervical_fluid','1'),
-            ('lh_surge','1'),
-            ('__start__','date:mapping'),
-            ('date','2019-10-29'),
-            ('__end__','date:mapping'),
-            ('temperature','97.2'),
-            ('__start__','__temperature_time:mapping'),
-            ('time','07:13'),
-            ('__end__','temperature_time:mapping'),
-            ('notes','')
-        ]),dbsession=self.session)
-        request.session['person_id']=self.person_id
-        request.matchdict['period_id']=record_id
-        views = PeriodViews(request)
-        info=views.period_edit()
-        record=self.session.query(Period).filter(Period.id==record_id).one()
-        self.assertEqual(record.temperature.temperature,97.2)
-        self.assertIsNone(record.notes)
-
-        # Test delete button on the edit form
-        request=testing.DummyRequest(MultiDict([
-            ('form.submitted',True),
-            ('delete_entry','delete_entry'),
-            ('period_intensity','5'),
-            ('cervical_fluid','1'),
-            ('lh_surge','1'),
-            ('__start__','date:mapping'),
-            ('date','2019-10-29'),
-            ('__end__','date:mapping'),
-            ('temperature','97.2'),
-            ('__start__','temperature_time:mapping'),
-            ('time','07:13'),
-            ('__end__','temperature_time:mapping'),
-        ]),dbsession=self.session)
-        request.matchdict['period_id']=record_id
-        edit_url=request.url
-        views = PeriodViews(request)
-        info=views.period_edit()
-        self.assertTrue(isinstance(info,HTTPFound))
-        delete_url=request.route_url('period_delete',
-                                          period_id=record_id,
-                                          _query=dict(referrer=request.url))
-        self.assertEqual(info.location,delete_url)
-
-        # Test cancelling delete
-        request=testing.DummyRequest({
-            'cancel':'cancel'
-        },dbsession=self.session)
-        request.matchdict['period_id']=record_id
-        request.referrer=edit_url
-        views=PeriodViews(request)
-        info=views.period_delete()
-        self.assertTrue(isinstance(info,HTTPFound))
-        self.assertEqual(info.location,edit_url)
-
-        # Test deletion
-        request=testing.DummyRequest({
-            'delete':'delete'
-        },dbsession=self.session)
-        request.matchdict['period_id']=record_id
-        request.referrer=edit_url
-        views=PeriodViews(request)
-        info=views.period_delete()
-        self.assertTrue(isinstance(info,HTTPFound))
-        self.assertEqual(info.location,request.route_url('period_list'))
-        self.assertEqual(
-            self.session.query(Period).filter(Period.id==record_id).count(),
-            0)
-        self.assertEqual(
-            self.session.query(Record).filter(Record.id==record_id).count(),
-            0)
-        self.assertEqual(
-            self.session.query(Temperature).filter(Temperature.id==temperature_id).count(),
-            0)
-
-        # Test attempt to add a period with empty date
-        request=testing.DummyRequest(MultiDict([
-            ('form.submitted',True),
-            ('submit','submit'),
-            ('period_intensity','5'),
-            ('cervical_fluid','1'),
-            ('lh_surge','1'),
-            ('__start__','date:mapping'),
-            ('date',''),
-            ('__end__','date:mapping'),
-            ('temperature','97.7'),
-            ('__start__','temperature_time:mapping'),
-            ('time','07:13'),
-            ('__end__','temperature_time:mapping'),
-            ('notes','Note')
-        ]),dbsession=self.session)
-        request.session['person_id']=self.person_id
-        views = PeriodViews(request)
-        info=views.period_add()
-        self.assertIsInstance(info,dict)
 
 class TestContractions(BaseTest):
 
@@ -692,7 +514,7 @@ class FunctionalTests(unittest.TestCase):
 
         # Verify that we got redirected to the default page
         self.assertEqual(res.status_code,302)
-        self.assertEqual(res.location,'http://localhost.localdomain/period')
+        self.assertEqual(res.location,'http://localhost.localdomain/period/plot')
 
     def test_successful_login(self):
         import pyotp
@@ -703,7 +525,7 @@ class FunctionalTests(unittest.TestCase):
 
         # Verify that we got redirected to the default page
         self.assertEqual(res.status_code,302)
-        self.assertEqual(res.location,'http://localhost.localdomain/period')
+        self.assertEqual(res.location,'http://localhost.localdomain/period/plot')
 
         # Verify that we can load a page
         res=self.testapp.get('http://localhost.localdomain/period')
@@ -751,8 +573,8 @@ class FunctionalTests(unittest.TestCase):
     def test_period_addedit(self):
         self.login()
         from .models import Period, Temperature
-        add_url='http://localhost.localdomain/period/add'
-        list_url='http://localhost.localdomain/period/list'
+        add_url='http://localhost.localdomain/period/new'
+        list_url='http://localhost.localdomain/period'
         edit_url='http://localhost.localdomain/period/{}/edit'
         session=self.get_session()
 
@@ -773,13 +595,13 @@ class FunctionalTests(unittest.TestCase):
                 ('__end__','temperature_time:mapping'),
                 ('temperature','97.9'),
                 ('period_intensity','1'),
-                ('cervical_fluid','1'),
+                ('cervical_fluid_character','1'),
                 ('lh_surge','1'),
-                ('submit','submit')
+                ('save','save')
             ]
         )
         self.assertEqual(resp.status_code,302)
-        period_id=json.loads(resp.text)['period_id']
+        period_id=json.loads(resp.text)['id']
         period=session.query(Period).filter(Period.id==period_id).one()
         self.assertEqual(period.period_intensity,1)
         self.assertEqual(period.cervical_fluid_character,1)
@@ -804,10 +626,10 @@ class FunctionalTests(unittest.TestCase):
                 ('__end__','temperature_time:mapping'),
                 ('temperature','98.1'),
                 ('period_intensity','2'),
-                ('cervical_fluid','1'),
+                ('cervical_fluid_character','1'),
                 ('lh_surge','1'),
                 ('notes','A brief note'),
-                ('submit','submit')
+                ('save','save')
             ]
         )
         self.assertEqual(resp.status_code,302)

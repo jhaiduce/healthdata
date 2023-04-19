@@ -36,13 +36,13 @@ class BaseTest(unittest.TestCase):
                 time.sleep(2)
 
         assert resp.history[0].status_code==302
-        assert resp.history[0].headers['Location']=='http://healthdata_web/period'
+        assert resp.history[0].headers['Location']=='http://healthdata_web/period/plot'
 
     @classmethod
     def tearDownClass(cls):
         resp=cls.session.post('http://healthdata_web/logout')
         assert resp.history[0].status_code==302
-        assert resp.history[0].headers['Location']=='http://healthdata_web/period'
+        assert resp.history[0].headers['Location']=='http://healthdata_web/period/plot'
 
         resp=cls.session.get('http://healthdata_web/period')
         assert resp.history[0].status_code==302
@@ -58,19 +58,19 @@ class BaseTest(unittest.TestCase):
         self.assertEqual(resp.history[0].headers['Location'],'http://healthdata_web/person/list')
 
     def test_period_list(self):
-        resp=self.session.get('http://healthdata_web/period/list')
+        resp=self.session.get('http://healthdata_web/period')
         self.assertGreater(resp.text.find('entries'),0)
 
     def test_period_plot(self):
-        resp=self.session.get('http://healthdata_web/period')
+        resp=self.session.get('http://healthdata_web/period/plot')
         self.assertGreater(resp.text.find('<div id="graph-0"'),0)
 
     def test_period_add(self):
-        resp=self.session.get('http://healthdata_web/period/list')
+        resp=self.session.get('http://healthdata_web/period')
         entry_count=int(re.search(r'(\d+) entries',resp.text).group(1))
 
         resp=self.session.post(
-            'http://healthdata_web/period/add',
+            'http://healthdata_web/period/new',
             data=[
                 ('__start__','date:mapping'),
                 ('date','2020-03-14'),
@@ -80,8 +80,8 @@ class BaseTest(unittest.TestCase):
                 ('__end__','temperature_time:mapping'),
                 ('temperature','97.9'),
                 ('period_intensity','1'),
-                ('cervical_fluid','1'),
-                ('submit','submit')
+                ('cervical_fluid_character','1'),
+                ('save','save')
             ]
         )
 
@@ -90,17 +90,17 @@ class BaseTest(unittest.TestCase):
 
         # Get the id of the new entry
         submission_metadata=json.loads(resp.history[0].text)
-        period_id=submission_metadata['period_id']
+        period_id=submission_metadata['id']
 
         # Load the period listing page
-        resp=self.session.get('http://healthdata_web/period/list')
+        resp=self.session.get('http://healthdata_web/period')
 
         # Check that the entry count was incremented
         new_entry_count=int(re.search(r'(\d+) entries',resp.text).group(1))
         self.assertEqual(new_entry_count,entry_count+1)
 
         # Check that the new entry is listed
-        self.assertGreater(resp.text.find('a href="/period/{}/edit"'.format(period_id)),0)
+        self.assertGreater(resp.text.find('a href="http://healthdata_web/period/{}/edit"'.format(period_id)),0)
 
         # Check that the edit screen loads correctly
         resp=self.session.get('http://healthdata_web/period/{}/edit'.format(period_id))
@@ -120,7 +120,7 @@ class BaseTest(unittest.TestCase):
 
         self.assertEqual(period_intensity_value,'1')
 
-        cervical_fluid_value=soup.find('select',{'name':'cervical_fluid'}
+        cervical_fluid_value=soup.find('select',{'name':'cervical_fluid_character'}
         ).find('option',{'selected':'selected'})['value']
 
         self.assertEqual(cervical_fluid_value,'1')
