@@ -15,7 +15,7 @@ def includeme(config):
     config.add_route('person_list','/person/list')
     config.add_route('person_set_session','/person/set_session_person/{person_id}')
 
-    config.add_route('temperature_plot','/temperature')
+    config.add_route('temperature_plot','/temperature/plot')
     config.add_route('weight_plot','/height_weight/plot_weight')
     config.add_route('bodymeasurements_plot','/body_measurements/plot')
     config.add_route('blood_pressure_plot','/blood_pressure/plot')

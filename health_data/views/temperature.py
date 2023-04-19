@@ -41,12 +41,12 @@ class TemperatureCrudViews(IndividualRecordCRUDView,CRUDView):
     )
     title='temperature'
     url_path='/temperature'
-    list_display=['date','time','temperature',notes]
+    list_display=['time','temperature',notes]
 
     def get_list_query(self):
-       query=super(MenstrualCupFillCrudViews,self).get_list_query()
+       query=super(TemperatureCrudViews,self).get_list_query()
 
-       return query.order_by(Temperature.date.desc(), Temperature.time.desc())
+       return query.order_by(Temperature.time.desc())
 
     def dictify(self,obj):
         """
