@@ -1,193 +1,68 @@
 from pyramid.view import view_config
 import colander
 import deform.widget
-from pyramid.httpexceptions import HTTPFound
-from pyramid.response import Response
-from datetime import date,datetime,timedelta,time
+from .crud import CRUDView
+from colanderalchemy import SQLAlchemySchemaNode
+from .individual_record import IndividualRecordCRUDView
 import json
 
-from .showtable import SqlalchemyOrmPage
-
-from ..models.records import Period, period_intensity_choices, cervical_fluid_choices, Temperature, Note
+from ..models.records import Temperature, Note
 from ..models.people import Person
 
 from .header import view_with_header
 
-class TemperatureForm(colander.MappingSchema):
-    id=colander.SchemaNode(
-        colander.Integer(),
-        widget=deform.widget.HiddenWidget(),missing=None)
+# Notes is a foreign key reference to the symptomtype table. Since we
+# only want to expose one field of notes, we declare a custom SchemaNode
+# for it
+notes_schema = colander.SchemaNode(colander.String(),
+                                   name='notes',
+                                   widget=deform.widget.TextAreaWidget(),
+                                   missing=None)
 
-    date=colander.SchemaNode(colander.Date())
-    time=colander.SchemaNode(colander.Time())
-    temperature=colander.SchemaNode(
-        colander.Float(),missing=None)
+def notes(obj):
+    """
+    Return the text of a notes object (for display in the SymptomViews table)
+    """
 
-    notes=colander.SchemaNode(
-        colander.String(),
-        widget=deform.widget.TextAreaWidget(),
-        missing=None)
+    return obj.notes.text if obj.notes else '-'
 
-class DeleteForm(colander.MappingSchema):
-    id=colander.SchemaNode(
-        colander.Integer(),
-        widget=deform.widget.HiddenWidget(),missing=None)
+class TemperatureCrudViews(IndividualRecordCRUDView,CRUDView):
 
-def appstruct_to_temperature(dbsession,appstruct,existing_record=None):
-    if existing_record:
-        temperature=existing_record
-    else:
-        temperature=Temperature()
+    model=Temperature
 
-    temperature.temperature=appstruct['temperature']
-    temperature.time=datetime.combine(appstruct['date'],appstruct['time'])
+    schema=SQLAlchemySchemaNode(
+        Temperature,
+        includes=['date','time','temperature',notes_schema],
+        overrides={
+            'notes':{
+                'widget':deform.widget.TextAreaWidget()
+            },
+        }
+    )
+    title='temperature'
+    url_path='/temperature'
+    list_display=['date','time','temperature',notes]
 
-    if appstruct['notes'] is not None:
-        if temperature.notes is None:
-            temperature.notes=Note()
+    def get_list_query(self):
+       query=super(MenstrualCupFillCrudViews,self).get_list_query()
 
-        temperature.notes.date=temperature.time
-        temperature.notes.text=appstruct['notes']
-    else:
-        temperature.notes=None
+       return query.order_by(Temperature.date.desc(), Temperature.time.desc())
 
-    return temperature
+    def dictify(self,obj):
+        """
+        Serialize a MenstrualCupFill object to a dict for CRUD view
+        """
+
+        appstruct=super(TemperatureCrudViews,self).dictify(obj)
+
+        if obj.notes is not None:
+           appstruct['notes']=obj.notes.text
+
+        return appstruct
 
 class TemperatureViews(object):
     def __init__(self,request):
         self.request=request
-
-    def delete_form(self,buttons=['delete','cancel']):
-        schema=DeleteForm().bind(
-            request=self.request
-        )
-
-        return deform.Form(schema,buttons=buttons)
-
-    def temperature_form(self,buttons=['submit']):
-        schema=TemperatureForm().bind(
-            request=self.request
-        )
-
-        return deform.Form(schema,buttons=buttons)
-
-    @view_config(route_name='temperature_add',renderer='../templates/temperature_addedit.jinja2')
-    def temperature_add(self):
-        form=self.temperature_form().render()
-
-        dbsession=self.request.dbsession
-
-        if 'submit' in self.request.params:
-            controls=self.request.POST.items()
-
-            try:
-                appstruct=self.temperature_form().validate(controls)
-            except deform.ValidationFailure as e:
-                return dict(form=e.render(),temperature=None,modified_date=None)
-
-            temperature=appstruct_to_temperature(dbsession,appstruct)
-
-            session_person=self.request.dbsession.query(Person).filter(
-                Person.id==self.request.session['person_id']).one()
-
-            temperature.person=session_person
-
-            dbsession.add(temperature)
-
-            # Flush dbsession so we can get an id assignment
-            dbsession.flush()
-
-            url = self.request.route_url('temperature_list')
-            return HTTPFound(
-                url,
-                content_type='application/json',
-                charset='',
-                text=json.dumps(
-                    {'temperature_id':temperature.id}
-                )
-            )
-
-        return dict(form=form,temperature=None,modified_date=None)
-
-    @view_config(route_name='temperature_edit',renderer='../templates/temperature_addedit.jinja2')
-    def temperature_edit(self):
-        dbsession=self.request.dbsession
-
-        temperature_id=int(self.request.matchdict['temperature_id'])
-        temperature=dbsession.query(Temperature).filter(Temperature.id==temperature_id).one()
-
-        buttons=['submit','delete entry']
-
-        if 'submit' in self.request.params:
-            controls=self.request.POST.items()
-            try:
-                appstruct=self.temperature_form(buttons=buttons).validate(controls)
-            except deform.ValidationFailure as e:
-                return dict(form=e.render())
-
-            temperature=appstruct_to_temperature(dbsession,appstruct,temperature)
-
-            session_person=self.request.dbsession.query(Person).filter(
-                Person.id==self.request.session['person_id']).one()
-
-            temperature.person=session_person
-
-            dbsession.add(temperature)
-            url = self.request.route_url('temperature_list')
-            return HTTPFound(url)
-        elif 'delete_entry' in self.request.params:
-            url=self.request.route_url('temperature_delete',
-                                       temperature_id=temperature.id,
-                                       _query=dict(referrer=self.request.url))
-            return HTTPFound(url)
-
-        form=self.temperature_form(
-            buttons=buttons
-        ).render(dict(
-            id=temperature.id,
-            date=temperature.time.date(),
-            time=temperature.time.time(),
-            temperature=temperature.temperature,
-            notes=temperature.notes.text if temperature.notes else ''
-        ))
-
-        modified_date=temperature.modified_date
-
-        return dict(form=form,temperature=temperature,modified_date=modified_date)
-
-    @view_config(route_name='temperature_delete',renderer='../templates/temperature_delete_confirm.jinja2')
-    def temperature_delete(self):
-        dbsession=self.request.dbsession
-
-        temperature_id=int(self.request.matchdict['temperature_id'])
-        temperature=dbsession.query(Temperature).filter(Temperature.id==temperature_id).one()
-
-        referrer=self.request.params.get('referrer',self.request.referrer)
-        url=referrer if referrer else self.request.route_url('temperature_list')
-
-        if 'delete' in self.request.params:
-            dbsession.delete(temperature)
-            return(HTTPFound(self.request.route_url('temperature_list')))
-        elif 'cancel' in self.request.params:
-            return HTTPFound(url)
-
-        form=self.delete_form().render(dict(id=temperature.id))
-
-        return dict(form=form)
-
-    @view_with_header
-    @view_config(route_name='temperature_list',renderer='../templates/temperature_list.jinja2')
-    def temperature_list(self):
-        current_page = int(self.request.params.get("page",1))
-        session_person=self.request.dbsession.query(Person).filter(
-            Person.id==self.request.session['person_id']).one()
-        entries=self.request.dbsession.query(Temperature).filter(
-            Temperature.person==session_person
-        ).order_by(Temperature.time.desc())
-        page=SqlalchemyOrmPage(entries,page=current_page,items_per_page=30)
-        return dict(
-            entries=entries,page=page
-        )
 
     @view_with_header
     @view_config(route_name='temperature_plot',renderer='../templates/temperature_plot.jinja2')

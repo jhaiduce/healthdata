@@ -365,137 +365,6 @@ class TestTemperature(BaseTest):
         views = TemperatureViews(request)
         info=views.temperature_plot()
 
-    def test_temperature_edit(self):
-        from .views.temperature import TemperatureViews
-        from .models.records import Temperature,Record
-        from datetime import date, datetime
-
-        # Test that a validation error occurs when date and time are left blank
-        request=testing.DummyRequest({
-            'form.submitted':True,
-            'id':'',
-            'date':{'date':''},
-            'time':{'time':''},
-            'temperature':'97.7',
-            'submit':'submit',
-            '_charset_':'UTF-8',
-        },dbsession=self.session)
-        request.session['person_id']=self.person_id
-        views = TemperatureViews(request)
-        info=views.temperature_add()
-        self.assertIsInstance(info,dict)
-
-        request=testing.DummyRequest({
-            'form.submitted':True,
-            'id':'',
-            'date':{'date':'2019-10-29'},
-            'time':{'time':'07:45'},
-            'temperature':'97.7',
-            'submit':'submit',
-            '_charset_':'UTF-8',
-        },dbsession=self.session)
-        request.session['person_id']=self.person_id
-        views = TemperatureViews(request)
-        info=views.temperature_add()
-        records=self.session.query(Temperature).filter(
-            Temperature.time==datetime(2019,10,29,7,45))
-        temperature_id=records.first().id
-        record_count=records.count()
-        self.assertGreater(record_count,0)
-
-        request=testing.DummyRequest({
-            'form.submitted':True,
-            'submit':'submit',
-            '__start__':'date:mapping',
-            'date':'2019-10-29',
-            '__end__':'date:mapping',
-            '__start__':'time:mapping',
-            'time':'07:13',
-            '__end__':'time:mapping',
-            'temperature':'97.7',
-        },dbsession=self.session)
-        request.session['person_id']=self.person_id
-        request.matchdict['temperature_id']=temperature_id
-        edit_url=request.url
-        views = TemperatureViews(request)
-        info=views.temperature_edit()
-        record=self.session.query(Temperature).filter(Temperature.id==temperature_id).one()
-        self.assertEqual(record.temperature,97.7)
-
-        # Test delete button on the edit form
-        request=testing.DummyRequest({
-            'form.submitted':True,
-            'delete_entry':'delete_entry',
-            '__start__':'date:mapping',
-            'date':'2019-10-29',
-            '__end__':'date:mapping',
-            '__start__':'time:mapping',
-            'time':'07:13',
-            '__end__':'time:mapping',
-            'temperature':'97.7',
-        },dbsession=self.session)
-        request.matchdict['temperature_id']=temperature_id
-        edit_url=request.url
-        views = TemperatureViews(request)
-        info=views.temperature_edit()
-        self.assertTrue(isinstance(info,HTTPFound))
-        delete_url=request.route_url('temperature_delete',
-                                     temperature_id=temperature_id,
-                                     _query=dict(referrer=request.url))
-        self.assertEqual(info.location,delete_url)
-
-        # Test cancelling delete
-        request=testing.DummyRequest({
-            'cancel':'cancel'
-        },dbsession=self.session)
-        request.matchdict['temperature_id']=temperature_id
-        request.referrer=edit_url
-        views=TemperatureViews(request)
-        info=views.temperature_delete()
-        self.assertTrue(isinstance(info,HTTPFound))
-        self.assertEqual(info.location,edit_url)
-        self.assertEqual(
-            self.session.query(Temperature).filter(
-                Temperature.id==temperature_id).count(),
-            1)
-        self.assertEqual(
-            self.session.query(Record).filter(
-                Record.id==temperature_id).count(),
-            1)
-
-        # Test deletion
-        request=testing.DummyRequest({
-            'delete':'delete'
-        },dbsession=self.session)
-        request.matchdict['temperature_id']=temperature_id
-        request.referrer=edit_url
-        views=TemperatureViews(request)
-        info=views.temperature_delete()
-        self.assertTrue(isinstance(info,HTTPFound))
-        self.assertEqual(info.location,request.route_url('temperature_list'))
-        self.assertEqual(
-            self.session.query(Temperature).filter(
-                Temperature.id==temperature_id).count(),
-            0)
-        self.assertEqual(
-            self.session.query(Record).filter(
-                Record.id==temperature_id).count(),
-            0)
-
-        request=testing.DummyRequest({
-            'form.submitted':True,
-            'id':'',
-            'date':{'date':''},
-            'time':{'time':''},
-            'temperature':'97.7',
-            'submit':'submit',
-            '_charset_':'UTF-8',
-        },dbsession=self.session)
-        request.session['person_id']=self.person_id
-        views = TemperatureViews(request)
-        info=views.temperature_add()
-        self.assertIsInstance(info,dict)
-
 class AuthenticationTests(BaseTest):
 
     def setUp(self):
@@ -1285,6 +1154,104 @@ class FunctionalTests(unittest.TestCase):
 
         with self.assertRaises(NoResultFound):
             bodymeasurements=session.query(BodyMeasurements).filter(BodyMeasurements.id==bodymeasurements_id).one()
+
+    def test_temperature_addedit(self):
+
+        self.login()
+        from .models import Temperature
+
+        add_url='http://localhost.localdomain/temperature/new'
+        edit_url='http://localhost.localdomain/temperature/{}/edit'
+        delete_confirm_url='http://localhost.localdomain/temperature/{}/delete_confirm'
+        table_url='http://localhost.localdomain/temperature'
+        session=self.get_session()
+
+        resp=self.testapp.post(
+            add_url,
+            params=[
+                ('__start__','time:mapping'),
+                ('date',''),
+                ('time',''),
+                ('__end__','time:mapping'),
+                ('temperature','97.7'),
+                ('save','save')
+            ]
+        )
+        self.assertEqual(resp.status_code,302)
+        temperature_id=json.loads(resp.text)['id']
+        self.assertEqual(resp.location,edit_url.format(temperature_id))
+        temperature=session.query(Temperature).filter(Temperature.id==temperature_id).one()
+        self.assertEqual(temperature.temperature,97.7)
+        self.assertIsNone(temperature.time)
+
+        resp=self.testapp.post(
+            add_url,
+            params=[
+                ('__start__','time:mapping'),
+                ('date','2019-10-29'),
+                ('time','07:45'),
+                ('__end__','time:mapping'),
+                ('temperature','97.7'),
+                ('save','save')
+            ]
+        )
+        self.assertEqual(resp.status_code,302)
+        temperature_id=json.loads(resp.text)['id']
+        self.assertEqual(resp.location,edit_url.format(temperature_id))
+        temperature=session.query(Temperature).filter(Temperature.id==temperature_id).one()
+        self.assertEqual(temperature.temperature,97.7)
+        self.assertEqual(temperature.time,datetime(2019,10,29,7,45))
+
+        resp=self.testapp.post(
+            edit_url.format(temperature_id),
+            params=[
+                ('__start__','time:mapping'),
+                ('date','2019-10-29'),
+                ('time','07:13'),
+                ('__end__','time:mapping'),
+                ('temperature','97.4'),
+                ('save','save')
+            ]
+        )
+        self.assertEqual(resp.status_code,302)
+        self.assertEqual(resp.location,edit_url.format(temperature_id))
+        session.flush()
+        transaction.commit()
+        temperature=session.query(Temperature).filter(Temperature.id==temperature_id).one()
+        self.assertEqual(temperature.temperature,97.4)
+        self.assertEqual(temperature.time,datetime(2019,10,29,7,13))
+
+        resp=self.testapp.get(table_url)
+        self.assertEqual(resp.status_code,200)
+
+        resp=self.testapp.post(
+            edit_url.format(temperature_id),
+            params=[
+                ('__start__','time:mapping'),
+                ('date','2019-10-29'),
+                ('time','07:13'),
+                ('__end__','time:mapping'),
+                ('temperature','97.4'),
+                ('delete','delete')
+            ]
+        )
+        self.assertEqual(resp.status_code,302)
+        from urllib.parse import quote
+
+        delete_confirm_url=delete_confirm_url.format(temperature_id)+'?referrer='+quote(edit_url.format(temperature_id),'')
+
+        self.assertEqual(resp.location,delete_confirm_url)
+        resp=self.testapp.post(
+            delete_confirm_url.format(temperature_id),
+            params=[
+                ('delete','delete')
+        ])
+
+        session.flush()
+        transaction.commit()
+
+        with self.assertRaises(NoResultFound):
+            temperature=session.query(Temperature).filter(Temperature.id==temperature_id).one()
 
     def test_blood_pressure_addedit(self):
         self.login()
