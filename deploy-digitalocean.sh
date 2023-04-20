@@ -53,6 +53,8 @@ rsync -avz -e "docker-machine ssh $host_prefix-master" $transfer_files :
 
 docker-machine ssh $host_prefix-master mkdir -p nginx/ssl
 
+openssl rsa -in nginx/ssl_production/privkey.pem -out nginx/ssl_production/privkeyrsa.pem
+
 rsync -avz -e "docker-machine ssh $host_prefix-master" nginx/*.conf :nginx
 
 rsync -avz -e "docker-machine ssh $host_prefix-master" nginx/ssl_production/*.pem :nginx/ssl
