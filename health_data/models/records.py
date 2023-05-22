@@ -132,6 +132,20 @@ def get_time_from_datetime(datetime_str):
 
     return result_str
 
+def unix_timestamp(time_str):
+
+    from sqlalchemy.dialects import sqlite
+
+    if time_str is None: return None
+
+    try:
+        inp_time=sqlite.DATETIME().result_processor(sqlite,sqlite.DATETIME())(time_str)
+        return inp_time.timestamp()
+    except:
+        if sqlite_trace_on_exception:
+            import pdb; pdb.set_trace()
+        raise
+
 def time_to_sec(time_str):
     from sqlalchemy.dialects import sqlite
 
@@ -164,6 +178,7 @@ def register_functions(conn, connection_record):
         conn.create_function("subtime", 2, subtime)
         conn.create_function("time", 1, get_time_from_datetime)
         conn.create_function("time_to_sec", 1, time_to_sec)
+        conn.create_function("unix_timestamp", 1, unix_timestamp)
         conn.create_function("timediff", 2, timediff)
         conn.create_function("power", 2, math.pow)
 
