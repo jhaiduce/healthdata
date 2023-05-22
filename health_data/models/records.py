@@ -366,18 +366,153 @@ class HeightWeight(TimestampedRecord,IndividualRecord,Record):
         return nearest_height
 
     @hybrid_property
+    def last_height(self):
+
+        other=aliased(HeightWeight)
+
+        try:
+            last_height=object_session(self).query(
+                other.id, other.person_id, other.time, other.height
+            ).filter(
+                other.height!=None, other.person == self.person,
+                func.unix_timestamp(other.time) <= func.unix_timestamp(self.time)
+            ).having(
+                func.unix_timestamp(other.time)==func.max(func.unix_timestamp(other.time))
+            ).group_by(other.id).one()
+        except sa.orm.exc.NoResultFound:
+            last_height=None
+
+        return last_height
+
+    @last_height.expression
+    def last_height(cls):
+
+        last_row=aliased(cls)
+
+        last_height=sa.select([
+            cls.id.label('last_id'),
+            last_row.height.label('last_height'),
+            last_row.time.label('last_time')
+        ]).where(
+            func.unix_timestamp(last_row.time)<=func.unix_timestamp(cls.time)
+        ).where(
+            last_row.height!=None
+        ).where(
+            last_row.person_id==cls.person_id
+        ).having(
+            func.unix_timestamp(last_row.time)==func.max(func.unix_timestamp(last_row.time))
+        ).group_by(
+            cls.id
+        )
+
+        return last_height
+
+    @hybrid_property
+    def next_height(self):
+
+        other=aliased(HeightWeight)
+
+        try:
+            next_height=object_session(self).query(
+                other.id, other.person_id, other.time, other.height
+            ).filter(other.height!=None, other.person == self.person,
+                     func.unix_timestamp(other.time) >= func.unix_timestamp(self.time)).having(func.unix_timestamp(other.time)==func.max(func.unix_timestamp(other.time))).group_by(other.id).one()
+        except sa.orm.exc.NoResultFound:
+            next_height=None
+
+        return next_height
+
+    @next_height.expression
+    def next_height(cls):
+
+        next_row=aliased(cls)
+
+        next_height=sa.select([
+            cls.id.label('next_id'),
+            next_row.height.label('next_height'),
+            next_row.time.label('next_time')
+        ]).where(
+            func.unix_timestamp(next_row.time)>=func.unix_timestamp(cls.time)
+        ).where(
+            next_row.height!=None
+        ).where(
+            next_row.person_id==cls.person_id
+        ).having(
+            func.unix_timestamp(next_row.time)==func.min(func.unix_timestamp(next_row.time))
+        ).group_by(
+            cls.id
+        )
+
+        return next_height
+
+    @hybrid_property
+    def interpolated_height(self):
+
+        if self.height is not None:
+            return self.height
+
+        next_height=self.next_height
+        last_height=self.last_height
+
+        if next_height is None: return last_height.height
+        if last_height is None: return next_height.height
+        if last_height.time==next_height.time:
+            return (last_height.height+next_height.height)/2
+
+        return last_height.height + (next_height.height - last_height.height)*(self.time - last_height.time)/(next_height.time - last_height.time)
+
+    @interpolated_height.expression
+    def interpolated_height(cls):
+
+        last_row=aliased(cls)
+        next_row=aliased(cls)
+
+        next_height=cls.next_height.expression
+        last_height=cls.last_height.expression
+
+        interpolated_height=sa.select([
+            sa.case(
+                [
+                    (
+                        last_height.c.last_time==next_height.c.next_time and last_height.c.last_height!=None and next_height.c.next_height!=None,
+                        (last_height.c.last_height+next_height.c.next_height)/2
+                    ),
+                    (
+                        last_height.c.last_height==None,
+                        next_height.c.next_height
+                    ),
+                    (
+                        next_height.c.next_height==None,
+                        last_height.c.last_height
+                    )
+                ],
+                else_=(
+                    last_height.c.last_height +
+                    (next_height.c.next_height - last_height.c.last_height)
+                    *func.time_to_sec(func.timediff(cls.time, last_height.c.last_time))
+                    /func.time_to_sec(func.timediff(next_height.c.next_time,last_height.c.last_time))
+                )).label('interpolated_height')
+        ]).where(
+            last_height.c.last_id==cls.id
+        ).where(
+            next_height.c.next_id==cls.id
+        )
+
+        return interpolated_height
+
+    @hybrid_property
     def bmi(self):
 
-        nearest_height=self.nearest_height
+        interpolated_height=self.interpolated_height
 
-        if self.weight is None or nearest_height is None: return None
+        if self.weight is None or interpolated_height is None: return None
 
-        return self.weight/(nearest_height*0.0254)**2
+        return self.weight/(interpolated_height*0.0254)**2
 
     @bmi.expression
     def bmi(cls):
 
-        return cls.weight/func.power((cls.nearest_height*0.0254),2)
+        return cls.weight/func.power((cls.interpolated_height.c.interpolated_height*0.0254),2)
 
 class BodyMeasurements(TimestampedRecord,IndividualRecord,Record):
 
