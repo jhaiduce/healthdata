@@ -165,6 +165,14 @@ def time_to_sec(time_str):
 
     return result
 
+def math_wrapper(func):
+
+    def wrapper(*args):
+        if None in args: return None
+        return func(*args)
+
+    return wrapper
+
 @sa.event.listens_for(sa.engine.Engine,'connect')
 def register_functions(conn, connection_record):
     from sqlite3 import Connection as sqliteConnection
@@ -180,7 +188,7 @@ def register_functions(conn, connection_record):
         conn.create_function("time_to_sec", 1, time_to_sec)
         conn.create_function("unix_timestamp", 1, unix_timestamp)
         conn.create_function("timediff", 2, timediff)
-        conn.create_function("power", 2, math.pow)
+        conn.create_function("power", 2, math_wrapper(math.pow))
 
 class Record(Base):
 
