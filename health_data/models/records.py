@@ -390,7 +390,7 @@ class HeightWeight(TimestampedRecord,IndividualRecord,Record):
         last_row=aliased(cls)
 
         last_height=sa.select([
-            cls.id.label('last_id'),
+            last_row.id.label('last_id'),
             last_row.height.label('last_height'),
             last_row.time.label('last_time')
         ]).where(
@@ -403,7 +403,7 @@ class HeightWeight(TimestampedRecord,IndividualRecord,Record):
             func.unix_timestamp(last_row.time)==func.max(func.unix_timestamp(last_row.time))
         ).group_by(
             cls.id
-        )
+        ).correlate(cls)
 
         return last_height
 
@@ -441,7 +441,7 @@ class HeightWeight(TimestampedRecord,IndividualRecord,Record):
             func.unix_timestamp(next_row.time)==func.min(func.unix_timestamp(next_row.time))
         ).group_by(
             cls.id
-        )
+        ).correlate(cls)
 
         return next_height
 
@@ -467,8 +467,8 @@ class HeightWeight(TimestampedRecord,IndividualRecord,Record):
         last_row=aliased(cls)
         next_row=aliased(cls)
 
-        next_height=cls.next_height.expression
-        last_height=cls.last_height.expression
+        next_height=cls.next_height
+        last_height=cls.last_height
 
         interpolated_height=sa.select([
             sa.case(
@@ -496,7 +496,7 @@ class HeightWeight(TimestampedRecord,IndividualRecord,Record):
             last_height.c.last_id==cls.id
         ).where(
             next_height.c.next_id==cls.id
-        )
+        ).correlate(cls).as_scalar()
 
         return interpolated_height
 
@@ -512,7 +512,7 @@ class HeightWeight(TimestampedRecord,IndividualRecord,Record):
     @bmi.expression
     def bmi(cls):
 
-        return cls.weight/func.power((cls.interpolated_height.c.interpolated_height*0.0254),2)
+        return cls.weight/func.power((cls.interpolated_height*0.0254),2)
 
 class BodyMeasurements(TimestampedRecord,IndividualRecord,Record):
 
