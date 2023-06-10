@@ -59,7 +59,7 @@ class HeightWeightCrudViews(IndividualRecordCRUDView,CRUDView):
    title='Height and weight'
    csv_filename='height_weight.csv'
    url_path = '/height_weight'
-   list_display=('time','weight','height',bmi,notes)
+   list_display=('time','weight','height',notes)
 
    def get_list_query(self):
        query=super(HeightWeightCrudViews,self).get_list_query()
@@ -67,7 +67,7 @@ class HeightWeightCrudViews(IndividualRecordCRUDView,CRUDView):
        query=query.with_entities(
           HeightWeight.id,
           HeightWeight.time,HeightWeight.weight,
-          HeightWeight.height,HeightWeight.bmi,Note.text)
+          HeightWeight.height,Note.text)
 
        return query.order_by(HeightWeight.time.desc())
 
@@ -103,7 +103,7 @@ class HeightWeightViews(object):
         session_person=dbsession.query(Person).filter(
             Person.id==self.request.session['person_id']).first()
         query=dbsession.query(HeightWeight).with_entities(
-           HeightWeight.time, HeightWeight.weight, HeightWeight.height, HeightWeight.bmi
+           HeightWeight.time, HeightWeight.weight, HeightWeight.height,
         ).filter(
             HeightWeight.person==session_person
         ).order_by(HeightWeight.time)
@@ -124,7 +124,7 @@ class HeightWeightViews(object):
                       'type':'scatter',
                       'mode':'lines+markers',
                       'name':'Weight',
-                      'yaxis':'y3'
+                      'yaxis':'y2'
                    },
                    {
                       'x':list(dates),
@@ -132,15 +132,8 @@ class HeightWeightViews(object):
                       'type':'scatter',
                       'mode':'lines+markers',
                       'name':'Height',
-                      'yaxis':'y2'
-                   },
-                   {
-                      'x':list(dates),
-                      'y':list(weights.bmi),
-                      'type':'scatter',
-                      'mode':'lines+markers',
-                     'name':'BMI'
-                   },
+                      'yaxis':'y1'
+                   }
                 ],
                 'layout':{
                     'margin':{
@@ -151,26 +144,19 @@ class HeightWeightViews(object):
                         'pad':2,
                     },
                     'plot_bgcolor': '#E5ECF6',
-                    'yaxis3':{
+                    'yaxis2':{
                         **default_axis_style,
                         'title':{
                             'text':'Weight (kg)'
                         },
                        'domain':[0.6,1]
                     },
-                    'yaxis2':{
+                    'yaxis':{
                         **default_axis_style,
                         'title':{
                             'text':'Height (in)'
                         },
                        'domain':[0.32,0.56]
-                    },
-                    'yaxis':{
-                        **default_axis_style,
-                        'title':{
-                            'text':'BMI (kg/m<sup>2</sup>)'
-                        },
-                       'domain':[0,0.28]
                     },
                     "xaxis": {
                         'range': get_axis_range(weights['time'],
