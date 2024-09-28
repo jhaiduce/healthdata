@@ -18,6 +18,10 @@ sudo docker-compose -f docker-compose.yml build
 
 sudo docker-compose -f docker-compose.yml push
 
+if [ ! -f etc/letsencrypt/options-ssl-nginx.conf ]; then
+    curl -L --create-dirs -o etc/letsencrypt/options-ssl-nginx.conf https://raw.githubusercontent.com/certbot/certbot/master/certbot-nginx/certbot_nginx/_internal/tls_configs/options-ssl-nginx.conf
+fi
+
 if [ $(docker-machine ls -q|grep -c $host_prefix-master) -eq "0" ]; then
   docker-machine create --driver digitalocean \
 		 --digitalocean-size=$node_size \
@@ -56,6 +60,7 @@ docker-machine ssh $host_prefix-master mkdir -p nginx/ssl
 openssl rsa -in nginx/ssl_production/privkey.pem -out nginx/ssl_production/privkeyrsa.pem
 
 rsync -avz -e "docker-machine ssh $host_prefix-master" nginx/*.conf :nginx
+rsync -avz -e "docker-machine ssh $host_prefix-master" etc :
 
 rsync -avz -e "docker-machine ssh $host_prefix-master" nginx/ssl_production/*.pem :nginx/ssl
 
@@ -101,7 +106,7 @@ else
 fi
 
 # Deploy the stack
-docker-machine ssh $host_prefix-master SSL_CHECKSUM=${SSL_CHECKSUM} docker stack deploy -c docker-compose.yml ${stack_name}
+docker-machine ssh $host_prefix-master SSL_CHECKSUM=${SSL_CHECKSUM} DOMAIN=healthdata.haiducekcannon.site EMAIL=jhaiduce@gmail.com NGINX_UID=101 docker stack deploy -c docker-compose.yml ${stack_name}
 
 # Delete the migration service (in case it still exists from a previous execution)
 if docker-machine ssh $host_prefix-master docker service rm ${stack_name}_migration; then :; fi
