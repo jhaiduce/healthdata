@@ -2,6 +2,6 @@
 plugin_load_add=file_key_management
 file_key_management_filename = /etc/mysql/encryption/keyfile
 file_key_management_encryption_algorithm = AES_CTR
-ssl_cert=/etc/my.cnf.d/certificates/server-cert.pem
-ssl_key=/etc/my.cnf.d/certificates/server-key.pem
+ssl_cert=/etc/letsencrypt/live/healthdata.haiducekcannon.site/fullchain.pem
+ssl_key=/etc/letsencrypt/live/healthdata.haiducekcannon.site/privkey.pem
 ssl_ca=/etc/my.cnf.d/certificates/ca.pem
