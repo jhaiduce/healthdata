@@ -33,14 +33,14 @@ services:
     ports:
       - 3306:3306
 
-  mariadb_cert_reload:
+  db_cert_reload:
     image: mariadb
     deploy:
       restart_policy:
         condition: any
         delay: 12h
     depends_on:
-      - mariadb
+      - db
     entrypoint: /bin/sh -c 'printf "[client]\npassword=$$(cat /run/secrets/MYSQL_ROOT_PASSWORD)\n" > /my_root.cnf && echo "FLUSH SSL" > mysql --defaults-extra-file /my_root.cnf'
     environment:
       MYSQL_ROOT_PASSWORD_FILE: /run/secrets/mysql_root_password
