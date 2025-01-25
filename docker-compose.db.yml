@@ -1,7 +1,7 @@
 version: '3.7'
 services:
   db:
-    image: mariadb:11.2.2-jammy
+    image: mariadb:11.3.2-jammy
     environment:
       MYSQL_ROOT_PASSWORD_FILE: /run/secrets/mysql_root_password
     volumes:
@@ -23,6 +23,6 @@ services:
       - source: mysql_ca
         target: /etc/my.cnf.d/certificates/ca.pem
       - source: mysql_cert
-        target: /etc/my.cnf.d/certificates/server-cert.pem
+        target: /etc/letsencrypt/live/healthdata.haiducekcannon.site/fullchain.pem
       - source: mysql_key
-        target: /etc/my.cnf.d/certificates/server-key.pem
+        target: /etc/letsencrypt/live/healthdata.haiducekcannon.site/privkey.pem
