@@ -8,6 +8,6 @@ sudo docker compose -f docker-compose.test_secrets.yml -f docker-compose.db.yml 
 exitcode=$(sudo docker wait healthdata_ci-migration-1)
 
 # Print migration logs
-sudo docker logs healthdata_ci-migration-1
+sudo docker logs -n 1000 healthdata_ci-migration-1
 
 exit $exitcode
