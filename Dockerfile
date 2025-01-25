@@ -1,4 +1,4 @@
-FROM python:3.8.6-slim-buster
+FROM python:3.9.21-slim-bookworm
 
 WORKDIR /app
 
@@ -30,7 +30,7 @@ RUN adduser --system --shell /bin/sh --no-create-home --group appuser
 
 RUN apt -y install libcap2-bin
 
-RUN setcap CAP_NET_BIND_SERVICE=+eip /usr/local/bin/python3.8
+RUN setcap CAP_NET_BIND_SERVICE=+eip /usr/local/bin/python3.9
 
 USER appuser
 
