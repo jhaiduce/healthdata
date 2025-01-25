@@ -6,8 +6,8 @@ export VENV=`pwd`/../venv
 
 # Kill running containers
 sudo docker kill healthdata_web
-sudo docker kill healthdata_ci_sut_1
-sudo docker kill healthdata_ci_migration_1
+sudo docker kill healthdata_ci-sut-1
+sudo docker kill healthdata_ci-migration-1
 
 sandbox_files=("mysql-config-healthdata.cnf" "integration_test_secrets")
 
@@ -34,4 +34,4 @@ sudo docker compose -f docker-compose.test_secrets.yml -f docker-compose.web.yml
 sudo docker compose -f docker-compose.test_secrets.yml -f docker-compose.web.yml -f docker-compose.db.yml -f docker-compose.test.yml -p healthdata_ci up --remove-orphans -d
 
 # Print test logs
-sudo docker logs -f healthdata_ci_sut_1
+sudo docker logs -f healthdata_ci-sut-1
