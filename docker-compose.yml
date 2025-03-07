@@ -110,8 +110,8 @@ services:
         delay: 12h
     depends_on:
       - nginx
-    entrypoint: /bin/sh -c "apk add acl && certbot certonly --reinstall --webroot --webroot-path=/var/www/certbot
-             --email ${EMAIL} --agree-tos --no-eff-email -d ${DOMAIN}
+    entrypoint: /bin/sh -c "apk add acl && if [ -d /etc/letsencrypt/live/${DOMAIN} ]; then certbot renew; else certbot certonly --reinstall --webroot --webroot-path=/var/www/certbot
+             --email ${EMAIL} --agree-tos --no-eff-email -d ${DOMAIN}; fi
              && chown root:${NGINX_UID} /etc/letsencrypt/live /etc/letsencrypt/archive; chmod 750 /etc/letsencrypt/live /etc/letsencrypt/archive && chown root:${NGINX_UID} /etc/letsencrypt/archive/${DOMAIN}/privkey*.pem && chmod 640 /etc/letsencrypt/archive/${DOMAIN}/privkey*.pem && setfacl -m g:999:r-- /etc/letsencrypt/archive/${DOMAIN}/privkey*.pem && setfacl -m g:999:r-x /etc/letsencrypt/live /etc/letsencrypt/archive"
     volumes:
       - letsencrypt_conf:/etc/letsencrypt
